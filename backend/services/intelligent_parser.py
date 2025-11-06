@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
-CACHE_VERSION = "v21"  # Increment when cache format changes (v21: fix detection of "for the next X months" patterns and preserve recurrence_count for explicit durations)
+CACHE_VERSION = "v23"  # Increment when cache format changes (v23: fix quarterly events and "first Monday of [month] [year]" date parsing)
 
 
 class IntelligentEventParser:
@@ -217,6 +217,14 @@ class IntelligentEventParser:
             # Get recurrence type as string value
             recurrence_type = event.recurrence_type.value if isinstance(event.recurrence_type, RecurrenceType) else str(event.recurrence_type or "none").lower()
 
+            # Check for quarterly patterns and convert to monthly with interval=3
+            text_lower_for_quarter = original_text.lower()
+            has_quarterly = bool(re.search(r'\b(every|each)\s+quarter\b', text_lower_for_quarter))
+            if has_quarterly:
+                # Convert quarterly to monthly with interval=3
+                recurrence_type = "monthly"
+                logger.info(f"Detected quarterly pattern, converting to monthly with interval=3: '{original_text}'")
+
             # Derive recurrence_type from notes if missing
             if recurrence_type == "none" and event.notes:
                 notes_lower = event.notes.lower()
@@ -284,7 +292,11 @@ class IntelligentEventParser:
                     logger.warning(f"Failed to infer recurrence_count from end_date: {e}")
 
             # Ensure valid recurrence_interval
-            recurrence_interval = event.recurrence_interval or 1
+            # If quarterly pattern detected, set interval to 3
+            if has_quarterly:
+                recurrence_interval = 3
+            else:
+                recurrence_interval = event.recurrence_interval or 1
 
             # Convert recurrence_type back to enum
             recurrence_enum = RecurrenceType(recurrence_type) if recurrence_type else RecurrenceType.NONE
@@ -292,14 +304,136 @@ class IntelligentEventParser:
             # Log for debugging
             logger.info(f"Before indefinite check: recurrence_enum={recurrence_enum}, recurrence_count={recurrence_count}, end_date={event.end_date}, original_text='{original_text}'")
 
-            # First, check for month range patterns and adjust start_time if needed
+            # First, check for quarterly patterns and adjust start_time if needed
+            # Then check for month range patterns and adjust start_time if needed
             # This should run regardless of whether end_date is set or not
             try:
                 text_lower_check = original_text.lower()
+                
+                # Check for quarterly patterns (e.g., "first Monday of every quarter")
+                has_quarterly_check = bool(re.search(r'\b(every|each)\s+quarter\b', text_lower_check))
+                if has_quarterly_check and recurrence_enum != RecurrenceType.NONE:
+                    logger.info(f"Quarterly pattern detected, adjusting start_time: '{original_text}'")
+                    import dateparser
+                    import calendar
+                    from datetime import datetime as _dt, timedelta, timezone
+                    # Determine target weekday from original text
+                    weekday_match = re.search(r'\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b', text_lower_check)
+                    weekday = weekday_match.group(1) if weekday_match else None
+                    logger.info(f"Extracted weekday for quarterly: {weekday} from text: '{original_text}'")
+                    
+                    if weekday:
+                        # Find the first Monday of the next quarter
+                        # Quarters: Q1 (Jan-Mar), Q2 (Apr-Jun), Q3 (Jul-Sep), Q4 (Oct-Dec)
+                        now = _dt.now()
+                        current_quarter = (now.month - 1) // 3 + 1
+                        next_quarter = current_quarter + 1
+                        if next_quarter > 4:
+                            next_quarter = 1
+                            target_year = now.year + 1
+                        else:
+                            target_year = now.year
+                        
+                        # First month of next quarter
+                        quarter_start_months = {1: 1, 2: 4, 3: 7, 4: 10}  # Jan, Apr, Jul, Oct
+                        target_month = quarter_start_months[next_quarter]
+                        
+                        # Extract time component from start_time string
+                        time_str = None
+                        time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', str(event.start_time).lower())
+                        if time_match:
+                            hour = int(time_match.group(1))
+                            minute = int(time_match.group(2)) if time_match.group(2) else 0
+                            ampm = time_match.group(3).lower() if time_match.group(3) else None
+                            # Convert to 12-hour format string
+                            if ampm:
+                                if ampm == 'pm' and hour != 12:
+                                    hour += 12
+                                elif ampm == 'am' and hour == 12:
+                                    hour = 0
+                            # Format as "10am" or "10:30am"
+                            if minute > 0:
+                                time_str = f"{hour % 12 or 12}:{minute:02d}{ampm or ('pm' if hour >= 12 else 'am')}"
+                            else:
+                                time_str = f"{hour % 12 or 12}{ampm or ('pm' if hour >= 12 else 'am')}"
+                        
+                        # If regex didn't find time, try parsing with dateparser as fallback
+                        if not time_str:
+                            start_dt = dateparser.parse(str(event.start_time))
+                            if start_dt:
+                                time_str = start_dt.strftime('%I:%M %p').lstrip('0').replace(':00 ', ' ').lower()
+                        
+                        # Determine ordinal (first, second, third, fourth, last)
+                        ordinal_match = re.search(r'\b(first|second|third|fourth|last)\b', text_lower_check)
+                        ordinal_str = ordinal_match.group(1).lower() if ordinal_match else "first"
+                        ordinal_map = {"first": 0, "second": 1, "third": 2, "fourth": 3, "last": -1}
+                        ordinal = ordinal_map.get(ordinal_str, 0)
+                        
+                        # Calculate the ordinal weekday in the target month
+                        weekday_index = {
+                            'monday':0,'tuesday':1,'wednesday':2,'thursday':3,
+                            'friday':4,'saturday':5,'sunday':6
+                        }[weekday]
+                        
+                        if ordinal == -1:  # Last
+                            # Find last occurrence
+                            if target_month == 12:
+                                last_day = 31
+                            elif target_month in [4, 6, 9, 11]:
+                                last_day = 30
+                            elif target_month == 2:
+                                if (target_year % 4 == 0 and target_year % 100 != 0) or (target_year % 400 == 0):
+                                    last_day = 29
+                                else:
+                                    last_day = 28
+                            else:
+                                last_day = 31
+                            # Use UTC timezone for calculation, will be converted later
+                            first_of_month = _dt(target_year, target_month, last_day, tzinfo=timezone.utc)
+                            while first_of_month.weekday() != weekday_index:
+                                first_of_month -= timedelta(days=1)
+                            target_date = first_of_month
+                        else:
+                            # Find first occurrence, then add weeks
+                            first_of_month = _dt(target_year, target_month, 1, tzinfo=timezone.utc)
+                            days_until_first = (weekday_index - first_of_month.weekday()) % 7
+                            first_occurrence = first_of_month + timedelta(days=days_until_first)
+                            target_date = first_occurrence + timedelta(weeks=ordinal)
+                        
+                        # Apply time
+                        if time_str:
+                            time_match2 = re.search(r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', time_str.lower())
+                            if time_match2:
+                                hour = int(time_match2.group(1))
+                                minute = int(time_match2.group(2)) if time_match2.group(2) else 0
+                                ampm = time_match2.group(3).lower() if time_match2.group(3) else None
+                                if ampm:
+                                    if ampm == 'pm' and hour != 12:
+                                        hour += 12
+                                    elif ampm == 'am' and hour == 12:
+                                        hour = 0
+                                target_date = target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        
+                        # Format new start_time
+                        month_names = ['January','February','March','April','May','June',
+                                      'July','August','September','October','November','December']
+                        month_name = month_names[target_month - 1]
+                        new_start = f"{ordinal_str.capitalize()} {weekday.capitalize()} of {month_name} {target_year}"
+                        if time_str:
+                            new_start += f" at {time_str}"
+                        logger.info(f"Adjusting start_time for quarterly pattern: '{event.start_time}' -> '{new_start}'")
+                        if hasattr(event, 'model_copy'):
+                            event = event.model_copy(update={"start_time": new_start})
+                        else:
+                            event = event.copy(update={"start_time": new_start})
+                
+                # Check for month range patterns
                 # Check for "for the whole of [month]" or "for [month]" or "during [month]" patterns
+                # Also check for "for next month" or "for this month" (finite duration)
                 # Also check if end_date contains a month name (indicates month range)
                 has_month_range_check = bool(re.search(r'\bfor\s+(the\s+whole\s+of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower_check)) or \
                                          bool(re.search(r'\bduring\s+(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower_check)) or \
+                                         bool(re.search(r'\bfor\s+(next|this)\s+month\b', text_lower_check)) or \
                                          (isinstance(event.end_date, str) and bool(re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', event.end_date.lower())))
                 
                 if has_month_range_check and recurrence_enum != RecurrenceType.NONE:
@@ -321,10 +455,29 @@ class IntelligentEventParser:
                             month = m.group(1)
                             logger.info(f"Extracted month from end_date: {month}")
                     if not month:
-                        m = re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', text_lower_check)
-                        if m:
-                            month = m.group(1)
-                            logger.info(f"Extracted month from text: {month}")
+                        # Check for "for next month" or "for this month"
+                        next_month_match = re.search(r'\bfor\s+next\s+month\b', text_lower_check)
+                        this_month_match = re.search(r'\bfor\s+this\s+month\b', text_lower_check)
+                        if next_month_match or this_month_match:
+                            # Calculate the target month
+                            now = _dt.now()
+                            if next_month_match:
+                                if now.month == 12:
+                                    target_month_num = 1
+                                else:
+                                    target_month_num = now.month + 1
+                            else:  # this month
+                                target_month_num = now.month
+                            month_names = ['january','february','march','april','may','june',
+                                          'july','august','september','october','november','december']
+                            month = month_names[target_month_num - 1]
+                            logger.info(f"Extracted month from 'for next/this month': {month}")
+                        else:
+                            # Try to find month name in text
+                            m = re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', text_lower_check)
+                            if m:
+                                month = m.group(1)
+                                logger.info(f"Extracted month from text: {month}")
 
                     if weekday and month:
                         # Extract time component from start_time string using regex (more reliable)
@@ -408,9 +561,11 @@ class IntelligentEventParser:
                                         bool(re.search(r'\bnext\s+(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?|years?)', text_lower))
                     has_until = bool(re.search(r'\buntil\s+', text_lower))
                     # Check for "for the whole of [month]" or "for [month]" or "during [month]" patterns
+                    # Also check for "for next month" or "for this month" (finite duration)
                     # Also check if end_date contains a month name (indicates month range)
                     has_month_range = bool(re.search(r'\bfor\s+(the\s+whole\s+of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower)) or \
                                      bool(re.search(r'\bduring\s+(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower)) or \
+                                     bool(re.search(r'\bfor\s+(next|this)\s+month\b', text_lower)) or \
                                      (isinstance(event.end_date, str) and bool(re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', event.end_date.lower())))
                     
                     # Check for finite patterns that should preserve the count (e.g., "this week", "next week", "this weekend")
@@ -430,10 +585,43 @@ class IntelligentEventParser:
                     # If it has a month range pattern (like "for the whole of December"), it's NOT indefinite
                     elif has_month_range:
                         logger.info(f"Month range pattern detected, ensuring end_date is set: '{original_text}'")
-                        # If LLM didn't set end_date, we should set it, but that's handled elsewhere
-                        # Just don't treat it as indefinite
+                        # If LLM didn't set end_date, try to set it based on the pattern
                         if event.end_date is None:
-                            logger.warning(f"Month range pattern detected but end_date is None - LLM should have set it: '{original_text}'")
+                            # Check for "for next month" or "for this month" patterns
+                            next_month_match = re.search(r'\bfor\s+next\s+month\b', text_lower)
+                            this_month_match = re.search(r'\bfor\s+this\s+month\b', text_lower)
+                            
+                            if next_month_match or this_month_match:
+                                # Determine target month
+                                from datetime import datetime as _dt
+                                now = _dt.now()
+                                if next_month_match:
+                                    if now.month == 12:
+                                        target_month = 1
+                                        target_year = now.year + 1
+                                    else:
+                                        target_month = now.month + 1
+                                        target_year = now.year
+                                else:  # this month
+                                    target_month = now.month
+                                    target_year = now.year
+                                
+                                # Find the weekday from the text
+                                weekday_match = re.search(r'\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b', text_lower)
+                                if weekday_match:
+                                    weekday = weekday_match.group(1)
+                                    # Set end_date to last occurrence of that weekday in the target month
+                                    month_names = ['january','february','march','april','may','june',
+                                                  'july','august','september','october','november','december']
+                                    month_name = month_names[target_month - 1]
+                                    end_date_str = f"last {weekday} of {month_name}"
+                                    logger.info(f"Setting end_date for 'for next/this month' pattern: '{end_date_str}'")
+                                    if hasattr(event, 'model_copy'):
+                                        event = event.model_copy(update={"end_date": end_date_str})
+                                    else:
+                                        event = event.copy(update={"end_date": end_date_str})
+                            else:
+                                logger.warning(f"Month range pattern detected but end_date is None - LLM should have set it: '{original_text}'")
                         # Note: start_time adjustment is now handled above, before this block
                     # If it looks like indefinite recurring event, ensure count is None
                     # This handles both cases: when LLM incorrectly sets a count, or when count is already None
@@ -576,6 +764,7 @@ Instructions:
      - For recurring activities (without trip/vacation keywords): recurrence_type "daily", start_time to first DATE, end_date to second DATE
        * Example: "Daily meetings from Monday - Friday" → recurrence_type: "daily", start_time: "next Monday", end_date: "next Friday"
     - "first Monday of each month" or "last Friday of each month": recurrence_type "monthly", start_time = next matching date at the specified time, recurrence_interval = 1
+    - "first Monday of every quarter" or "last Friday of each quarter": recurrence_type "monthly", start_time = first matching date in next quarter (January, April, July, or October) at the specified time, recurrence_interval = 3 (every 3 months)
     - "for the whole week" or "for the entire week" or "all week" or "for the whole of next week": recurrence_type "daily", recurrence_count = 7 (full week Mon-Sun)
     - "for next week" (without "whole" or "every day"): recurrence_type "daily", start_time = first day of next week, recurrence_count = 5 (weekdays only)
     - "this week" or "every day this week" or "every day next week": recurrence_type "daily", recurrence_count = 7 (full week Mon-Sun)

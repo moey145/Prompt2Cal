@@ -92,7 +92,84 @@ class DateParser:
         try:
             now = datetime.now(local_tz)
             original_string = date_string
-            date_string = date_string.lower().strip()
+            date_string_lower = date_string.lower().strip()
+            
+            # Handle "first/second/third/fourth/last [weekday] of [month] [year]" patterns FIRST (e.g., "first Monday of January 2026 at 10am")
+            # This is more specific than the "every month" pattern, so check it first
+            ordinal_month_year_match = re.search(r'(first|second|third|fourth|1st|2nd|3rd|4th|last)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+of\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{4})(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string_lower, re.IGNORECASE)
+            if ordinal_month_year_match:
+                ordinal_str = ordinal_month_year_match.group(1).lower()
+                weekday_str = ordinal_month_year_match.group(2).lower()
+                month_name = ordinal_month_year_match.group(3).lower()
+                year = int(ordinal_month_year_match.group(4))
+                
+                # Normalize ordinal
+                ordinal_map = {"first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2, "fourth": 3, "4th": 3, "last": -1}
+                ordinal = ordinal_map.get(ordinal_str, 0)
+                
+                # Map weekday names to numbers
+                weekday_map = {
+                    'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3,
+                    'friday': 4, 'saturday': 5, 'sunday': 6
+                }
+                target_weekday = weekday_map[weekday_str]
+                
+                # Map month names to numbers
+                month_map = {
+                    'january': 1, 'jan': 1, 'february': 2, 'feb': 2,
+                    'march': 3, 'mar': 3, 'april': 4, 'apr': 4,
+                    'may': 5, 'june': 6, 'jun': 6,
+                    'july': 7, 'jul': 7, 'august': 8, 'aug': 8,
+                    'september': 9, 'sep': 9, 'october': 10, 'oct': 10,
+                    'november': 11, 'nov': 11, 'december': 12, 'dec': 12
+                }
+                month = month_map[month_name]
+                
+                # Parse time if present
+                hour = 9  # Default to 9am
+                minute = 0
+                if ordinal_month_year_match.group(5):
+                    hour = int(ordinal_month_year_match.group(5))
+                    minute = int(ordinal_month_year_match.group(6)) if ordinal_month_year_match.group(6) else 0
+                    ampm = ordinal_month_year_match.group(7).lower() if ordinal_month_year_match.group(7) else None
+                    if ampm:
+                        if ampm == 'pm' and hour != 12:
+                            hour += 12
+                        elif ampm == 'am' and hour == 12:
+                            hour = 0
+                
+                # Calculate the ordinal weekday in the month
+                if ordinal == -1:  # Last
+                    # Find last occurrence
+                    if month == 12:
+                        last_day = 31
+                    elif month in [4, 6, 9, 11]:
+                        last_day = 30
+                    elif month == 2:
+                        if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+                            last_day = 29
+                        else:
+                            last_day = 28
+                    else:
+                        last_day = 31
+                    target_date = local_tz.localize(datetime(year, month, last_day, hour, minute))
+                    while target_date.weekday() != target_weekday:
+                        target_date -= timedelta(days=1)
+                else:
+                    # Find first occurrence, then add weeks
+                    first_of_month = local_tz.localize(datetime(year, month, 1))
+                    # Calculate days until first occurrence of target weekday
+                    first_weekday = first_of_month.weekday()
+                    days_until_first = (target_weekday - first_weekday) % 7
+                    if days_until_first == 0 and first_weekday != target_weekday:
+                        days_until_first = 7
+                    first_occurrence = first_of_month + timedelta(days=days_until_first)
+                    # Add weeks for ordinal (first=0, second=1, third=2, fourth=3)
+                    target_date = first_occurrence + timedelta(weeks=ordinal)
+                    target_date = target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                
+                logger.info(f"Manual parse result for '{original_string}': {target_date}")
+                return target_date
             
             # Handle "first/second/third/fourth/last [weekday] of every/each/next/this month at [time]" patterns
             ordinal_pattern = re.compile(

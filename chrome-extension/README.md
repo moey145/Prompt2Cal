@@ -100,7 +100,7 @@ npm run copy-files   # Copy static files only
 ```
 
 ## 🔧 Backend Setup
-
+                                        
 The extension requires a backend server running on `http://localhost:8000`.
 
 From the project root:

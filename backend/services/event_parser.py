@@ -130,14 +130,19 @@ class EventParser:
                                 except Exception:
                                     time_phrase = None
 
+                                # Determine if we should use "this" or "next" based on the original text
+                                text_lower_for_modifier = text.lower()
+                                use_next = bool(re.search(r'\bnext\s+(weekend|week|saturday|sunday|monday|tuesday|wednesday|thursday|friday)\b', text_lower_for_modifier))
+                                modifier = "next" if use_next else "this"
+                                
                                 additional_events = []
                                 for day in mentioned_days:
-                                    # Build a natural phrase like "this sunday at 3pm"
+                                    # Build a natural phrase like "this sunday at 3pm" or "next saturday at 3pm"
                                     try:
                                         if time_phrase:
-                                            phrase = f"this {day} at {time_phrase}"
+                                            phrase = f"{modifier} {day} at {time_phrase}"
                                         else:
-                                            phrase = f"this {day}"
+                                            phrase = f"{modifier} {day}"
                                         new_start = self.date_parser.parse_start_time(phrase, local_tz)
                                         if new_start:
                                             # Use force_non_recurring flag to determine recurrence settings
