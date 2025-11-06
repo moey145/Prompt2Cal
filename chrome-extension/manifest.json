@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Prompt2Cal - Natural Language Calendar",
+  "version": "1.0.0",
+  "description": "Convert natural language text to calendar events with AI-powered parsing and Google Calendar integration",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "https://accounts.google.com/*",
+    "https://www.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup-react.html",
+    "default_title": "Prompt2Cal",
+    "default_icon": {
+      "16": "assets/Logo.png",
+      "32": "assets/Logo.png",
+      "48": "assets/Logo.png",
+      "128": "assets/Logo.png"
+    }
+  },
+  "icons": {
+    "16": "assets/Logo.png",
+    "32": "assets/Logo.png",
+    "48": "assets/Logo.png",
+    "128": "assets/Logo.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["popup-react.html", "icons/Logo.svg", "icons/DarkModeLogo.svg"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

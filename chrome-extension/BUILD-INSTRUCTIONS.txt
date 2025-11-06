@@ -1,0 +1,94 @@
+================================================================================
+  PROMPT2CAL CHROME EXTENSION - BUILD INSTRUCTIONS
+================================================================================
+
+REACT VERSION (Vite + React + Lucide React Icons)
+================================================================================
+
+1. INSTALL DEPENDENCIES
+   ----------------------
+   npm install
+
+2. BUILD THE EXTENSION
+   --------------------
+   npm run build
+
+   This creates the 'dist/' folder with your built extension.
+
+3. LOAD IN CHROME
+   --------------
+   a) Open Chrome and go to: chrome://extensions/
+   b) Enable "Developer mode" (toggle in top-right)
+   c) Click "Load unpacked"
+   d) Navigate to and select: chrome-extension/dist/
+   e) Done! The extension icon appears in your toolbar.
+
+4. DEVELOPMENT MODE (Auto-rebuild on changes)
+   -------------------------------------------
+   npm run dev
+   
+   Then reload the extension in chrome://extensions/ after changes.
+
+================================================================================
+
+HELPER SCRIPTS
+================================================================================
+
+Windows:
+   run_extension_dev.bat
+
+Unix/Mac:
+   ./run_extension_dev.sh
+
+These scripts start development mode automatically.
+
+================================================================================
+
+FILE STRUCTURE
+================================================================================
+
+chrome-extension/
+├── src/                 # React source code
+│   ├── Popup.jsx       # Main component
+│   ├── main.jsx        # Entry point
+│   └── index.css       # Styles
+├── dist/               # Built extension (load this in Chrome!)
+│   ├── manifest.json
+│   ├── popup-react.html
+│   ├── assets/
+│   │   ├── popup.js    # Bundled React app
+│   │   └── popup.css   # Bundled styles
+│   └── [static files]
+└── [config & docs]
+
+================================================================================
+
+TROUBLESHOOTING
+================================================================================
+
+Extension not loading?
+  → Make sure you built it first (npm run build)
+  → Check that dist/ folder exists
+  → Try reloading in chrome://extensions/
+
+Backend errors?
+  → Start backend: python run_backend.py
+  → Backend must run on http://localhost:8000
+
+Build errors?
+  → Delete node_modules/ and run npm install again
+  → Make sure Node.js 16+ is installed
+
+Icons not showing?
+  → Check browser console (F12)
+  → Ensure lucide-react is installed
+  → Try rebuilding: npm run build
+
+================================================================================
+
+For more help, see:
+  - chrome-extension/README.md
+  - chrome-extension/START-HERE.md
+  - chrome-extension/QUICK-START.md
+
+================================================================================

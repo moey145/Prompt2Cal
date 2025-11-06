@@ -1,0 +1,9 @@
+/* Import the existing popup.css */
+@import url('../popup.css');
+
+/* Additional React-specific styles */
+#root {
+  width: 100%;
+  height: 100%;
+}
+
