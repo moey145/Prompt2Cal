@@ -94,16 +94,18 @@ class DateParser:
             original_string = date_string
             date_string = date_string.lower().strip()
             
-            # Handle "first/second/third/fourth/last [weekday] of every/each/next month at [time]" patterns
+            # Handle "first/second/third/fourth/last [weekday] of every/each/next/this month at [time]" patterns
             ordinal_pattern = re.compile(
                 r'(first|second|third|fourth|1st|2nd|3rd|4th|last)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)'
-                r'\s+of\s+(?:every|the|each|next)\s+month(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?',
+                r'\s+of\s+(?:every|the|each|next|this)\s+month(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?',
                 re.IGNORECASE
             )
             ordinal_match = ordinal_pattern.search(date_string)
             if ordinal_match:
                 ordinal_str = ordinal_match.group(1).lower()
                 weekday_str = ordinal_match.group(2).lower()
+                month_type_match = re.search(r'\s+of\s+(every|the|each|next|this)\s+month', date_string)
+                month_type = month_type_match.group(1).lower() if month_type_match else None
                 
                 # Normalize ordinal
                 ordinal_map = {"first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2, "fourth": 3, "4th": 3, "last": -1}
@@ -123,7 +125,60 @@ class DateParser:
                     hour = 9  # Default to 9am if no time specified
                     minute = 0
                 
-                # Calculate next occurrence
+                # For "this month", calculate for current month; for "next month", calculate for next month
+                # For "last" ordinal with "this month", we need to check if it's already passed
+                if month_type == 'this' and ordinal == -1:  # "last [weekday] of this month"
+                    # Use the current month
+                    target_month = now.month
+                    target_year = now.year
+                    weekday_map = {
+                        "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+                        "friday": 4, "saturday": 5, "sunday": 6
+                    }
+                    target_weekday = weekday_map.get(weekday_str.lower())
+                    if target_weekday is not None:
+                        # Find last occurrence in current month
+                        if target_month == 12:
+                            last_day = 31
+                        elif target_month in [4, 6, 9, 11]:
+                            last_day = 30
+                        elif target_month == 2:
+                            if (target_year % 4 == 0 and target_year % 100 != 0) or (target_year % 400 == 0):
+                                last_day = 29
+                            else:
+                                last_day = 28
+                        else:
+                            last_day = 31
+                        target_date = local_tz.localize(datetime(target_year, target_month, last_day))
+                        while target_date.weekday() != target_weekday:
+                            target_date -= timedelta(days=1)
+                        target_date = target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        # If the date has already passed, use next month
+                        if target_date < now:
+                            if target_month == 12:
+                                target_month = 1
+                                target_year += 1
+                            else:
+                                target_month += 1
+                            if target_month == 12:
+                                last_day = 31
+                            elif target_month in [4, 6, 9, 11]:
+                                last_day = 30
+                            elif target_month == 2:
+                                if (target_year % 4 == 0 and target_year % 100 != 0) or (target_year % 400 == 0):
+                                    last_day = 29
+                                else:
+                                    last_day = 28
+                            else:
+                                last_day = 31
+                            target_date = local_tz.localize(datetime(target_year, target_month, last_day))
+                            while target_date.weekday() != target_weekday:
+                                target_date -= timedelta(days=1)
+                            target_date = target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        logger.info(f"Manual parsing ordinal weekday (this month): '{original_string}' -> {target_date}")
+                        return target_date
+                
+                # Calculate next occurrence (for other cases)
                 result = self._next_ordinal_weekday_in_month(now, ordinal, weekday_str, hour, minute, local_tz)
                 if result:
                     logger.info(f"Manual parsing ordinal weekday: '{original_string}' -> {result}")
@@ -646,6 +701,72 @@ class DateParser:
                 else:
                     # Default to 2pm if no time specified
                     target_date = target_date.replace(hour=14, minute=0, second=0, microsecond=0)
+                
+                logger.info(f"Manual parse result for '{original_string}': {target_date}")
+                return target_date
+            
+            # Handle "last [weekday] of this month" or "last [weekday] of next month" patterns
+            last_weekday_this_month_match = re.search(r'last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+of\s+(this|next)\s+month', date_string)
+            if last_weekday_this_month_match:
+                weekday_name = last_weekday_this_month_match.group(1)
+                month_type = last_weekday_this_month_match.group(2)  # "this" or "next"
+                
+                # Map weekday names to weekday numbers (0=Monday, 6=Sunday)
+                weekday_map = {
+                    'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3,
+                    'friday': 4, 'saturday': 5, 'sunday': 6
+                }
+                target_weekday = weekday_map[weekday_name]
+                
+                # Determine target month
+                if month_type == 'this':
+                    target_month = now.month
+                    target_year = now.year
+                else:  # next
+                    if now.month == 12:
+                        target_month = 1
+                        target_year = now.year + 1
+                    else:
+                        target_month = now.month + 1
+                        target_year = now.year
+                
+                # Find the last occurrence of the target weekday in the target month
+                # Start from the last day of the month and go backwards
+                if target_month == 12:
+                    last_day_of_month = 31
+                elif target_month in [4, 6, 9, 11]:
+                    last_day_of_month = 30
+                elif target_month == 2:
+                    # Check for leap year
+                    if (target_year % 4 == 0 and target_year % 100 != 0) or (target_year % 400 == 0):
+                        last_day_of_month = 29
+                    else:
+                        last_day_of_month = 28
+                else:
+                    last_day_of_month = 31
+                
+                # Start from the last day and find the last occurrence of the target weekday
+                target_date = local_tz.localize(datetime(target_year, target_month, last_day_of_month))
+                while target_date.weekday() != target_weekday:
+                    target_date -= timedelta(days=1)
+                
+                # Extract time if present in the original string
+                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', original_string)
+                if time_match:
+                    hour = int(time_match.group(1))
+                    minute = int(time_match.group(2)) if time_match.group(2) else 0
+                    ampm = time_match.group(3)
+                    
+                    if ampm:
+                        if ampm.lower() == 'pm' and hour != 12:
+                            hour += 12
+                        elif ampm.lower() == 'am' and hour == 12:
+                            hour = 0
+                    
+                    target_date = target_date.replace(hour=hour, minute=minute)
+                else:
+                    # Default to 2pm if no time specified
+                    target_date = target_date.replace(hour=14, minute=0)
                 
                 logger.info(f"Manual parse result for '{original_string}': {target_date}")
                 return target_date

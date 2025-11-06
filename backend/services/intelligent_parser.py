@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
-CACHE_VERSION = "v18"  # Increment when cache format changes (v18: fix start_time for recurring events)
+CACHE_VERSION = "v21"  # Increment when cache format changes (v21: fix detection of "for the next X months" patterns and preserve recurrence_count for explicit durations)
 
 
 class IntelligentEventParser:
@@ -232,9 +232,9 @@ class IntelligentEventParser:
             if (recurrence_type in {"weekly", "daily", "monthly"} and
                     (recurrence_count is None or recurrence_count <= 0)):
 
-                # Include original input text to catch patterns like "for 6 weeks"
+                # Include original input text to catch patterns like "for 6 weeks", "for the next 3 months", "for next 3 months"
                 source_text = f"{original_text} {event.notes or ''} {event.title} {event.start_time}".lower()
-                duration_match = re.search(r'(for\s+|next\s+)?(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?)', source_text)
+                duration_match = re.search(r'(for\s+(?:the\s+)?(?:next\s+)?|next\s+)?(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?)', source_text)
                 if duration_match:
                     number_word = duration_match.group(2)
                     unit = duration_match.group(3)
@@ -292,6 +292,103 @@ class IntelligentEventParser:
             # Log for debugging
             logger.info(f"Before indefinite check: recurrence_enum={recurrence_enum}, recurrence_count={recurrence_count}, end_date={event.end_date}, original_text='{original_text}'")
 
+            # First, check for month range patterns and adjust start_time if needed
+            # This should run regardless of whether end_date is set or not
+            try:
+                text_lower_check = original_text.lower()
+                # Check for "for the whole of [month]" or "for [month]" or "during [month]" patterns
+                # Also check if end_date contains a month name (indicates month range)
+                has_month_range_check = bool(re.search(r'\bfor\s+(the\s+whole\s+of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower_check)) or \
+                                         bool(re.search(r'\bduring\s+(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower_check)) or \
+                                         (isinstance(event.end_date, str) and bool(re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', event.end_date.lower())))
+                
+                if has_month_range_check and recurrence_enum != RecurrenceType.NONE:
+                    logger.info(f"Month range pattern detected, adjusting start_time: '{original_text}'")
+                    import dateparser
+                    import calendar
+                    from datetime import datetime as _dt
+                    # Determine target weekday from original text
+                    weekday_match = re.search(r'\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b', text_lower_check)
+                    weekday = weekday_match.group(1) if weekday_match else None
+                    logger.info(f"Extracted weekday: {weekday} from text: '{original_text}'")
+
+                    # Determine target month from end_date or text
+                    month = None
+                    if isinstance(event.end_date, str):
+                        # end_date like 'last Tuesday of December' or 'December 31'
+                        m = re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', event.end_date.lower())
+                        if m:
+                            month = m.group(1)
+                            logger.info(f"Extracted month from end_date: {month}")
+                    if not month:
+                        m = re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', text_lower_check)
+                        if m:
+                            month = m.group(1)
+                            logger.info(f"Extracted month from text: {month}")
+
+                    if weekday and month:
+                        # Extract time component from start_time string using regex (more reliable)
+                        time_str = None
+                        time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', str(event.start_time).lower())
+                        if time_match:
+                            hour = int(time_match.group(1))
+                            minute = int(time_match.group(2)) if time_match.group(2) else 0
+                            ampm = time_match.group(3).lower() if time_match.group(3) else None
+                            # Convert to 12-hour format string
+                            if ampm:
+                                if ampm == 'pm' and hour != 12:
+                                    hour += 12
+                                elif ampm == 'am' and hour == 12:
+                                    hour = 0
+                            # Format as "7pm" or "7:30pm"
+                            if minute > 0:
+                                time_str = f"{hour % 12 or 12}:{minute:02d}{ampm or ('pm' if hour >= 12 else 'am')}"
+                            else:
+                                time_str = f"{hour % 12 or 12}{ampm or ('pm' if hour >= 12 else 'am')}"
+                        
+                        # If regex didn't find time, try parsing with dateparser as fallback
+                        if not time_str:
+                            start_dt = dateparser.parse(str(event.start_time))
+                            if start_dt:
+                                time_str = start_dt.strftime('%I:%M %p').lstrip('0').replace(':00 ', ' ').lower()
+                        
+                        # Compute first weekday of the month
+                        now = _dt.now()
+                        year = now.year
+                        month_index = [
+                            'january','february','march','april','may','june',
+                            'july','august','september','october','november','december'
+                        ].index(month) + 1
+                        
+                        # If target month has already passed this year, use next year
+                        if month_index < now.month or (month_index == now.month and now.day > 15):
+                            year += 1
+                        
+                        weekday_index = {
+                            'monday':0,'tuesday':1,'wednesday':2,'thursday':3,
+                            'friday':4,'saturday':5,'sunday':6
+                        }[weekday]
+                        cal = calendar.Calendar()
+                        first_day = None
+                        for d in cal.itermonthdates(year, month_index):
+                            if d.month == month_index and d.weekday() == weekday_index:
+                                first_day = d
+                                break
+                        if first_day:
+                            month_name = month.capitalize()
+                            new_start = f"{month_name} {first_day.day}"
+                            if time_str:
+                                new_start += f" at {time_str}"
+                            logger.info(f"Adjusting start_time for month range: '{event.start_time}' -> '{new_start}'")
+                            if hasattr(event, 'model_copy'):
+                                event = event.model_copy(update={"start_time": new_start})
+                            else:
+                                event = event.copy(update={"start_time": new_start})
+                        else:
+                            logger.warning(f"Could not find first {weekday} in {month} {year}")
+            except Exception as month_adj_err:
+                logger.warning(f"Failed to adjust start_time for month range: {month_adj_err}")
+
             # Check if this looks like an indefinite recurring event (e.g., "Every Monday" without "for X weeks")
             # If so, strip any count that was incorrectly set OR ensure count is None for indefinite events
             # BUT preserve count for finite patterns like "this week", "next week", "this weekend", etc.
@@ -305,30 +402,49 @@ class IntelligentEventParser:
                         bool(re.search(r'\beach\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|day|weekday|weekend|week|month|year)', text_lower))
                     )
                     # Check if there's NO explicit count or end date mentioned
-                    # Look for "for X weeks/months/days" pattern explicitly (must have "for" keyword)
-                    has_explicit_count = bool(re.search(r'\bfor\s+(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?|years?)', text_lower))
+                    # Look for "for X weeks/months/days", "for the next X months", "for next X months" patterns
+                    # Must have "for" keyword (with optional "the next" or "next" in between)
+                    has_explicit_count = bool(re.search(r'\bfor\s+(?:the\s+)?(?:next\s+)?(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?|years?)', text_lower)) or \
+                                        bool(re.search(r'\bnext\s+(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?|years?)', text_lower))
                     has_until = bool(re.search(r'\buntil\s+', text_lower))
+                    # Check for "for the whole of [month]" or "for [month]" or "during [month]" patterns
+                    # Also check if end_date contains a month name (indicates month range)
+                    has_month_range = bool(re.search(r'\bfor\s+(the\s+whole\s+of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower)) or \
+                                     bool(re.search(r'\bduring\s+(january|february|march|april|may|june|july|august|september|october|november|december)', text_lower)) or \
+                                     (isinstance(event.end_date, str) and bool(re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', event.end_date.lower())))
                     
                     # Check for finite patterns that should preserve the count (e.g., "this week", "next week", "this weekend")
                     has_finite_pattern = bool(re.search(r'\b(this|next)\s+(week|weekend)', text_lower))
                     
                     # Log for debugging
-                    logger.info(f"Checking indefinite recurring event: text='{original_text}', has_indefinite={has_indefinite_pattern}, has_explicit={has_explicit_count}, has_until={has_until}, has_finite={has_finite_pattern}, count={recurrence_count}, end_date={event.end_date}")
+                    logger.info(f"Checking indefinite recurring event: text='{original_text}', has_indefinite={has_indefinite_pattern}, has_explicit={has_explicit_count}, has_until={has_until}, has_finite={has_finite_pattern}, has_month_range={has_month_range}, count={recurrence_count}, end_date={event.end_date}")
                     
+                    # If it has an explicit count/duration (like "for the next 3 months"), preserve the count - it's NOT indefinite
+                    if has_explicit_count:
+                        logger.info(f"Preserving recurrence_count for explicit duration: '{original_text}' (count={recurrence_count})")
+                        # Don't modify recurrence_count - it should be expanded into multiple events
                     # If it's a finite pattern (like "this week"), preserve the count - don't make it indefinite
-                    if has_finite_pattern:
+                    elif has_finite_pattern:
                         logger.info(f"Preserving recurrence_count for finite pattern: '{original_text}' (count={recurrence_count})")
                         # Don't modify recurrence_count for finite patterns
+                    # If it has a month range pattern (like "for the whole of December"), it's NOT indefinite
+                    elif has_month_range:
+                        logger.info(f"Month range pattern detected, ensuring end_date is set: '{original_text}'")
+                        # If LLM didn't set end_date, we should set it, but that's handled elsewhere
+                        # Just don't treat it as indefinite
+                        if event.end_date is None:
+                            logger.warning(f"Month range pattern detected but end_date is None - LLM should have set it: '{original_text}'")
+                        # Note: start_time adjustment is now handled above, before this block
                     # If it looks like indefinite recurring event, ensure count is None
                     # This handles both cases: when LLM incorrectly sets a count, or when count is already None
-                    elif has_indefinite_pattern and not has_explicit_count and not has_until:
+                    elif has_indefinite_pattern and not has_explicit_count and not has_until and not has_month_range:
                         if recurrence_count is not None:
                             logger.info(f"Stripping recurrence_count for indefinite recurring event: '{original_text}' (was {recurrence_count})")
                         else:
                             logger.info(f"Confirming indefinite recurring event (count already None): '{original_text}'")
                         recurrence_count = None
                     # Also check: if no explicit count or until mentioned, and pattern suggests indefinite, make it indefinite
-                    elif not has_explicit_count and not has_until and recurrence_count is not None:
+                    elif not has_explicit_count and not has_until and not has_month_range and recurrence_count is not None:
                         # If no explicit count/until but LLM set a count, check if it's a simple recurring pattern
                         if has_indefinite_pattern or bool(re.search(r'\bevery\b|\beach\b', text_lower)):
                             logger.info(f"Removing count for indefinite recurring event pattern: '{original_text}' (was {recurrence_count})")
@@ -449,6 +565,7 @@ Instructions:
    - recurrence_count: number of occurrences - CRITICAL: ONLY set a number if explicitly specified (e.g., "for 4 weeks", "for 3 months"). If user says "Every Monday" or "Every day" without "for X weeks/months" or "until [date]", set recurrence_count to null (unlimited/indefinite)
    - recurrence_interval: for "every other" patterns, set to 2
    - end_date or end_after_count: if "for X months/weeks" or "until [date]" is specified
+   - CRITICAL: "for the whole of [month]" or "for [month]" or "during [month]" → set end_date to "last [day] of [month]" (e.g., "for the whole of December" → end_date: "last Tuesday of December" or "December 31")
    - "from DATE - DATE" or "DATE - DATE" patterns: 
      - CRITICAL: If title contains "trip", "vacation", "holiday", or "conference" → ALWAYS single event (recurrence_type: "none")
        * Set start_time to first DATE (with default time like "9am" if no time specified)
