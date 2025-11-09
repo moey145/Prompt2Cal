@@ -908,19 +908,19 @@ const Popup = () => {
               <div className="event-time-row-confirm">
                 <Clock className="event-time-icon-confirm" />
                 <div className="event-time-info-confirm">
-                  <div className="event-date-confirm">
-                    {parsedEvent.recurrence_type &&
-                    parsedEvent.recurrence_type !== "none" ? (
-                      <>
-                        <span style={{ fontSize: "0.85em", opacity: 0.8, marginRight: "4px" }}>
-                          Starting from:{" "}
-                        </span>
+                  {parsedEvent.recurrence_type &&
+                  parsedEvent.recurrence_type !== "none" ? (
+                    <>
+                      <div className="event-start-label-confirm">Starting from</div>
+                      <div className="event-date-confirm">
                         {formatDateTimeShort(parsedEvent.start_time)}
-                      </>
-                    ) : (
-                      formatDateTimeShort(parsedEvent.start_time)
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="event-date-confirm">
+                      {formatDateTimeShort(parsedEvent.start_time)}
+                    </div>
+                  )}
                   <div className="event-time-range-confirm">
                     {formatTimeShort(parsedEvent.start_time)} -{" "}
                     {formatTimeShort(parsedEvent.end_time)}
@@ -1208,19 +1208,19 @@ const Popup = () => {
                   <div className="event-time-row-confirm">
                     <Clock className="event-time-icon-confirm" />
                     <div className="event-time-info-confirm">
-                      <div className="event-date-confirm">
-                        {event.recurrence_type &&
-                        event.recurrence_type !== "none" ? (
-                          <>
-                            <span style={{ fontSize: "0.85em", opacity: 0.8, marginRight: "4px" }}>
-                              Starting from:{" "}
-                            </span>
+                      {event.recurrence_type &&
+                      event.recurrence_type !== "none" ? (
+                        <>
+                          <div className="event-start-label-confirm">Starting from</div>
+                          <div className="event-date-confirm">
                             {formatDateTimeShort(event.start_time)}
-                          </>
-                        ) : (
-                          formatDateTimeShort(event.start_time)
-                        )}
-                      </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="event-date-confirm">
+                          {formatDateTimeShort(event.start_time)}
+                        </div>
+                      )}
                       <div className="event-time-range-confirm">
                         {formatTimeShort(event.start_time)} -{" "}
                         {formatTimeShort(event.end_time)}
