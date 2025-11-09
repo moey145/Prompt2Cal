@@ -893,40 +893,48 @@ const Popup = () => {
                 </button>
               </div>
               {parsedEvent.recurrence_type &&
-                parsedEvent.recurrence_type !== "none" && (
-                  <div className="recurrence-badge">
-                    <Repeat size={14} />
-                    <span>
-                      {parsedEvent.recurrence_type.charAt(0).toUpperCase() +
-                        parsedEvent.recurrence_type.slice(1)}
-                      {parsedEvent.recurrence_count
-                        ? ` (${parsedEvent.recurrence_count}x)`
-                        : ""}
-                    </span>
-                  </div>
-                )}
-              <div className="event-time-row-confirm">
-                <Clock className="event-time-icon-confirm" />
-                <div className="event-time-info-confirm">
-                  {parsedEvent.recurrence_type &&
-                  parsedEvent.recurrence_type !== "none" ? (
-                    <>
+                parsedEvent.recurrence_type !== "none" ? (
+                  <>
+                    <div className="event-recurrence-row-top-confirm">
+                      <Repeat className="event-recurrence-icon-confirm" size={16} />
+                      <div className="recurrence-text-confirm">
+                        {parsedEvent.recurrence_type.charAt(0).toUpperCase() +
+                          parsedEvent.recurrence_type.slice(1)}
+                        {parsedEvent.recurrence_count
+                          ? ` (${parsedEvent.recurrence_count}x)`
+                          : ""}
+                      </div>
+                    </div>
+                    <div className="event-start-label-row-confirm">
                       <div className="event-start-label-confirm">Starting from</div>
+                    </div>
+                    <div className="event-time-row-confirm">
+                      <Clock className="event-time-icon-confirm" />
+                      <div className="event-time-info-confirm">
+                        <div className="event-date-confirm">
+                          {formatDateTimeShort(parsedEvent.start_time)}
+                        </div>
+                        <div className="event-time-range-confirm">
+                          {formatTimeShort(parsedEvent.start_time)} -{" "}
+                          {formatTimeShort(parsedEvent.end_time)}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="event-time-row-confirm">
+                    <Clock className="event-time-icon-confirm" />
+                    <div className="event-time-info-confirm">
                       <div className="event-date-confirm">
                         {formatDateTimeShort(parsedEvent.start_time)}
                       </div>
-                    </>
-                  ) : (
-                    <div className="event-date-confirm">
-                      {formatDateTimeShort(parsedEvent.start_time)}
+                      <div className="event-time-range-confirm">
+                        {formatTimeShort(parsedEvent.start_time)} -{" "}
+                        {formatTimeShort(parsedEvent.end_time)}
+                      </div>
                     </div>
-                  )}
-                  <div className="event-time-range-confirm">
-                    {formatTimeShort(parsedEvent.start_time)} -{" "}
-                    {formatTimeShort(parsedEvent.end_time)}
                   </div>
-                </div>
-              </div>
+                )}
               {parsedEvent.location && (
                 <div className="event-time-row-confirm">
                   <MapPin className="event-time-icon-confirm" />
@@ -1193,40 +1201,48 @@ const Popup = () => {
                     </div>
                   </div>
                   {event.recurrence_type &&
-                    event.recurrence_type !== "none" && (
-                      <div className="recurrence-badge">
-                        <Repeat size={14} />
-                        <span>
-                          {event.recurrence_type.charAt(0).toUpperCase() +
-                            event.recurrence_type.slice(1)}
-                          {event.recurrence_count
-                            ? ` (${event.recurrence_count}x)`
-                            : ""}
-                        </span>
-                      </div>
-                    )}
-                  <div className="event-time-row-confirm">
-                    <Clock className="event-time-icon-confirm" />
-                    <div className="event-time-info-confirm">
-                      {event.recurrence_type &&
-                      event.recurrence_type !== "none" ? (
-                        <>
+                    event.recurrence_type !== "none" ? (
+                      <>
+                        <div className="event-recurrence-row-top-confirm">
+                          <Repeat className="event-recurrence-icon-confirm" size={16} />
+                          <div className="recurrence-text-confirm">
+                            {event.recurrence_type.charAt(0).toUpperCase() +
+                              event.recurrence_type.slice(1)}
+                            {event.recurrence_count
+                              ? ` (${event.recurrence_count}x)`
+                              : ""}
+                          </div>
+                        </div>
+                        <div className="event-start-label-row-confirm">
                           <div className="event-start-label-confirm">Starting from</div>
+                        </div>
+                        <div className="event-time-row-confirm">
+                          <Clock className="event-time-icon-confirm" />
+                          <div className="event-time-info-confirm">
+                            <div className="event-date-confirm">
+                              {formatDateTimeShort(event.start_time)}
+                            </div>
+                            <div className="event-time-range-confirm">
+                              {formatTimeShort(event.start_time)} -{" "}
+                              {formatTimeShort(event.end_time)}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="event-time-row-confirm">
+                        <Clock className="event-time-icon-confirm" />
+                        <div className="event-time-info-confirm">
                           <div className="event-date-confirm">
                             {formatDateTimeShort(event.start_time)}
                           </div>
-                        </>
-                      ) : (
-                        <div className="event-date-confirm">
-                          {formatDateTimeShort(event.start_time)}
+                          <div className="event-time-range-confirm">
+                            {formatTimeShort(event.start_time)} -{" "}
+                            {formatTimeShort(event.end_time)}
+                          </div>
                         </div>
-                      )}
-                      <div className="event-time-range-confirm">
-                        {formatTimeShort(event.start_time)} -{" "}
-                        {formatTimeShort(event.end_time)}
                       </div>
-                    </div>
-                  </div>
+                    )}
                   {event.location && (
                     <div className="event-time-row-confirm">
                       <MapPin className="event-time-icon-confirm" />

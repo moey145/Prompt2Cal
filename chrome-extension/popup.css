@@ -1009,19 +1009,46 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 12px;
-  padding: 4px 8px;
-  background: var(--bg-tertiary);
-  border-radius: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: 15px;
+  color: var(--text-tertiary);
   font-weight: 500;
 }
 
 .recurrence-badge svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   color: var(--text-tertiary);
+}
+
+.event-recurrence-row-top-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.event-recurrence-icon-confirm {
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.recurrence-text-confirm {
+  font-size: 15px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  line-height: 1.4;
+  margin-left: 10px;
+}
+
+.event-start-label-row-confirm {
+  margin-bottom: 4px;
+  margin-left: 32px;
 }
 
 .event-time-row-confirm {
