@@ -482,7 +482,7 @@ class DateParser:
                 return target_date
             
             # Handle "every [weekday] in [month]" patterns (e.g., "every Wednesday in November at 6:30pm")
-            every_weekday_month_match = re.search(r'every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(?:in|this)\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)', date_string)
+            every_weekday_month_match = re.search(r'every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(?:in|this)\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)', date_string_lower)
             if every_weekday_month_match:
                 weekday_name = every_weekday_month_match.group(1)
                 month_name = every_weekday_month_match.group(2)
@@ -573,7 +573,7 @@ class DateParser:
                 return target_date
             
             # Handle "[weekday] next week at <time>" patterns (e.g., "Monday next week at 3pm")
-            weekday_next_week_match = re.search(r'(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+next\s+week(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string)
+            weekday_next_week_match = re.search(r'(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+next\s+week(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string_lower)
             if weekday_next_week_match:
                 weekday_name = weekday_next_week_match.group(1)
                 weekday_map = {
@@ -676,7 +676,7 @@ class DateParser:
                 return target_date
             
             # Handle "next [day]" and "this [day]" patterns (e.g., "next Monday", "this Friday")
-            next_day_match = re.search(r'(next|this)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string)
+            next_day_match = re.search(r'(next|this)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string_lower)
             if next_day_match:
                 keyword = next_day_match.group(1).lower()  # "next" or "this"
                 day_name = next_day_match.group(2)
@@ -686,19 +686,27 @@ class DateParser:
                 }
                 target_day = days_of_week[day_name]
                 
+                current_weekday = now.weekday()
+                
                 if keyword == 'next':
-                    # For "next [day]", find the day in next week (the week after the current week)
-                    # Calculate days until next Monday (the start of next week)
-                    days_until_next_monday = (7 - now.weekday()) % 7
-                    if days_until_next_monday == 0:
-                        days_until_next_monday = 7  # If today is Monday, next Monday is in 7 days
-                    # Add the target day offset to get the day in next week
-                    days_ahead = days_until_next_monday + target_day
+                    # For "next [day]", always mean the day in the week AFTER the current week
+                    # This means: find "this [day]" first, then add 7 days
+                    days_to_this_day = (target_day - current_weekday) % 7
+                    if days_to_this_day == 0:
+                        # If today is the target day, "this [day]" is today (0 days)
+                        # "next [day]" would be in 7 days (next week)
+                        days_ahead = 7
+                    else:
+                        # "this [day]" is days_to_this_day away
+                        # "next [day]" is that plus 7 more days (week after)
+                        days_ahead = days_to_this_day + 7
                 else:
-                    # For "this [day]", find the day in the current week
-                    days_ahead = target_day - now.weekday()
-                    if days_ahead <= 0:  # Target day already passed this week
-                        days_ahead += 7  # Get next week's occurrence (since "this week's" has passed)
+                    # For "this [day]", find the next occurrence of that weekday
+                    # This is the upcoming occurrence (could be today, tomorrow, or later this week)
+                    days_ahead = (target_day - current_weekday) % 7
+                    if days_ahead == 0:
+                        # If today is the target day, "this [day]" means today
+                        days_ahead = 0
                 
                 target_date = now + timedelta(days=days_ahead)
                 target_date = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -730,8 +738,57 @@ class DateParser:
                 logger.info(f"Manual parse result for '{original_string}': {target_date}")
                 return target_date
             
+            # Handle standalone weekday names (e.g., "Thursday at 3pm", "on Friday at 2pm")
+            # These should mean "this [day]" (the upcoming occurrence), not "next [day]"
+            standalone_weekday_match = re.search(r'(?:^|\s|on\s+)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?(?:\s|$)', date_string_lower)
+            # Only match if we haven't already matched "next" or "this" patterns above
+            if standalone_weekday_match and not re.search(r'\b(next|this)\s+', date_string_lower):
+                day_name = standalone_weekday_match.group(1)
+                days_of_week = {
+                    'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3,
+                    'friday': 4, 'saturday': 5, 'sunday': 6
+                }
+                target_day = days_of_week[day_name]
+                current_weekday = now.weekday()
+                
+                # For standalone weekday, treat as "this [day]" (upcoming occurrence)
+                days_ahead = (target_day - current_weekday) % 7
+                if days_ahead == 0:
+                    # If today is the target day, use today
+                    days_ahead = 0
+                
+                target_date = now + timedelta(days=days_ahead)
+                target_date = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+                
+                # Extract time if present
+                if standalone_weekday_match.group(2):
+                    hour = int(standalone_weekday_match.group(2))
+                    minute = int(standalone_weekday_match.group(3)) if standalone_weekday_match.group(3) else 0
+                    ampm = standalone_weekday_match.group(4)
+                    
+                    logger.info(f"Extracted time: hour={hour}, minute={minute}, ampm={ampm}")
+                    
+                    # Convert to 24-hour format
+                    if ampm:
+                        if ampm == 'pm' and hour != 12:
+                            hour += 12
+                        elif ampm == 'am' and hour == 12:
+                            hour = 0
+                    elif hour < 12 and hour >= 1:
+                        # If no am/pm specified and hour is 1-11, assume business hours
+                        if hour <= 7:
+                            hour += 12
+                    
+                    target_date = target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                else:
+                    # Default to 2pm if no time specified
+                    target_date = target_date.replace(hour=14, minute=0, second=0, microsecond=0)
+                
+                logger.info(f"Manual parse result for standalone weekday '{original_string}': {target_date}")
+                return target_date
+            
             # Handle "Month Day at time" patterns (e.g., "Nov 12 at 1:15pm", "December 25 at 2:30pm", "March 10th at 6pm")
-            month_day_match = re.search(r'(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string)
+            month_day_match = re.search(r'(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?)?', date_string_lower)
             if month_day_match:
                 month_name = month_day_match.group(1)
                 day = int(month_day_match.group(2))
@@ -783,7 +840,7 @@ class DateParser:
                 return target_date
             
             # Handle "last [weekday] of this month" or "last [weekday] of next month" patterns
-            last_weekday_this_month_match = re.search(r'last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+of\s+(this|next)\s+month', date_string)
+            last_weekday_this_month_match = re.search(r'last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+of\s+(this|next)\s+month', date_string_lower)
             if last_weekday_this_month_match:
                 weekday_name = last_weekday_this_month_match.group(1)
                 month_type = last_weekday_this_month_match.group(2)  # "this" or "next"
@@ -849,7 +906,7 @@ class DateParser:
                 return target_date
             
             # Handle "last [weekday] in [month]" patterns (e.g., "last Monday in December")
-            last_weekday_month_match = re.search(r'last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(?:in|of)\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)', date_string)
+            last_weekday_month_match = re.search(r'last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(?:in|of)\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)', date_string_lower)
             if last_weekday_month_match:
                 weekday_name = last_weekday_month_match.group(1)
                 month_name = last_weekday_month_match.group(2)

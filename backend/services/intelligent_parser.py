@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
-CACHE_VERSION = "v23"  # Increment when cache format changes (v23: fix quarterly events and "first Monday of [month] [year]" date parsing)
+CACHE_VERSION = "v26"  # Increment when cache format changes (v26: remove recurrence words like "Every Monday" from event titles, keep only the event name)
 
 
 class IntelligentEventParser:
@@ -734,11 +734,26 @@ Current date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 Event description: "{text}"
 
 Instructions:
-1. Extract the event title, removing redundant words like "meeting", "appointment", etc. unless they're part of the specific name
+1. Extract the event title, preserving the full title as written by the user
+   - ALWAYS preserve the complete title phrase when the user writes it explicitly (e.g., "Doctor's appointment" → "Doctor's appointment", NOT "Doctor")
+   - For descriptive phrases like "Doctor's appointment", "Job interview", "Team meeting", "Family dinner", preserve the full phrase
+   - Only simplify generic single-word titles (e.g., "Meeting tomorrow at 2pm" → "Meeting")
+   - CRITICAL: For recurring events, REMOVE recurrence words from the title (e.g., "Every", "Each", "First", "Last", weekday names when they're part of the recurrence pattern)
+     * "Every Monday meeting at 2pm" → title: "Meeting" (NOT "Every Monday meeting")
+     * "Every Tuesday workout at 6am" → title: "Workout" (NOT "Every Tuesday workout")
+     * "Every Sunday morning run at 7am" → title: "Morning run" (NOT "Every Sunday morning run")
+     * "First Monday of every month board meeting at 9am" → title: "Board meeting" (NOT "First Monday of every month board meeting")
+     * "Last Friday of each month team review at 3pm" → title: "Team review" (NOT "Last Friday of each month team review")
+     * "Every other Tuesday mentoring session at 5pm" → title: "Mentoring session" (NOT "Every other Tuesday mentoring session")
+     * The recurrence information is stored in recurrence_type, recurrence_interval, etc. - don't include it in the title
    - ALWAYS provide a meaningful title (minimum 2 characters)
    - If no clear title is given, create one based on the activity described
-   - Examples: "Meeting tomorrow at 2pm" → "Meeting", "Lunch with Sarah" → "Lunch with Sarah"
+   - Examples: "Doctor's appointment next Friday" → "Doctor's appointment", "Lunch with Sarah" → "Lunch with Sarah", "Meeting tomorrow at 2pm" → "Meeting"
  2. Parse the start time into natural language format (e.g., "next Tuesday at 1pm")
+    - CRITICAL: For standalone weekday names (without "next" or "this"), use "this [day]" meaning the upcoming occurrence
+      * "on Thursday at 3pm" or "Thursday at 3pm" → start_time: "this Thursday at 3pm" (NOT "next Thursday at 3pm")
+      * Only use "next [day]" when the user explicitly says "next"
+      * Examples: "coffee on Thursday" → "this Thursday", "meeting Friday" → "this Friday"
     - CRITICAL: For recurring events like "Every day standup at 5pm" or "Every Monday meeting at 2pm", set start_time to a specific date/time, NOT the recurrence pattern
       * "Every day standup at 5pm" → start_time: "today at 5pm" (not "every day at 5pm")
       * "Every Monday meeting at 2pm" → start_time: "next Monday at 2pm" (not "every Monday at 2pm")

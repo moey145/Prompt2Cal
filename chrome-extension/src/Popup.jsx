@@ -909,7 +909,17 @@ const Popup = () => {
                 <Clock className="event-time-icon-confirm" />
                 <div className="event-time-info-confirm">
                   <div className="event-date-confirm">
-                    {formatDateTimeShort(parsedEvent.start_time)}
+                    {parsedEvent.recurrence_type &&
+                    parsedEvent.recurrence_type !== "none" ? (
+                      <>
+                        <span style={{ fontSize: "0.85em", opacity: 0.8, marginRight: "4px" }}>
+                          Starting from:{" "}
+                        </span>
+                        {formatDateTimeShort(parsedEvent.start_time)}
+                      </>
+                    ) : (
+                      formatDateTimeShort(parsedEvent.start_time)
+                    )}
                   </div>
                   <div className="event-time-range-confirm">
                     {formatTimeShort(parsedEvent.start_time)} -{" "}
@@ -1199,7 +1209,17 @@ const Popup = () => {
                     <Clock className="event-time-icon-confirm" />
                     <div className="event-time-info-confirm">
                       <div className="event-date-confirm">
-                        {formatDateTimeShort(event.start_time)}
+                        {event.recurrence_type &&
+                        event.recurrence_type !== "none" ? (
+                          <>
+                            <span style={{ fontSize: "0.85em", opacity: 0.8, marginRight: "4px" }}>
+                              Starting from:{" "}
+                            </span>
+                            {formatDateTimeShort(event.start_time)}
+                          </>
+                        ) : (
+                          formatDateTimeShort(event.start_time)
+                        )}
                       </div>
                       <div className="event-time-range-confirm">
                         {formatTimeShort(event.start_time)} -{" "}
