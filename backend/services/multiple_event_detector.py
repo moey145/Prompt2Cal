@@ -82,6 +82,32 @@ class MultipleEventDetector:
                         ]
                         if any(re.search(pattern, text_lower) for pattern in buffer_and_patterns):
                             continue  # Skip this "and" as it's part of buffer description
+                        
+                        # Check if "and" appears in notes section (e.g., "Notes: Don't forget milk and eggs")
+                        # Find all occurrences of " and " in the text
+                        and_positions = [m.start() for m in re.finditer(r'\s+and\s+', text_lower)]
+                        
+                        # Look for note indicators to determine where notes section starts
+                        note_indicators = [r'notes?\s*:', r'note\s*:', r'reminder\s*:', r'reminders?\s*:', r'description\s*:', r'desc\s*:']
+                        notes_start = None
+                        for note_pattern in note_indicators:
+                            note_match = re.search(note_pattern, text_lower)
+                            if note_match:
+                                notes_start = note_match.end()
+                                break
+                        
+                        # Also check for period followed by note keyword (e.g., ". Notes:")
+                        if notes_start is None:
+                            note_separator_pattern = r'\.\s*(?:notes?|note|reminder|reminders?|description|desc)\s*:'
+                            note_separator_match = re.search(note_separator_pattern, text_lower)
+                            if note_separator_match:
+                                notes_start = note_separator_match.end()
+                        
+                        # If we found a notes section, check if ALL "and"s are in the notes section
+                        # If all "and"s are after notes_start, then this is a single event with notes
+                        if notes_start is not None and and_positions:
+                            if all(pos >= notes_start for pos in and_positions):
+                                continue  # Skip - all "and"s are in the notes section, not separating events
                     
                     has_separator = True
                     break

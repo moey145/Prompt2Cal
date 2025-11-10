@@ -1,0 +1,111 @@
+/* Header Styles */
+
+.header {
+  position: relative;
+  background: var(--bg-primary);
+  padding: 24px 24px 10px;
+  color: var(--text-primary);
+  text-align: center;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-tertiary);
+  transform: scale(1.05);
+}
+
+.theme-toggle svg {
+  color: var(--text-secondary);
+}
+
+.logout-button {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: transparent;
+  border: none;
+  color: #60a5fa;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  opacity: 0.9;
+}
+
+.logout-button:hover {
+  opacity: 1;
+  background: rgba(96, 165, 250, 0.1);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0px;
+}
+
+.hero-icon {
+  margin-bottom: -4px;
+  position: relative;
+}
+
+.hero-icon svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.hero-icon .hero-glow {
+  display: none;
+}
+
+.logo {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0;
+  margin-top: -4px;
+}
+
+.logo-black {
+  color: #000000;
+}
+
+.dark-mode .logo-black {
+  color: #ffffff;
+}
+
+.logo-red {
+  color: #DC2626;
+}
+
+.logo-image {
+  width: 72px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.tagline {
+  font-size: 14px;
+  opacity: 0.95;
+  font-weight: 400;
+  max-width: 100%;
+  white-space: nowrap;
+}
+

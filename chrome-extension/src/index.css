@@ -1,5 +1,13 @@
-/* Import the existing popup.css */
-@import url('../popup.css');
+/* Import modular CSS files */
+@import url('../variables.css');
+@import url('../header.css');
+@import url('../auth.css');
+@import url('../input.css');
+@import url('../buttons.css');
+@import url('../events.css');
+@import url('../confirm.css');
+@import url('../modal.css');
+@import url('../utilities.css');
 
 /* Additional React-specific styles */
 #root {
