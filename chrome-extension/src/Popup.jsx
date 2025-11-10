@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar,
+  Calendar1,
+  CalendarSync,
+  CalendarDays,
   Sun,
   Moon,
   LogOut,
@@ -942,7 +945,12 @@ const Popup = () => {
           <div className="event-card-confirm">
             <div className="event-card-header-confirm">
               <div className="event-card-header-left-confirm">
-                <Calendar className="event-card-icon-confirm" />
+                {parsedEvent.recurrence_type &&
+                parsedEvent.recurrence_type !== "none" ? (
+                  <CalendarSync className="event-card-icon-confirm" />
+                ) : (
+                  <Calendar1 className="event-card-icon-confirm" />
+                )}
                 {parsedEvent.recurrence_type &&
                 parsedEvent.recurrence_type !== "none" ? (
                   <h3>Confirm Recurring Event</h3>
@@ -1211,7 +1219,16 @@ const Popup = () => {
           <div className="event-card-confirm">
             <div className="event-card-header-confirm">
               <div className="event-card-header-left-confirm">
-                <Calendar className="event-card-icon-confirm" />
+                {(() => {
+                  const recurringCount = parsedEvents.filter(
+                    (e) => e.recurrence_type && e.recurrence_type !== "none"
+                  ).length;
+                  return recurringCount > 0 ? (
+                    <CalendarSync className="event-card-icon-confirm" />
+                  ) : (
+                    <CalendarDays className="event-card-icon-confirm" />
+                  );
+                })()}
                 {(() => {
                   const recurringCount = parsedEvents.filter(
                     (e) => e.recurrence_type && e.recurrence_type !== "none"

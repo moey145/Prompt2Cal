@@ -45,14 +45,18 @@ if (!existsSync('dist/icons')) {
 
 const svgIconFiles = ['Logo.svg', 'DarkModeLogo.svg'];
 svgIconFiles.forEach(file => {
-  try {
-    copyFileSync(
-      join(__dirname, 'icons', file),
-      join(__dirname, 'dist', 'icons', file)
-    );
-    console.log(`✓ Copied icons/${file}`);
-  } catch (err) {
-    console.warn(`⚠ Skipping icons/${file}:`, err.message);
+  const sourcePath = join(__dirname, 'icons', file);
+  const destPath = join(__dirname, 'dist', 'icons', file);
+  
+  if (existsSync(sourcePath)) {
+    try {
+      copyFileSync(sourcePath, destPath);
+      console.log(`✓ Copied icons/${file}`);
+    } catch (err) {
+      console.warn(`⚠ Error copying icons/${file}:`, err.message);
+    }
+  } else {
+    console.warn(`⚠ Skipping icons/${file}: file not found`);
   }
 });
 
