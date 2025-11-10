@@ -15,7 +15,6 @@ import {
   Clock,
   MapPin,
   FileText,
-  Repeat,
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8000";
@@ -651,67 +650,138 @@ const Popup = () => {
 
     const recurrenceType = event.recurrence_type.toLowerCase();
     const interval = event.recurrence_interval || 1;
-    const count = event.recurrence_count;
     const startTime = event.start_time;
 
-    // Get day of week if it's a weekly event
-    let dayOfWeek = null;
-    if (recurrenceType === "weekly" && startTime) {
-      try {
-        const date = new Date(startTime);
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
-        dayOfWeek = days[date.getDay()];
-      } catch (e) {
-        // Ignore parsing errors
-      }
+    if (!startTime) {
+      // Fallback to simple description if no start_time
+      return recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
     }
 
-    // Build the description
-    let description = "";
+    try {
+      const date = new Date(startTime);
+      const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+      const dayOfMonth = date.getDate();
+      const month = date.getMonth(); // 0 = January, 11 = December
+      
+      const days = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      
+      const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
 
-    // Handle interval
-    if (interval > 1) {
-      if (recurrenceType === "weekly") {
-        description = `Every ${interval === 2 ? "other" : interval} week`;
-      } else if (recurrenceType === "daily") {
-        description = `Every ${interval === 2 ? "other" : interval} day`;
-      } else if (recurrenceType === "monthly") {
-        description = `Every ${interval === 2 ? "other" : interval} month`;
-      } else if (recurrenceType === "yearly") {
-        description = `Every ${interval === 2 ? "other" : interval} year`;
-      }
-    } else {
-      // Standard recurrence
+      const dayName = days[dayOfWeek];
+      const monthName = months[month];
+
+      // Helper to determine if it's a weekday (Monday-Friday)
+      const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      // Helper to determine which occurrence of weekday in month (1st, 2nd, 3rd, 4th, last)
+      const getWeekdayOccurrence = (date) => {
+        const dayOfMonth = date.getDate();
+        const dayOfWeek = date.getDay();
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+        
+        // Find all occurrences of this weekday in the month
+        const occurrences = [];
+        for (let d = 1; d <= lastDayOfMonth; d++) {
+          const testDate = new Date(year, month, d);
+          if (testDate.getDay() === dayOfWeek) {
+            occurrences.push(d);
+          }
+        }
+        
+        // Find which occurrence this date is
+        const occurrenceIndex = occurrences.indexOf(dayOfMonth);
+        if (occurrenceIndex === -1) return null;
+        
+        const occurrenceNumber = occurrenceIndex + 1;
+        const totalOccurrences = occurrences.length;
+        
+        // Return "first", "second", "third", "fourth", or "last"
+        if (occurrenceNumber === 1) return "first";
+        if (occurrenceNumber === 2) return "second";
+        if (occurrenceNumber === 3) return "third";
+        if (occurrenceNumber === 4) return "fourth";
+        if (occurrenceNumber === totalOccurrences && totalOccurrences > 1) return "last";
+        
+        return null;
+      };
+
+      let description = "";
+
       if (recurrenceType === "daily") {
-        description = "Daily";
+        if (interval === 1) {
+          // Check if it's weekdays only (Monday-Friday)
+          // For now, we'll show "Daily" but could enhance this if we had recurrence_days
+          description = "Daily";
+        } else {
+          description = `Every ${interval === 2 ? "other" : interval} day`;
+        }
       } else if (recurrenceType === "weekly") {
-        description = "Weekly";
+        if (interval === 1) {
+          // Check for weekday pattern (all weekdays)
+          // Since we don't have recurrence_days, we'll show the specific day
+          description = `Weekly on ${dayName}`;
+        } else if (interval === 2) {
+          description = `Every other ${dayName}`;
+        } else {
+          description = `Every ${interval} weeks on ${dayName}`;
+        }
       } else if (recurrenceType === "monthly") {
-        description = "Monthly";
+        if (interval === 1) {
+          const occurrence = getWeekdayOccurrence(date);
+          if (occurrence) {
+            description = `Monthly on the ${occurrence} ${dayName}`;
+          } else {
+            // Fallback to day of month
+            description = `Monthly on day ${dayOfMonth}`;
+          }
+        } else {
+          const occurrence = getWeekdayOccurrence(date);
+          if (occurrence) {
+            description = `Every ${interval} months on the ${occurrence} ${dayName}`;
+          } else {
+            description = `Every ${interval} months on day ${dayOfMonth}`;
+          }
+        }
       } else if (recurrenceType === "yearly") {
-        description = "Yearly";
+        if (interval === 1) {
+          description = `Annually on ${monthName} ${dayOfMonth}`;
+        } else {
+          description = `Every ${interval} years on ${monthName} ${dayOfMonth}`;
+        }
+      } else {
+        // Fallback
+        description = recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
       }
-    }
 
-    // Add event title
-    if (event.title) {
-      description += ` ${event.title.toLowerCase()}`;
+      return description;
+    } catch (e) {
+      // Fallback if date parsing fails
+      return recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
     }
-
-    // Add day of week for weekly events (after title for natural flow)
-    if (dayOfWeek && recurrenceType === "weekly") {
-      description += ` on ${dayOfWeek}`;
-    }
-
-    return description;
   };
 
   const handleEditSingleEvent = () => {
@@ -894,33 +964,24 @@ const Popup = () => {
               </div>
               {parsedEvent.recurrence_type &&
                 parsedEvent.recurrence_type !== "none" ? (
-                  <>
-                    <div className="event-recurrence-row-top-confirm">
-                      <Repeat className="event-recurrence-icon-confirm" size={16} />
-                      <div className="recurrence-text-confirm">
-                        {parsedEvent.recurrence_type.charAt(0).toUpperCase() +
-                          parsedEvent.recurrence_type.slice(1)}
-                        {parsedEvent.recurrence_count
-                          ? ` (${parsedEvent.recurrence_count}x)`
-                          : ""}
-                      </div>
-                    </div>
-                    <div className="event-start-label-row-confirm">
+                  <div className="event-time-row-confirm">
+                    <Clock className="event-time-icon-confirm" />
+                    <div className="event-time-info-confirm">
                       <div className="event-start-label-confirm">Starting from</div>
-                    </div>
-                    <div className="event-time-row-confirm">
-                      <Clock className="event-time-icon-confirm" />
-                      <div className="event-time-info-confirm">
-                        <div className="event-date-confirm">
-                          {formatDateTimeShort(parsedEvent.start_time)}
-                        </div>
-                        <div className="event-time-range-confirm">
-                          {formatTimeShort(parsedEvent.start_time)} -{" "}
-                          {formatTimeShort(parsedEvent.end_time)}
-                        </div>
+                      <div className="event-date-confirm">
+                        {formatDateTimeShort(parsedEvent.start_time)}
+                      </div>
+                      <div className="event-time-range-confirm">
+                        {formatTimeShort(parsedEvent.start_time)} -{" "}
+                        {formatTimeShort(parsedEvent.end_time)}
+                      </div>
+                      <div className="recurrence-text-confirm">
+                        {getRecurrenceDescription(parsedEvent) ||
+                          parsedEvent.recurrence_type.charAt(0).toUpperCase() +
+                            parsedEvent.recurrence_type.slice(1)}
                       </div>
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <div className="event-time-row-confirm">
                     <Clock className="event-time-icon-confirm" />
@@ -1202,33 +1263,24 @@ const Popup = () => {
                   </div>
                   {event.recurrence_type &&
                     event.recurrence_type !== "none" ? (
-                      <>
-                        <div className="event-recurrence-row-top-confirm">
-                          <Repeat className="event-recurrence-icon-confirm" size={16} />
-                          <div className="recurrence-text-confirm">
-                            {event.recurrence_type.charAt(0).toUpperCase() +
-                              event.recurrence_type.slice(1)}
-                            {event.recurrence_count
-                              ? ` (${event.recurrence_count}x)`
-                              : ""}
-                          </div>
-                        </div>
-                        <div className="event-start-label-row-confirm">
+                      <div className="event-time-row-confirm">
+                        <Clock className="event-time-icon-confirm" />
+                        <div className="event-time-info-confirm">
                           <div className="event-start-label-confirm">Starting from</div>
-                        </div>
-                        <div className="event-time-row-confirm">
-                          <Clock className="event-time-icon-confirm" />
-                          <div className="event-time-info-confirm">
-                            <div className="event-date-confirm">
-                              {formatDateTimeShort(event.start_time)}
-                            </div>
-                            <div className="event-time-range-confirm">
-                              {formatTimeShort(event.start_time)} -{" "}
-                              {formatTimeShort(event.end_time)}
-                            </div>
+                          <div className="event-date-confirm">
+                            {formatDateTimeShort(event.start_time)}
+                          </div>
+                          <div className="event-time-range-confirm">
+                            {formatTimeShort(event.start_time)} -{" "}
+                            {formatTimeShort(event.end_time)}
+                          </div>
+                          <div className="recurrence-text-confirm">
+                            {getRecurrenceDescription(event) ||
+                              event.recurrence_type.charAt(0).toUpperCase() +
+                                event.recurrence_type.slice(1)}
                           </div>
                         </div>
-                      </>
+                      </div>
                     ) : (
                       <div className="event-time-row-confirm">
                         <Clock className="event-time-icon-confirm" />

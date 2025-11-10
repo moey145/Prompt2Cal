@@ -759,7 +759,7 @@ body {
 .action-buttons {
   display: flex;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .create-button {
@@ -1024,38 +1024,18 @@ body {
   color: var(--text-tertiary);
 }
 
-.event-recurrence-row-top-confirm {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.event-recurrence-icon-confirm {
-  width: 16px;
-  height: 16px;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
 .recurrence-text-confirm {
   font-size: 15px;
   color: var(--text-tertiary);
   font-weight: 500;
   line-height: 1.4;
-  margin-left: 10px;
-}
-
-.event-start-label-row-confirm {
-  margin-bottom: 4px;
-  margin-left: 32px;
 }
 
 .event-time-row-confirm {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 .event-time-icon-confirm {
@@ -1063,7 +1043,11 @@ body {
   height: 20px;
   color: var(--text-tertiary);
   flex-shrink: 0;
-  align-self: center;
+}
+
+/* Align clock with time range (middle of the three texts: date, time, recurrence) */
+.event-time-row-confirm:has(.event-start-label-confirm) .event-time-icon-confirm {
+  margin-top: 47px;
 }
 
 .event-time-info-confirm {
@@ -1077,13 +1061,13 @@ body {
 }
 
 .event-start-label-confirm {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-tertiary);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 2px;
-  opacity: 0.8;
+  font-weight: 500;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+  margin-bottom: 1px;
+  opacity: 1;
 }
 
 .event-date-confirm {
