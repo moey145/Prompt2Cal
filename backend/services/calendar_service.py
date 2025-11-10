@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import re
 from typing import Optional, List, Dict
 from datetime import datetime, timedelta
 from google.auth.transport.requests import Request
@@ -242,10 +243,14 @@ class CalendarService:
                     return False
         return False
     
-    async def create_calendar_event(self, parsed_event: ParsedEvent, user_id: Optional[str] = None) -> str:
+    async def create_calendar_event(self, parsed_event: ParsedEvent, user_id: Optional[str] = None, original_text: Optional[str] = None) -> str:
         """
         Create an event in Google Calendar and return the event link.
         """
+        # Prefer the original_text parameter, but fall back to the event payload if not supplied
+        if original_text is None:
+            original_text = getattr(parsed_event, "original_text", None)
+        
         # Load user-specific credentials if user_id is provided
         if user_id:
             self._load_user_credentials(user_id)
@@ -312,7 +317,7 @@ class CalendarService:
                     logger.warning(f"Invalid reminder value: {parsed_event.reminder}")
             
             # Add recurrence if specified
-            recurrence_rule = self._build_recurrence_rule(parsed_event)
+            recurrence_rule = self._build_recurrence_rule(parsed_event, original_text)
             if recurrence_rule:
                 event_body['recurrence'] = recurrence_rule
                 logger.info(f"Adding recurrence rule: {recurrence_rule}")
@@ -382,7 +387,7 @@ class CalendarService:
             logger.error(f"Error creating calendar event: {str(e)}")
             raise Exception(f"Failed to create calendar event: {str(e)}")
     
-    def _build_recurrence_rule(self, parsed_event: ParsedEvent) -> List[str]:
+    def _build_recurrence_rule(self, parsed_event: ParsedEvent, original_text: Optional[str] = None) -> List[str]:
         """Build RRULE for Google Calendar recurring events."""
         # Check if this is a recurring event
         if not parsed_event.recurrence_type or parsed_event.recurrence_type == "none":
@@ -409,6 +414,41 @@ class CalendarService:
         
         # Start building RRULE
         rrule_parts = [f"FREQ={freq}", f"INTERVAL={interval}"]
+        
+        # Check if this is a weekend or weekday event (for weekly/daily recurrence)
+        is_weekend_event = False
+        is_weekday_event = False
+        if recurrence_type_str in {"weekly", "daily"}:
+            text_sources = []
+            if original_text:
+                text_sources.append(original_text)
+            if getattr(parsed_event, "title", None):
+                text_sources.append(parsed_event.title)
+            if getattr(parsed_event, "notes", None):
+                text_sources.append(parsed_event.notes)
+            combined_text = " ".join(text_sources).lower()
+
+            has_weekend_keyword = bool(re.search(r"\bweekend(s)?\b", combined_text))
+            has_weekday_keyword = bool(re.search(r"\b(weekdays?|business\s+days?|workdays?|work\s+days?)\b", combined_text))
+
+            start_weekday = None
+            try:
+                if parsed_event.start_time:
+                    start_weekday = datetime.fromisoformat(parsed_event.start_time).weekday()
+            except Exception:
+                start_weekday = None
+
+            if has_weekend_keyword and (start_weekday is None or start_weekday in (5, 6)):
+                is_weekend_event = True
+            elif has_weekday_keyword:
+                is_weekday_event = True
+
+        # Add BYDAY for weekend events (both Saturday and Sunday)
+        if is_weekend_event and "BYDAY=" not in ";".join(rrule_parts):
+            rrule_parts.append("BYDAY=SA,SU")
+        # Add BYDAY for weekday events (Monday through Friday)
+        if is_weekday_event and "BYDAY=" not in ";".join(rrule_parts):
+            rrule_parts.append("BYDAY=MO,TU,WE,TH,FR")
         
         # Add COUNT if specified
         if parsed_event.recurrence_count:

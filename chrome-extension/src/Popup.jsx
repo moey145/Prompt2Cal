@@ -694,9 +694,24 @@ const Popup = () => {
       const dayName = days[dayOfWeek];
       const monthName = months[month];
 
-      // Helper to determine if it's a weekday (Monday-Friday)
-      const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const textSources = [event.title, event.notes, event.original_text]
+        .filter(Boolean)
+        .map((text) => text.toLowerCase());
+
+      const hasWeekendKeyword = textSources.some((text) =>
+        text.includes("weekend")
+      );
+      const hasWeekdayKeyword = textSources.some((text) =>
+        text.includes("weekday") ||
+        text.includes("weekdays") ||
+        text.includes("business day") ||
+        text.includes("business days") ||
+        text.includes("workday") ||
+        text.includes("workdays") ||
+        text.includes("work day") ||
+        text.includes("work days")
+      );
+      const startsOnWeekend = dayOfWeek === 6 || dayOfWeek === 0;
 
       // Helper to determine which occurrence of weekday in month (1st, 2nd, 3rd, 4th, last)
       const getWeekdayOccurrence = (date) => {
@@ -736,15 +751,27 @@ const Popup = () => {
 
       if (recurrenceType === "daily") {
         if (interval === 1) {
-          // Check if it's weekdays only (Monday-Friday)
-          // For now, we'll show "Daily" but could enhance this if we had recurrence_days
-          description = "Daily";
+          if (hasWeekendKeyword) {
+            description = "Weekends";
+          } else if (hasWeekdayKeyword) {
+            description = "Weekdays";
+          } else {
+            description = "Daily";
+          }
         } else {
           description = `Every ${interval === 2 ? "other" : interval} day`;
         }
       } else if (recurrenceType === "weekly") {
-        if (interval === 1) {
-          // Check for weekday pattern (all weekdays)
+        // Check if this is a weekend or weekday event
+        // Weekend events start on Saturday or Sunday and recur on both days
+        const isWeekendEvent = hasWeekendKeyword && startsOnWeekend && interval === 1;
+        const isWeekdayEvent = hasWeekdayKeyword && interval === 1;
+
+        if (isWeekendEvent) {
+          description = "Weekends";
+        } else if (isWeekdayEvent) {
+          description = "Weekdays";
+        } else if (interval === 1) {
           // Since we don't have recurrence_days, we'll show the specific day
           description = `Weekly on ${dayName}`;
         } else if (interval === 2) {

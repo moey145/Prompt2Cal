@@ -32,6 +32,7 @@ class ParsedEvent(BaseModel):
     buffer_after: Optional[int] = Field(0, description="Buffer time in minutes after the event")
     end_date: Optional[str] = Field(None, description="End date for recurring events (ISO format)")
     end_after_count: Optional[int] = Field(None, description="End after N occurrences")
+    original_text: Optional[str] = Field(None, description="Original natural language input that produced this event")
 
 class BulkEventRequest(BaseModel):
     text: str = Field(..., description="Natural language description for bulk events")

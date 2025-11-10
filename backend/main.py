@@ -96,11 +96,13 @@ async def create_event(request: EventRequest):
                 events_list = []
                 for event in parsed_events:
                     if hasattr(event, 'model_dump'):
-                        events_list.append(event.model_dump())
+                        event_dict = event.model_dump()
                     elif isinstance(event, dict):
-                        events_list.append(event)
+                        event_dict = dict(event)
                     else:
-                        events_list.append(event.dict() if hasattr(event, 'dict') else event.model_dump())
+                        event_dict = event.dict() if hasattr(event, 'dict') else event.model_dump()
+                    event_dict["original_text"] = request.text
+                    events_list.append(event_dict)
                 
                 return JSONResponse(content={
                     "success": True,
@@ -142,10 +144,16 @@ async def create_event(request: EventRequest):
                     try:
                         expanded = await event_parser.event_expander.expand_single_recurring_event(single_event, tz_name=request.timezone, original_input=request.text)
                         if expanded and len(expanded) > 1:
-                            events_list = [
-                                e.model_dump() if hasattr(e, 'model_dump') else (e.dict() if hasattr(e, 'dict') else e)
-                                for e in expanded
-                            ]
+                            events_list = []
+                            for e in expanded:
+                                if hasattr(e, 'model_dump'):
+                                    expanded_event = e.model_dump()
+                                elif isinstance(e, dict):
+                                    expanded_event = dict(e)
+                                else:
+                                    expanded_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
+                                expanded_event["original_text"] = request.text
+                                events_list.append(expanded_event)
                             return JSONResponse(content={
                                 "success": True,
                                 "parsed_event": None,
@@ -232,10 +240,16 @@ async def create_event(request: EventRequest):
                 try:
                     expanded = await event_parser.event_expander.expand_single_recurring_event(parsed_event, tz_name=request.timezone, original_input=request.text)
                     if expanded and len(expanded) > 1:
-                        events_list = [
-                            e.model_dump() if hasattr(e, 'model_dump') else (e.dict() if hasattr(e, 'dict') else e)
-                            for e in expanded
-                        ]
+                        events_list = []
+                        for e in expanded:
+                            if hasattr(e, 'model_dump'):
+                                expanded_event = e.model_dump()
+                            elif isinstance(e, dict):
+                                expanded_event = dict(e)
+                            else:
+                                expanded_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
+                            expanded_event["original_text"] = request.text
+                            events_list.append(expanded_event)
                         return JSONResponse(content={
                             "success": True,
                             "parsed_event": None,
@@ -259,10 +273,16 @@ async def create_event(request: EventRequest):
             try:
                 alt_expanded = await event_parser.expand_recurring_events(request.text, request.timezone)
                 if alt_expanded and len(alt_expanded) > 1:
-                    events_list = [
-                        e.model_dump() if hasattr(e, 'model_dump') else (e.dict() if hasattr(e, 'dict') else e)
-                        for e in alt_expanded
-                    ]
+                    events_list = []
+                    for e in alt_expanded:
+                        if hasattr(e, 'model_dump'):
+                            alt_event = e.model_dump()
+                        elif isinstance(e, dict):
+                            alt_event = dict(e)
+                        else:
+                            alt_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
+                        alt_event["original_text"] = request.text
+                        events_list.append(alt_event)
                     return JSONResponse(content={
                         "success": True,
                         "parsed_event": None,
@@ -286,6 +306,9 @@ async def create_event(request: EventRequest):
             # Fallback for older Pydantic versions
             event_dict = parsed_event.dict() if hasattr(parsed_event, 'dict') else dict(parsed_event)
             logger.info(f"Converted using fallback: {type(event_dict)}")
+        
+        # Attach original text for downstream processing
+        event_dict["original_text"] = request.text
         
         # Return parsed details for confirmation
         return EventResponse(
@@ -313,7 +336,11 @@ async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):
         logger.info(f"Confirming event: {parsed_event.title}")
         
         # Step 4: Create event in Google Calendar
-        event_link = await calendar_service.create_calendar_event(parsed_event, user_id=user_id)
+        event_link = await calendar_service.create_calendar_event(
+            parsed_event,
+            user_id=user_id,
+            original_text=getattr(parsed_event, "original_text", None)
+        )
         
         # Convert to dict for response
         event_dict = parsed_event.model_dump() if hasattr(parsed_event, 'model_dump') else parsed_event.dict()
@@ -353,10 +380,16 @@ async def create_bulk_events(request: BulkEventRequest):
             raise HTTPException(status_code=400, detail="No events could be parsed from the request")
         
         # Convert to dicts
-        events_list = [
-            event.model_dump() if isinstance(event, ParsedEvent) else event
-            for event in parsed_events
-        ]
+        events_list = []
+        for event in parsed_events:
+            if isinstance(event, ParsedEvent) and hasattr(event, 'model_dump'):
+                event_dict = event.model_dump()
+            elif isinstance(event, dict):
+                event_dict = dict(event)
+            else:
+                event_dict = event.dict() if hasattr(event, 'dict') else event
+            event_dict["original_text"] = request.text
+            events_list.append(event_dict)
         
         return BulkEventResponse(
             success=True,
@@ -413,7 +446,11 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
         
         for event in events:
             try:
-                await calendar_service.create_calendar_event(event, user_id=user_id)
+                await calendar_service.create_calendar_event(
+                    event,
+                    user_id=user_id,
+                    original_text=getattr(event, "original_text", None)
+                )
                 created_count += 1
             except Exception as e:
                 logger.error(f"Failed to create event '{event.title}': {str(e)}")
