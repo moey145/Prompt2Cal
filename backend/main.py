@@ -66,6 +66,19 @@ async def auth_status(user_id: str = None):
         logger.error(f"Error checking auth status: {str(e)}")
         return {"authenticated": False, "message": f"Error: {str(e)}"}
 
+@app.get("/calendars")
+async def get_calendars(user_id: str = None):
+    """Get list of user's calendars."""
+    try:
+        calendars = await calendar_service.get_calendars(user_id=user_id)
+        return {
+            "success": True,
+            "calendars": calendars
+        }
+    except Exception as e:
+        logger.error(f"Error fetching calendars: {str(e)}")
+        return {"success": False, "calendars": [], "message": f"Error: {str(e)}"}
+
 @app.post("/create_event", response_model=EventResponse)
 async def create_event(request: EventRequest):
     """
@@ -348,7 +361,8 @@ async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):
         event_link = await calendar_service.create_calendar_event(
             parsed_event,
             user_id=user_id,
-            original_text=getattr(parsed_event, "original_text", None)
+            original_text=getattr(parsed_event, "original_text", None),
+            calendar_id=getattr(parsed_event, "calendar_id", None)
         )
         
         # Convert to dict for response
@@ -458,7 +472,8 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
                 await calendar_service.create_calendar_event(
                     event,
                     user_id=user_id,
-                    original_text=getattr(event, "original_text", None)
+                    original_text=getattr(event, "original_text", None),
+                    calendar_id=getattr(event, "calendar_id", None)
                 )
                 created_count += 1
             except Exception as e:

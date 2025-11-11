@@ -20,6 +20,7 @@ import {
   FileText,
   Users,
   Video,
+  Settings,
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8000";
@@ -37,6 +38,7 @@ const Popup = () => {
   const [showBulkEvents, setShowBulkEvents] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
@@ -54,6 +56,10 @@ const Popup = () => {
   const [editedSingleEvent, setEditedSingleEvent] = useState(null);
   const [showEventEditForm, setShowEventEditForm] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [calendars, setCalendars] = useState([]);
+  const [selectedCalendarId, setSelectedCalendarId] = useState(null);
+  const [loadingCalendars, setLoadingCalendars] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const isValidEmail = (email = "") =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -181,6 +187,19 @@ const Popup = () => {
     // eslint-disable-next-line
   }, []);
 
+  // Close settings dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSettings && !event.target.closest(".settings-container")) {
+        setShowSettings(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSettings]);
+
   const loadThemeFromStorage = async () => {
     const result = await chrome.storage.local.get(["darkMode"]);
     if (result.darkMode) {
@@ -272,6 +291,49 @@ const Popup = () => {
     }
   };
 
+  const fetchCalendars = async (userIdValue) => {
+    try {
+      setLoadingCalendars(true);
+      const response = await makeApiCall("/calendars", {
+        method: "GET",
+        params: { user_id: userIdValue || userId },
+      });
+
+      if (response.success && response.calendars) {
+        setCalendars(response.calendars);
+
+        // Load saved calendar selection or default to primary
+        const saved = await chrome.storage.local.get(["selectedCalendarId"]);
+        if (saved.selectedCalendarId) {
+          // Verify the saved calendar still exists
+          const exists = response.calendars.find(
+            (c) => c.id === saved.selectedCalendarId
+          );
+          if (exists) {
+            setSelectedCalendarId(saved.selectedCalendarId);
+          } else {
+            // Find primary calendar or first calendar
+            const primary = response.calendars.find((c) => c.primary);
+            setSelectedCalendarId(
+              primary ? primary.id : response.calendars[0]?.id || null
+            );
+          }
+        } else {
+          // Default to primary calendar
+          const primary = response.calendars.find((c) => c.primary);
+          setSelectedCalendarId(
+            primary ? primary.id : response.calendars[0]?.id || null
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch calendars:", error);
+      // Don't show error message, just log it
+    } finally {
+      setLoadingCalendars(false);
+    }
+  };
+
   const checkAuthStatus = async (userIdValue) => {
     try {
       const response = await makeApiCall("/auth/status", {
@@ -280,6 +342,11 @@ const Popup = () => {
       });
 
       setIsAuthenticated(response.authenticated);
+
+      // Fetch calendars if authenticated
+      if (response.authenticated) {
+        await fetchCalendars(userIdValue);
+      }
     } catch (error) {
       console.error("Auth check failed:", error);
       setIsAuthenticated(false);
@@ -420,6 +487,7 @@ const Popup = () => {
         ...parsedEvent,
         color: selectedColor,
         reminder: selectedReminder,
+        calendar_id: selectedCalendarId,
       };
 
       const response = await makeApiCall("/confirm_event", {
@@ -464,6 +532,7 @@ const Popup = () => {
         ...event,
         color: event.color || "#4285f4",
         reminder: selectedReminder,
+        calendar_id: selectedCalendarId,
       }));
 
       const response = await makeApiCall("/confirm_bulk_events", {
@@ -1033,6 +1102,56 @@ const Popup = () => {
   return (
     <div className="container">
       <div className="header">
+        <div className="header-left">
+          {isAuthenticated && (
+            <div className="settings-container">
+              <button
+                className="settings-button"
+                onClick={() => setShowSettings(!showSettings)}
+                title="Settings"
+              >
+                <Settings size={18} />
+              </button>
+              {showSettings && (
+                <div className="settings-dropdown">
+                  <div className="settings-section">
+                    <label className="settings-label">Calendar:</label>
+                    <select
+                      className="settings-calendar-select"
+                      value={selectedCalendarId || ""}
+                      onChange={async (e) => {
+                        const newCalendarId = e.target.value;
+                        setSelectedCalendarId(newCalendarId);
+                        await chrome.storage.local.set({
+                          selectedCalendarId: newCalendarId,
+                        });
+                        // Don't close dropdown - let user see the change
+                      }}
+                      disabled={loadingCalendars}
+                    >
+                      {calendars.map((cal) => (
+                        <option key={cal.id} value={cal.id}>
+                          {cal.summary} {cal.primary ? "(Primary)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="settings-divider"></div>
+                  <button
+                    className="settings-logout-button"
+                    onClick={() => {
+                      setShowSettings(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <button
           id="themeToggle"
           className="theme-toggle"
@@ -1041,16 +1160,6 @@ const Popup = () => {
         >
           {darkMode ? <Moon size={20} /> : <Sun size={20} />}
         </button>
-        {isAuthenticated && (
-          <button
-            id="logoutButton"
-            className="logout-button"
-            onClick={handleLogout}
-            title="Logout"
-          >
-            Logout
-          </button>
-        )}
         <div className="hero">
           <div className="hero-icon">
             <span className="hero-glow" />

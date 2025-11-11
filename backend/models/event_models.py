@@ -35,6 +35,7 @@ class ParsedEvent(BaseModel):
     attendees: List[str] = Field(default_factory=list, description="List of attendee email addresses")
     add_conference: bool = Field(False, description="Whether to add a Google Meet link to the event")
     original_text: Optional[str] = Field(None, description="Original natural language input that produced this event")
+    calendar_id: Optional[str] = Field(None, description="Google Calendar ID to create event in (defaults to primary)")
 
 class BulkEventRequest(BaseModel):
     text: str = Field(..., description="Natural language description for bulk events")

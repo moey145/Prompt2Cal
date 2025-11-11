@@ -244,7 +244,35 @@ class CalendarService:
                     return False
         return False
     
-    async def create_calendar_event(self, parsed_event: ParsedEvent, user_id: Optional[str] = None, original_text: Optional[str] = None) -> str:
+    async def get_calendars(self, user_id: Optional[str] = None) -> List[Dict]:
+        """
+        Get list of user's calendars.
+        Returns list of calendars with id, summary, and primary flag.
+        """
+        if user_id:
+            self._load_user_credentials(user_id)
+        
+        if not self.service:
+            raise Exception("Google Calendar service not initialized. Please authenticate first.")
+        
+        try:
+            calendar_list = self.service.calendarList().list().execute()
+            calendars = []
+            for calendar in calendar_list.get('items', []):
+                calendars.append({
+                    'id': calendar['id'],
+                    'summary': calendar.get('summary', 'Untitled Calendar'),
+                    'primary': calendar.get('primary', False),
+                    'accessRole': calendar.get('accessRole', 'reader')
+                })
+            # Sort: primary first, then by name
+            calendars.sort(key=lambda x: (not x['primary'], x['summary'].lower()))
+            return calendars
+        except HttpError as error:
+            logger.error(f"Error fetching calendars: {error}")
+            raise Exception(f"Failed to fetch calendars: {str(error)}")
+    
+    async def create_calendar_event(self, parsed_event: ParsedEvent, user_id: Optional[str] = None, original_text: Optional[str] = None, calendar_id: Optional[str] = None) -> str:
         """
         Create an event in Google Calendar and return the event link.
         """
@@ -352,7 +380,7 @@ class CalendarService:
             
             # Create the main event
             insert_kwargs = {
-                'calendarId': 'primary',
+                'calendarId': calendar_id or 'primary',
                 'body': event_body,
             }
             if 'conferenceData' in event_body:
@@ -378,7 +406,7 @@ class CalendarService:
                     'colorId': '8',  # Blue Grey for buffer events
                 }
                 buffer_event = self.service.events().insert(
-                    calendarId='primary',
+                    calendarId=calendar_id or 'primary',
                     body=buffer_event_body
                 ).execute()
                 buffer_events.append(buffer_event)
@@ -400,7 +428,7 @@ class CalendarService:
                     'colorId': '8',  # Blue Grey for buffer events
                 }
                 buffer_event = self.service.events().insert(
-                    calendarId='primary',
+                    calendarId=calendar_id or 'primary',
                     body=buffer_event_body
                 ).execute()
                 buffer_events.append(buffer_event)
