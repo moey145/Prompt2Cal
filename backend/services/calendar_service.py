@@ -244,10 +244,14 @@ class CalendarService:
                     return False
         return False
     
-    async def get_calendars(self, user_id: Optional[str] = None) -> List[Dict]:
+    async def get_calendars(self, user_id: Optional[str] = None, writable_only: bool = True) -> List[Dict]:
         """
         Get list of user's calendars.
-        Returns list of calendars with id, summary, and primary flag.
+        Returns list of calendars with id, summary, primary flag, and accessRole.
+        
+        Args:
+            user_id: Optional user ID to load credentials for
+            writable_only: If True, only return calendars where user has write access (writer/owner)
         """
         if user_id:
             self._load_user_credentials(user_id)
@@ -259,11 +263,17 @@ class CalendarService:
             calendar_list = self.service.calendarList().list().execute()
             calendars = []
             for calendar in calendar_list.get('items', []):
+                access_role = calendar.get('accessRole', 'reader')
+                
+                # Filter out read-only calendars if writable_only is True
+                if writable_only and access_role not in ['writer', 'owner']:
+                    continue
+                
                 calendars.append({
                     'id': calendar['id'],
                     'summary': calendar.get('summary', 'Untitled Calendar'),
                     'primary': calendar.get('primary', False),
-                    'accessRole': calendar.get('accessRole', 'reader')
+                    'accessRole': access_role
                 })
             # Sort: primary first, then by name
             calendars.sort(key=lambda x: (not x['primary'], x['summary'].lower()))
@@ -441,8 +451,38 @@ class CalendarService:
             return event_link
             
         except HttpError as e:
-            logger.error(f"Google Calendar API error: {str(e)}")
-            raise Exception(f"Failed to create calendar event: {str(e)}")
+            error_message = str(e)
+            error_reason = None
+            
+            # Check for permission errors (403 Forbidden)
+            if e.resp.status == 403:
+                # Try to extract error details from the error content
+                try:
+                    error_content = e.content.decode('utf-8') if e.content else '{}'
+                    import json
+                    error_data = json.loads(error_content)
+                    error_info = error_data.get('error', {})
+                    
+                    # Check error reason
+                    if 'errors' in error_info:
+                        for error_detail in error_info['errors']:
+                            reason = error_detail.get('reason', '')
+                            if reason == 'requiredAccessLevel':
+                                calendar_name = calendar_id or 'primary'
+                                error_message = f"You don't have write access to the calendar '{calendar_name}'. Please select a calendar where you have writer or owner permissions, or use your primary calendar."
+                                logger.error(f"Permission denied: Calendar '{calendar_name}' is read-only. User needs writer/owner access.")
+                                raise Exception(error_message)
+                            error_reason = reason
+                except (json.JSONDecodeError, AttributeError, KeyError) as parse_error:
+                    # If we can't parse the error, check the error message string
+                    if 'requiredAccessLevel' in error_message or 'writer access' in error_message.lower():
+                        calendar_name = calendar_id or 'primary'
+                        error_message = f"You don't have write access to the calendar '{calendar_name}'. Please select a calendar where you have writer or owner permissions."
+                        logger.error(f"Permission denied: Calendar '{calendar_name}' is read-only.")
+                        raise Exception(error_message)
+            
+            logger.error(f"Google Calendar API error: {error_message}")
+            raise Exception(f"Failed to create calendar event: {error_message}")
         except Exception as e:
             logger.error(f"Error creating calendar event: {str(e)}")
             raise Exception(f"Failed to create calendar event: {str(e)}")
@@ -555,9 +595,14 @@ class CalendarService:
         
         return color_mapping.get(normalized_color, None)
 
-    async def get_events_in_range(self, start_time: datetime, end_time: datetime) -> List[Dict]:
+    async def get_events_in_range(self, start_time: datetime, end_time: datetime, calendar_id: Optional[str] = None) -> List[Dict]:
         """
         Get all events in a specific time range from Google Calendar.
+        
+        Args:
+            start_time: Start of time range
+            end_time: End of time range
+            calendar_id: Optional calendar ID (defaults to 'primary')
         """
         if not self.service:
             raise Exception("Google Calendar service not initialized. Please authenticate first.")
@@ -568,7 +613,7 @@ class CalendarService:
             time_max = end_time.isoformat() + 'Z' if end_time.tzinfo is None else end_time.isoformat()
             
             events_result = self.service.events().list(
-                calendarId='primary',
+                calendarId=calendar_id or 'primary',
                 timeMin=time_min,
                 timeMax=time_max,
                 singleEvents=True,
@@ -673,53 +718,274 @@ class CalendarService:
             logger.error(f"Error finding available slots: {str(e)}")
             raise Exception(f"Failed to find available slots: {str(e)}")
 
-    async def check_conflicts(self, start_time: datetime, end_time: datetime, buffer_minutes: int = 15) -> List[Dict]:
+    async def check_conflicts(self, start_time: datetime, end_time: datetime, buffer_minutes: int = 15, calendar_id: Optional[str] = None, recurrence_type: Optional[str] = None, recurrence_count: Optional[int] = None, recurrence_interval: int = 1, end_date: Optional[str] = None) -> List[Dict]:
         """
         Check if a proposed meeting time conflicts with existing events.
+        For recurring events, checks conflicts for multiple future occurrences.
         
         Args:
             start_time: Proposed meeting start time
             end_time: Proposed meeting end time
             buffer_minutes: Buffer time around meetings
+            calendar_id: Optional calendar ID (defaults to 'primary')
+            recurrence_type: Optional recurrence type ('daily', 'weekly', 'monthly', 'yearly')
+            recurrence_count: Optional number of occurrences to check (defaults to 10 for recurring events)
+            recurrence_interval: Interval between occurrences (defaults to 1)
+            end_date: Optional end date for recurring events
         """
         try:
-            # Add buffer time
-            buffered_start = start_time - timedelta(minutes=buffer_minutes)
-            buffered_end = end_time + timedelta(minutes=buffer_minutes)
+            # Determine how many occurrences to check
+            occurrences_to_check = 1
+            if recurrence_type and recurrence_type.lower() != "none":
+                # For recurring events, check next 10 occurrences (or until end_date if specified)
+                if recurrence_count:
+                    occurrences_to_check = min(recurrence_count, 10)  # Cap at 10 for performance
+                else:
+                    occurrences_to_check = 10  # Default to 10 for indefinite recurring events
+                
+                # If end_date is specified, calculate how many occurrences until then
+                if end_date:
+                    try:
+                        from dateutil import parser as date_parser
+                        end_datetime = date_parser.parse(end_date)
+                        if end_datetime:
+                            # Calculate approximate occurrences until end_date
+                            duration = end_time - start_time
+                            if recurrence_type.lower() == "daily":
+                                days_diff = (end_datetime - start_time).days
+                                occurrences_to_check = min(days_diff + 1, 30)  # Cap at 30 days
+                            elif recurrence_type.lower() == "weekly":
+                                weeks_diff = (end_datetime - start_time).days // 7
+                                occurrences_to_check = min(weeks_diff + 1, 12)  # Cap at 12 weeks
+                            elif recurrence_type.lower() == "monthly":
+                                months_diff = (end_datetime.year - start_time.year) * 12 + (end_datetime.month - start_time.month)
+                                occurrences_to_check = min(months_diff + 1, 12)  # Cap at 12 months
+                            elif recurrence_type.lower() == "yearly":
+                                years_diff = end_datetime.year - start_time.year
+                                occurrences_to_check = min(years_diff + 1, 5)  # Cap at 5 years
+                    except Exception as e:
+                        logger.warning(f"Could not parse end_date for conflict checking: {e}")
+                        occurrences_to_check = 10
+            
+            # Generate all occurrences to check
+            occurrences = []
+            current_start = start_time
+            current_end = end_time
+            duration = end_time - start_time
+            
+            for i in range(occurrences_to_check):
+                occurrences.append((current_start, current_end))
+                
+                # Calculate next occurrence based on recurrence type
+                if recurrence_type and recurrence_type.lower() != "none" and i < occurrences_to_check - 1:
+                    if recurrence_type.lower() == "daily":
+                        current_start = current_start + timedelta(days=recurrence_interval)
+                    elif recurrence_type.lower() == "weekly":
+                        current_start = current_start + timedelta(weeks=recurrence_interval)
+                    elif recurrence_type.lower() == "monthly":
+                        # Add months (approximate)
+                        from dateutil.relativedelta import relativedelta
+                        current_start = current_start + relativedelta(months=recurrence_interval)
+                    elif recurrence_type.lower() == "yearly":
+                        from dateutil.relativedelta import relativedelta
+                        current_start = current_start + relativedelta(years=recurrence_interval)
+                    else:
+                        break  # Unknown recurrence type, stop
+                    
+                    current_end = current_start + duration
+                    
+                    # Stop if we've passed end_date
+                    if end_date:
+                        try:
+                            from dateutil import parser as date_parser
+                            end_datetime = date_parser.parse(end_date)
+                            if end_datetime and current_start > end_datetime:
+                                break
+                        except:
+                            pass
+            
+            # Get the time range covering all occurrences
+            if occurrences:
+                min_start = min(occ[0] for occ in occurrences)
+                max_end = max(occ[1] for occ in occurrences)
+                buffered_start = min_start - timedelta(minutes=buffer_minutes)
+                buffered_end = max_end + timedelta(minutes=buffer_minutes)
+            else:
+                buffered_start = start_time - timedelta(minutes=buffer_minutes)
+                buffered_end = end_time + timedelta(minutes=buffer_minutes)
             
             # Get events in the buffered range
-            existing_events = await self.get_events_in_range(buffered_start, buffered_end)
+            existing_events = await self.get_events_in_range(buffered_start, buffered_end, calendar_id=calendar_id)
             
             conflicts = []
-            for event in existing_events:
-                event_start = event.get('start', {})
-                event_end = event.get('end', {})
-                
-                # Handle both dateTime and date formats
-                if 'dateTime' in event_start:
-                    evt_start = datetime.fromisoformat(event_start['dateTime'].replace('Z', '+00:00'))
-                    evt_end = datetime.fromisoformat(event_end['dateTime'].replace('Z', '+00:00'))
-                elif 'date' in event_start:
-                    # All-day event
-                    evt_start = datetime.fromisoformat(event_start['date'] + 'T00:00:00')
-                    evt_end = datetime.fromisoformat(event_end['date'] + 'T23:59:59')
-                else:
-                    continue
-                
-                # Check for overlap
-                if (start_time < evt_end and end_time > evt_start):
-                    conflicts.append({
-                        'title': event.get('summary', 'Untitled Event'),
-                        'start': evt_start.isoformat(),
-                        'end': evt_end.isoformat(),
-                        'conflict_type': 'overlap' if (start_time < evt_end and end_time > evt_start) else 'adjacent'
-                    })
+            recurring_event_groups = {}  # Map of recurringEventId to list of conflicts
+            
+            for occurrence_start, occurrence_end in occurrences:
+                for event in existing_events:
+                    event_start = event.get('start', {})
+                    event_end = event.get('end', {})
+                    
+                    # Handle both dateTime and date formats
+                    if 'dateTime' in event_start:
+                        evt_start = datetime.fromisoformat(event_start['dateTime'].replace('Z', '+00:00'))
+                        evt_end = datetime.fromisoformat(event_end['dateTime'].replace('Z', '+00:00'))
+                    elif 'date' in event_start:
+                        # All-day event
+                        evt_start = datetime.fromisoformat(event_start['date'] + 'T00:00:00')
+                        evt_end = datetime.fromisoformat(event_end['date'] + 'T23:59:59')
+                    else:
+                        continue
+                    
+                    # Check for overlap with this occurrence
+                    if (occurrence_start < evt_end and occurrence_end > evt_start):
+                        # Check if this is a recurring event occurrence
+                        recurring_event_id = event.get('recurringEventId')
+                        
+                        if recurring_event_id:
+                            # This is an occurrence of a recurring event
+                            if recurring_event_id not in recurring_event_groups:
+                                recurring_event_groups[recurring_event_id] = {
+                                    'title': event.get('summary', 'Untitled Event'),
+                                    'location': event.get('location', ''),
+                                    'recurring_event_id': recurring_event_id,
+                                    'is_recurring': True,
+                                    'occurrence_count': 0,
+                                    'first_occurrence_start': evt_start.isoformat(),
+                                    'first_occurrence_end': evt_end.isoformat(),
+                                    'last_occurrence_start': evt_start.isoformat(),
+                                    'last_occurrence_end': evt_end.isoformat()
+                                }
+                            
+                            # Update occurrence count and date range
+                            recurring_event_groups[recurring_event_id]['occurrence_count'] += 1
+                            
+                            # Compare dates properly
+                            first_start = datetime.fromisoformat(recurring_event_groups[recurring_event_id]['first_occurrence_start'].replace('Z', '+00:00') if 'Z' in recurring_event_groups[recurring_event_id]['first_occurrence_start'] else recurring_event_groups[recurring_event_id]['first_occurrence_start'])
+                            last_start = datetime.fromisoformat(recurring_event_groups[recurring_event_id]['last_occurrence_start'].replace('Z', '+00:00') if 'Z' in recurring_event_groups[recurring_event_id]['last_occurrence_start'] else recurring_event_groups[recurring_event_id]['last_occurrence_start'])
+                            
+                            if evt_start < first_start:
+                                recurring_event_groups[recurring_event_id]['first_occurrence_start'] = evt_start.isoformat()
+                                recurring_event_groups[recurring_event_id]['first_occurrence_end'] = evt_end.isoformat()
+                            if evt_start > last_start:
+                                recurring_event_groups[recurring_event_id]['last_occurrence_start'] = evt_start.isoformat()
+                                recurring_event_groups[recurring_event_id]['last_occurrence_end'] = evt_end.isoformat()
+                        else:
+                            # Single event (not recurring)
+                            conflicts.append({
+                                'title': event.get('summary', 'Untitled Event'),
+                                'start': evt_start.isoformat(),
+                                'end': evt_end.isoformat(),
+                                'location': event.get('location', ''),
+                                'conflict_type': 'overlap',
+                                'is_recurring': False,
+                                'occurrence_start': occurrence_start.isoformat(),
+                                'occurrence_end': occurrence_end.isoformat()
+                            })
+            
+            # Add grouped recurring events to conflicts
+            for recurring_event_id, group in recurring_event_groups.items():
+                conflicts.append({
+                    'title': group['title'],
+                    'start': group['first_occurrence_start'],
+                    'end': group['first_occurrence_end'],
+                    'location': group['location'],
+                    'conflict_type': 'overlap',
+                    'is_recurring': True,
+                    'recurring_event_id': recurring_event_id,
+                    'occurrence_count': group['occurrence_count'],
+                    'last_occurrence_start': group['last_occurrence_start'],
+                    'last_occurrence_end': group['last_occurrence_end']
+                })
             
             return conflicts
             
         except Exception as e:
             logger.error(f"Error checking conflicts: {str(e)}")
             raise Exception(f"Failed to check conflicts: {str(e)}")
+    
+    async def find_alternative_times(self, start_time: datetime, end_time: datetime, duration_minutes: int, 
+                                     search_window_hours: int = 24, calendar_id: Optional[str] = None) -> List[Dict]:
+        """
+        Find alternative available time slots near the proposed time.
+        
+        Args:
+            start_time: Proposed meeting start time
+            end_time: Proposed meeting end time
+            duration_minutes: Duration of the meeting
+            search_window_hours: How many hours before/after to search (default 24)
+            calendar_id: Optional calendar ID (defaults to 'primary')
+        """
+        try:
+            # Search window: from (start_time - search_window_hours) to (start_time + search_window_hours)
+            search_start = start_time - timedelta(hours=search_window_hours)
+            search_end = start_time + timedelta(hours=search_window_hours)
+            
+            # Get all events in the search window
+            existing_events = await self.get_events_in_range(search_start, search_end, calendar_id=calendar_id)
+            
+            # Build list of busy time blocks
+            busy_blocks = []
+            for event in existing_events:
+                event_start = event.get('start', {})
+                event_end = event.get('end', {})
+                
+                if 'dateTime' in event_start:
+                    evt_start = datetime.fromisoformat(event_start['dateTime'].replace('Z', '+00:00'))
+                    evt_end = datetime.fromisoformat(event_end['dateTime'].replace('Z', '+00:00'))
+                    busy_blocks.append((evt_start, evt_end))
+                elif 'date' in event_start:
+                    # All-day event - skip for now
+                    continue
+            
+            # Sort busy blocks by start time
+            busy_blocks.sort(key=lambda x: x[0])
+            
+            # Find available slots
+            alternatives = []
+            current_time = search_start
+            
+            # Round to nearest 15 minutes
+            current_time = current_time.replace(minute=(current_time.minute // 15) * 15, second=0, microsecond=0)
+            
+            while current_time + timedelta(minutes=duration_minutes) <= search_end:
+                slot_start = current_time
+                slot_end = current_time + timedelta(minutes=duration_minutes)
+                
+                # Check if this slot conflicts with any busy block
+                has_conflict = False
+                for busy_start, busy_end in busy_blocks:
+                    if (slot_start < busy_end and slot_end > busy_start):
+                        has_conflict = True
+                        # Skip to after this busy block
+                        current_time = busy_end
+                        # Round to nearest 15 minutes
+                        current_time = current_time.replace(minute=((current_time.minute // 15) + 1) * 15, second=0, microsecond=0)
+                        break
+                
+                if not has_conflict:
+                    # Check if this slot is in the past
+                    if slot_start > datetime.now(slot_start.tzinfo) if slot_start.tzinfo else datetime.now():
+                        alternatives.append({
+                            'start': slot_start.isoformat(),
+                            'end': slot_end.isoformat(),
+                            'formatted_start': slot_start.strftime('%A, %B %d at %I:%M %p'),
+                            'formatted_time': f"{slot_start.strftime('%I:%M %p')} - {slot_end.strftime('%I:%M %p')}",
+                            'minutes_from_proposed': int((slot_start - start_time).total_seconds() / 60)
+                        })
+                    current_time += timedelta(minutes=15)
+                
+                # Limit to 5 alternatives
+                if len(alternatives) >= 5:
+                    break
+            
+            # Sort by proximity to proposed time
+            alternatives.sort(key=lambda x: abs(x['minutes_from_proposed']))
+            
+            return alternatives[:5]  # Return top 5 alternatives
+            
+        except Exception as e:
+            logger.error(f"Error finding alternative times: {str(e)}")
+            raise Exception(f"Failed to find alternative times: {str(e)}")
 
     def is_authenticated(self, user_id: Optional[str] = None) -> bool:
         """Check if the service is authenticated and ready to use."""

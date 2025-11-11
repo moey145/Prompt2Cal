@@ -115,13 +115,37 @@ class MultipleEventDetector:
             # Check for recurring patterns (strict)
             recurring_patterns = ['every day', 'every other', 'every ', 'daily', 'weekly', 'monthly', 'yearly', 'each month', 'each week', 'each day', 'first monday', 'first tuesday', 'first wednesday', 'first thursday', 'first friday', 'first saturday', 'first sunday']
             has_recurring = any(pattern in text_lower for pattern in recurring_patterns)
+            
+            # Check for multiple distinct activities (lunch, dinner, meeting, etc.) - define early for use below
+            activity_indicators = ['lunch', 'dinner', 'meeting', 'appointment', 'call', 'visit', 'workout', 'yoga', 'exercise', 'training', 'class', 'session']
+            activity_count = sum(text_lower.count(activity) for activity in activity_indicators)
+            
+            # Check for multiple "Every [day]" patterns - indicates multiple recurring events
+            # Pattern: "Every [day]" followed by event details, separated by periods
+            every_day_pattern = r'\bevery\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|day|weekday|weekend|week|month|year)\b'
+            every_matches = re.findall(every_day_pattern, text_lower)
+            multiple_every_patterns = len(every_matches) > 1
+            
+            # Check for period-separated sentences that each contain event information
+            # Split by periods and check if multiple sentences contain time + activity indicators
+            sentences = re.split(r'\.\s+', text)
+            sentences_with_events = 0
+            for sentence in sentences:
+                sentence_lower = sentence.lower().strip()
+                if not sentence_lower:
+                    continue
+                # Check if sentence contains time and activity/location
+                has_time_in_sentence = bool(re.search(r'\b\d{1,2}(:\d{2})?\s*(am|pm)\b', sentence_lower))
+                has_activity = any(activity in sentence_lower for activity in activity_indicators)
+                has_location = bool(re.search(r'\bat\s+\w+', sentence_lower))  # "at Gym", "at Studio"
+                # If sentence has time and (activity or location), it's likely an event
+                if has_time_in_sentence and (has_activity or has_location):
+                    sentences_with_events += 1
+            
+            has_multiple_sentences_with_events = sentences_with_events > 1
 
             # Phrases like 'next week', 'in 3 weeks' are single events, not multiple
             single_offset_week = bool(re.search(r"\b(next\s+week|in\s+\d+\s+weeks?)\b", text_lower))
-            
-            # Check for multiple distinct activities (lunch, dinner, meeting, etc.)
-            activity_indicators = ['lunch', 'dinner', 'meeting', 'appointment', 'call', 'visit']
-            activity_count = sum(text_lower.count(activity) for activity in activity_indicators)
             
             # Check for numbered events (e.g., "5 meetings", "3 appointments")
             number_pattern = r'\b(\d+)\s+(meetings?|appointments?|calls?|visits?)\b'
@@ -136,15 +160,24 @@ class MultipleEventDetector:
                 time_count > 1 and (day_count > 0 or has_separator) or
                 day_count > 1 or
                 activity_count > 1 or
-                has_numbered_events
+                has_numbered_events or
+                multiple_every_patterns or  # Multiple "Every [day]" patterns = multiple recurring events
+                has_multiple_sentences_with_events  # Multiple sentences each with event info
             )
             
             # Recurring events are single events that get expanded later
-            # Don't treat them as multiple events
+            # Don't treat them as multiple events UNLESS we have multiple recurring patterns
+            # If we detect a single recurring pattern, override the multiple events detection
+            # But if we have multiple "Every [day]" patterns, those are multiple recurring events
+            if has_recurring and not multiple_every_patterns and not has_multiple_sentences_with_events:
+                logger.info("Single recurring pattern detected - treating as single recurring event, not multiple events")
+                is_multiple = False
             
             logger.info(f"Is multiple events: {is_multiple}")
             logger.info(f"Has separator: {has_separator}")
             logger.info(f"Has recurring: {has_recurring}")
+            logger.info(f"Multiple 'Every' patterns: {multiple_every_patterns} (count: {len(every_matches)})")
+            logger.info(f"Multiple sentences with events: {has_multiple_sentences_with_events} (count: {sentences_with_events})")
             logger.info(f"Has numbered events: {has_numbered_events}")
             logger.info(f"Activity count: {activity_count}")
             

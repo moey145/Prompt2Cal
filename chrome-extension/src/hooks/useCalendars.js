@@ -19,6 +19,7 @@ export const useCalendars = (userId, isAuthenticated) => {
         setCalendars(response.calendars);
 
         // Load saved calendar selection or default to primary
+        // Note: Backend now only returns writable calendars, so we don't need to check accessRole here
         const saved = await chrome.storage.local.get(["selectedCalendarId"]);
         if (saved.selectedCalendarId) {
           const exists = response.calendars.find(
@@ -27,16 +28,22 @@ export const useCalendars = (userId, isAuthenticated) => {
           if (exists) {
             setSelectedCalendarId(saved.selectedCalendarId);
           } else {
+            // Saved calendar no longer exists or is read-only, switch to primary or first available
             const primary = response.calendars.find((c) => c.primary);
-            setSelectedCalendarId(
-              primary ? primary.id : response.calendars[0]?.id || null
-            );
+            const newCalendarId = primary ? primary.id : response.calendars[0]?.id || null;
+            setSelectedCalendarId(newCalendarId);
+            if (newCalendarId) {
+              await chrome.storage.local.set({ selectedCalendarId: newCalendarId });
+            }
           }
         } else {
+          // No saved calendar, default to primary or first available
           const primary = response.calendars.find((c) => c.primary);
-          setSelectedCalendarId(
-            primary ? primary.id : response.calendars[0]?.id || null
-          );
+          const defaultCalendarId = primary ? primary.id : response.calendars[0]?.id || null;
+          setSelectedCalendarId(defaultCalendarId);
+          if (defaultCalendarId) {
+            await chrome.storage.local.set({ selectedCalendarId: defaultCalendarId });
+          }
         }
       }
     } catch (error) {

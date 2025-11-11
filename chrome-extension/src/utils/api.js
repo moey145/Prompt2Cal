@@ -36,4 +36,3 @@ const handleResponse = async (response) => {
 
   return await response.json();
 };
-

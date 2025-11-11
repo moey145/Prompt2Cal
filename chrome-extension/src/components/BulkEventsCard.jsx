@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
+import { ConflictWarning } from "./ConflictWarning";
 
 export const BulkEventsCard = ({
   parsedEvents,
@@ -22,6 +23,9 @@ export const BulkEventsCard = ({
   onCreateAll,
   onCancel,
   loading,
+  loadingSingle,
+  eventConflicts,
+  onSelectAlternative,
 }) => {
   if (!parsedEvents || parsedEvents.length === 0) return null;
 
@@ -155,6 +159,17 @@ export const BulkEventsCard = ({
                   </div>
                 </div>
               )}
+              {eventConflicts && eventConflicts[index] && eventConflicts[index].conflicts && eventConflicts[index].conflicts.length > 0 && (
+                <div style={{ marginTop: "12px" }}>
+                  <ConflictWarning
+                    conflicts={eventConflicts[index].conflicts}
+                    alternatives={eventConflicts[index].alternatives}
+                    onSelectAlternative={(alt) => onSelectAlternative && onSelectAlternative(index, alt)}
+                    eventStartTime={event.start_time}
+                    eventEndTime={event.end_time}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
@@ -164,14 +179,14 @@ export const BulkEventsCard = ({
         <button
           className="create-button"
           onClick={onCreateAll}
-          disabled={loading}
+          disabled={loading || loadingSingle}
         >
           <Check size={16} className="inline-icon" /> Create All Events
         </button>
         <button
           className="cancel-button"
           onClick={onCancel}
-          disabled={loading}
+          disabled={loading || loadingSingle}
         >
           <X size={16} className="inline-icon" /> Cancel
         </button>

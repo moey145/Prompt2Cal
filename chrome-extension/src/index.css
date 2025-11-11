@@ -8,6 +8,7 @@
 @import url('../confirm.css');
 @import url('../modal.css');
 @import url('../utilities.css');
+@import url('../toast.css');
 
 /* Additional React-specific styles */
 #root {

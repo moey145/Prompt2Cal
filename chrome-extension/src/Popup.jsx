@@ -14,6 +14,8 @@ import { EventInputSection } from "./components/EventInputSection";
 import { SingleEventCard } from "./components/SingleEventCard";
 import { BulkEventsCard } from "./components/BulkEventsCard";
 import { EditEventModal } from "./components/EditEventModal";
+import { ConflictWarning } from "./components/ConflictWarning";
+import { ToastContainer } from "./components/Toast";
 
 const Popup = () => {
   // Core state
@@ -26,8 +28,7 @@ const Popup = () => {
   const [loadingSingle, setLoadingSingle] = useState(false);
   const [showParsedEvent, setShowParsedEvent] = useState(false);
   const [showBulkEvents, setShowBulkEvents] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("info");
+  const [toasts, setToasts] = useState([]);
   const [eventInput, setEventInput] = useState("");
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLOR);
   const [selectedReminder, setSelectedReminder] = useState(DEFAULT_REMINDER);
@@ -49,6 +50,12 @@ const Popup = () => {
   const [editingAttendeeInput, setEditingAttendeeInput] = useState("");
   const [editingStartBulk, setEditingStartBulk] = useState(false);
   const [editingEndBulk, setEditingEndBulk] = useState(false);
+
+  // Conflict detection state
+  const [conflicts, setConflicts] = useState([]);
+  const [alternatives, setAlternatives] = useState([]);
+  const [checkingConflicts, setCheckingConflicts] = useState(false);
+  const [bulkEventConflicts, setBulkEventConflicts] = useState({}); // Map of event index to conflicts
 
   // Custom hooks
   const {
@@ -183,12 +190,13 @@ const Popup = () => {
     }
   };
 
-  const showMessage = (text, type = "info") => {
-    setMessage(text);
-    setMessageType(type);
-    setTimeout(() => {
-      setMessage("");
-    }, 5000);
+  const showMessage = (text, type = "info", link = null) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message: text, type, link }]);
+  };
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
   const handleGoogleAuth = async () => {
@@ -256,14 +264,26 @@ const Popup = () => {
           setSelectedColor(DEFAULT_COLOR);
           setSelectedReminder(DEFAULT_REMINDER);
           setShowBulkEvents(true);
-          showMessage(response.message, "success");
+
+          // Check for conflicts for all events if authenticated
+          if (isAuthenticated) {
+            await checkBulkEventConflicts(normalizedEvents);
+          }
         } else if (response.parsed_event) {
           const normalizedEvent = normalizeEventPayload(response.parsed_event);
           setParsedEvent(normalizedEvent);
           setSelectedColor(normalizedEvent?.color || DEFAULT_COLOR);
           setSelectedReminder(normalizedEvent?.reminder ?? DEFAULT_REMINDER);
           setShowParsedEvent(true);
-          showMessage(response.message, "success");
+
+          // Check for conflicts if authenticated
+          if (
+            isAuthenticated &&
+            normalizedEvent.start_time &&
+            normalizedEvent.end_time
+          ) {
+            await checkEventConflicts(normalizedEvent);
+          }
         } else {
           showMessage("Failed to parse event", "error");
         }
@@ -279,7 +299,7 @@ const Popup = () => {
   };
 
   const handleCreateEvent = async () => {
-    if (!parsedEvent || loading) return;
+    if (!parsedEvent || loading || loadingSingle) return;
     if (!isAuthenticated) {
       showMessage(
         "Please connect your Google Calendar to create events",
@@ -304,24 +324,36 @@ const Popup = () => {
         body: JSON.stringify(eventWithColor),
       });
 
-      showMessage(
-        `✅ Event created! ${
-          response.event_link ? `View: ${response.event_link}` : ""
-        }`,
-        "success"
-      );
+      showMessage(`Event created!`, "success", response.event_link);
 
       resetForm();
     } catch (error) {
       console.error("Create event error:", error);
-      showMessage(`Failed to create event: ${error.message}`, "error");
+      const errorMessage = error.message || "Failed to create event";
+      // Check if it's a permission error
+      if (
+        errorMessage.toLowerCase().includes("write access") ||
+        errorMessage.includes("requiredAccessLevel")
+      ) {
+        showMessage(
+          "Permission error: You don't have write access to the selected calendar. Please select a calendar where you have writer or owner permissions in Settings.",
+          "error"
+        );
+      } else {
+        showMessage(`Failed to create event: ${errorMessage}`, "error");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateAllEvents = async () => {
-    if (!parsedEvents || parsedEvents.length === 0 || loading) {
+    if (
+      !parsedEvents ||
+      parsedEvents.length === 0 ||
+      loading ||
+      loadingSingle
+    ) {
       showMessage("No events to create", "error");
       return;
     }
@@ -351,16 +383,33 @@ const Popup = () => {
 
       if (response.success) {
         showMessage(
-          `✅ Created ${response.total_created || parsedEvents.length} events!`,
+          response.message ||
+            `Created ${response.total_created || parsedEvents.length} events!`,
           "success"
         );
         setShowBulkEvents(false);
         setEventInput("");
       } else {
-        showMessage("Failed to create events", "error");
+        showMessage(
+          response.message ||
+            "Failed to create events. Please check your calendar permissions.",
+          "error"
+        );
       }
     } catch (error) {
-      showMessage(`Error: ${error.message}`, "error");
+      const errorMessage = error.message || "Failed to create events";
+      // Check if it's a permission error
+      if (
+        errorMessage.toLowerCase().includes("write access") ||
+        errorMessage.includes("requiredAccessLevel")
+      ) {
+        showMessage(
+          "Permission error: You don't have write access to the selected calendar. Please select a calendar where you have writer or owner permissions in Settings.",
+          "error"
+        );
+      } else {
+        showMessage(`Error: ${errorMessage}`, "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -406,18 +455,27 @@ const Popup = () => {
         add_conference: Boolean(editingEvent.add_conference),
       };
 
-      setParsedEvents((prev) =>
-        prev.map((ev, i) =>
-          i === editingEventIndex
-            ? {
-                ...sanitizedEvent,
-                color: selectedColor,
-                reminder: selectedReminder,
-              }
-            : ev
-        )
+      const updatedEvents = parsedEvents.map((ev, i) =>
+        i === editingEventIndex
+          ? {
+              ...sanitizedEvent,
+              color: selectedColor,
+              reminder: selectedReminder,
+            }
+          : ev
       );
+
+      setParsedEvents(updatedEvents);
       closeEditModal();
+
+      // Re-check conflicts for the updated event
+      if (
+        isAuthenticated &&
+        sanitizedEvent.start_time &&
+        sanitizedEvent.end_time
+      ) {
+        checkBulkEventConflicts(updatedEvents);
+      }
     }
   };
 
@@ -516,6 +574,15 @@ const Popup = () => {
     setShowEventEditForm(false);
     setEditedSingleEvent(null);
     setSingleAttendeeInput("");
+
+    // Re-check conflicts for the updated event
+    if (
+      isAuthenticated &&
+      sanitizedEvent.start_time &&
+      sanitizedEvent.end_time
+    ) {
+      checkEventConflicts(sanitizedEvent);
+    }
   };
 
   const handleCancelSingleEdit = () => {
@@ -534,8 +601,120 @@ const Popup = () => {
     try {
       await toggleVoiceRecognition(eventInput, setEventInput);
     } catch (error) {
-      showMessage(`❌ ${error.message}`, "error");
+      showMessage(`${error.message}`, "error");
     }
+  };
+
+  const checkEventConflicts = async (event) => {
+    if (!event || !event.start_time || !event.end_time || !isAuthenticated) {
+      return;
+    }
+
+    try {
+      setCheckingConflicts(true);
+      const duration = event.duration_minutes || 60;
+
+      // Check if event is recurring
+      const isRecurring =
+        event.recurrence_type && event.recurrence_type !== "none";
+
+      const response = await makeApiCall("/check_conflicts", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          duration_minutes: duration,
+          calendar_id: selectedCalendarId,
+          buffer_minutes: 15,
+          // Pass recurrence info for recurring events
+          recurrence_type: isRecurring ? event.recurrence_type : null,
+          recurrence_count: isRecurring ? event.recurrence_count : null,
+          recurrence_interval: isRecurring ? event.recurrence_interval : null,
+          end_date: isRecurring ? event.end_date : null,
+        }),
+      });
+
+      if (response.success) {
+        setConflicts(response.conflicts || []);
+        setAlternatives(response.alternatives || []);
+      }
+    } catch (error) {
+      console.error("Error checking conflicts:", error);
+      // Don't show error to user - conflict checking is optional
+    } finally {
+      setCheckingConflicts(false);
+    }
+  };
+
+  const handleSelectAlternative = (alternative) => {
+    if (!parsedEvent) return;
+
+    // Update the event with the alternative time
+    const updatedEvent = {
+      ...parsedEvent,
+      start_time: alternative.start,
+      end_time: alternative.end,
+    };
+
+    setParsedEvent(updatedEvent);
+    setConflicts([]);
+    setAlternatives([]);
+
+    // Re-check conflicts for the new time
+    checkEventConflicts(updatedEvent);
+
+    showMessage("Event time updated", "success");
+  };
+
+  const checkBulkEventConflicts = async (events) => {
+    if (!events || events.length === 0 || !isAuthenticated) {
+      return;
+    }
+
+    const conflictsMap = {};
+
+    // Check conflicts for each event
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
+      if (!event.start_time || !event.end_time) continue;
+
+      try {
+        const duration = event.duration_minutes || 60;
+
+        // Check if event is recurring
+        const isRecurring =
+          event.recurrence_type && event.recurrence_type !== "none";
+
+        const response = await makeApiCall("/check_conflicts", {
+          method: "POST",
+          body: JSON.stringify({
+            user_id: userId,
+            start_time: event.start_time,
+            end_time: event.end_time,
+            duration_minutes: duration,
+            calendar_id: selectedCalendarId,
+            buffer_minutes: 15,
+            // Pass recurrence info for recurring events
+            recurrence_type: isRecurring ? event.recurrence_type : null,
+            recurrence_count: isRecurring ? event.recurrence_count : null,
+            recurrence_interval: isRecurring ? event.recurrence_interval : null,
+            end_date: isRecurring ? event.end_date : null,
+          }),
+        });
+
+        if (response.success && response.has_conflicts) {
+          conflictsMap[i] = {
+            conflicts: response.conflicts || [],
+            alternatives: response.alternatives || [],
+          };
+        }
+      } catch (error) {
+        console.error(`Error checking conflicts for event ${i}:`, error);
+      }
+    }
+
+    setBulkEventConflicts(conflictsMap);
   };
 
   const resetForm = () => {
@@ -546,7 +725,6 @@ const Popup = () => {
     setShowBulkEvents(false);
     setShowSelectedText(false);
     setSelectedText("");
-    setMessage("");
     setSingleAttendees([]);
     setSingleAttendeeInput("");
     setEditingAttendees([]);
@@ -559,6 +737,9 @@ const Popup = () => {
     setEditingEventIndex(null);
     setEditingStart(false);
     setEditingEnd(false);
+    setConflicts([]);
+    setAlternatives([]);
+    setBulkEventConflicts({});
   };
 
   return (
@@ -644,6 +825,11 @@ const Popup = () => {
             onCreate={handleCreateEvent}
             onCancel={() => setShowParsedEvent(false)}
             loading={loading}
+            loadingSingle={loadingSingle}
+            conflicts={conflicts}
+            alternatives={alternatives}
+            onSelectAlternative={handleSelectAlternative}
+            checkingConflicts={checkingConflicts}
           />
         )}
 
@@ -678,6 +864,28 @@ const Popup = () => {
             onCreateAll={handleCreateAllEvents}
             onCancel={() => setShowBulkEvents(false)}
             loading={loading}
+            loadingSingle={loadingSingle}
+            eventConflicts={bulkEventConflicts}
+            onSelectAlternative={(eventIndex, alternative) => {
+              // Update the specific event in bulk events
+              const updatedEvents = [...parsedEvents];
+              updatedEvents[eventIndex] = {
+                ...updatedEvents[eventIndex],
+                start_time: alternative.start,
+                end_time: alternative.end,
+              };
+              setParsedEvents(updatedEvents);
+
+              // Remove conflicts for this event and re-check
+              const newConflicts = { ...bulkEventConflicts };
+              delete newConflicts[eventIndex];
+              setBulkEventConflicts(newConflicts);
+
+              // Re-check conflicts for the updated event
+              checkBulkEventConflicts(updatedEvents);
+
+              showMessage("Event time updated", "success");
+            }}
           />
         )}
 
@@ -708,7 +916,7 @@ const Popup = () => {
           />
         )}
 
-        {message && <div className={`message ${messageType}`}>{message}</div>}
+        <ToastContainer toasts={toasts} onClose={removeToast} />
       </div>
     </div>
   );

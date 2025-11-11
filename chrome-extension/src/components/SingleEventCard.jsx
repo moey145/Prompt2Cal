@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
+import { ConflictWarning } from "./ConflictWarning";
 
 export const SingleEventCard = ({
   parsedEvent,
@@ -21,6 +22,11 @@ export const SingleEventCard = ({
   onCreate,
   onCancel,
   loading,
+  loadingSingle,
+  conflicts,
+  alternatives,
+  onSelectAlternative,
+  checkingConflicts,
 }) => {
   if (!parsedEvent) return null;
 
@@ -120,19 +126,28 @@ export const SingleEventCard = ({
             </div>
           </div>
         )}
+        {!checkingConflicts && conflicts && conflicts.length > 0 && (
+          <ConflictWarning
+            conflicts={conflicts}
+            alternatives={alternatives}
+            onSelectAlternative={onSelectAlternative}
+            eventStartTime={parsedEvent.start_time}
+            eventEndTime={parsedEvent.end_time}
+          />
+        )}
       </div>
       <div className="action-buttons">
         <button
           className="create-button"
           onClick={onCreate}
-          disabled={loading}
+          disabled={loading || loadingSingle}
         >
           <Check size={16} className="inline-icon" /> Create Event
         </button>
         <button
           className="cancel-button"
           onClick={onCancel}
-          disabled={loading}
+          disabled={loading || loadingSingle}
         >
           <X size={16} className="inline-icon" /> Cancel
         </button>

@@ -466,6 +466,7 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
         
         created_count = 0
         failed_count = 0
+        failed_events = []
         
         for event in events:
             try:
@@ -477,12 +478,29 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
                 )
                 created_count += 1
             except Exception as e:
-                logger.error(f"Failed to create event '{event.title}': {str(e)}")
+                error_msg = str(e)
+                logger.error(f"Failed to create event '{event.title}': {error_msg}")
                 failed_count += 1
+                failed_events.append({
+                    "title": event.title,
+                    "error": error_msg
+                })
         
-        message = f"Successfully created {created_count} events"
-        if failed_count > 0:
-            message += f", {failed_count} failed"
+        # Build detailed message
+        if created_count == 0 and failed_count > 0:
+            # All events failed - check if it's a permission error
+            if any("write access" in event.get("error", "").lower() or "requiredAccessLevel" in event.get("error", "") for event in failed_events):
+                message = f"All events failed: You don't have write access to the selected calendar. Please select a calendar where you have writer or owner permissions."
+            else:
+                message = f"Failed to create {failed_count} event(s). Please check the error messages and try again."
+        elif failed_count > 0:
+            message = f"Successfully created {created_count} event(s), but {failed_count} event(s) failed. "
+            if any("write access" in event.get("error", "").lower() for event in failed_events):
+                message += "Some events failed due to calendar permissions. Please select a writable calendar."
+            else:
+                message += "Please check the error messages and try again."
+        else:
+            message = f"Successfully created {created_count} event(s)!"
         
         return EventResponse(
             success=created_count > 0,
@@ -676,41 +694,72 @@ async def find_meeting_slots(request: dict):
 async def check_conflicts(request: dict):
     """
     Check if a proposed meeting time conflicts with existing events.
+    Also returns alternative time suggestions.
     """
     try:
         user_id = request.get("user_id")
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")
         
-        # Get calendar service for user
-        calendar_service = CalendarService()
-        await calendar_service.initialize_user_service(user_id)
+        # Load user credentials
+        if user_id:
+            calendar_service._load_user_credentials(user_id)
         
         # Parse request parameters
         start_time_str = request.get("start_time")
         end_time_str = request.get("end_time")
         buffer_minutes = request.get("buffer_minutes", 15)
+        calendar_id = request.get("calendar_id")
+        duration_minutes = request.get("duration_minutes", 60)
+        recurrence_type = request.get("recurrence_type")
+        recurrence_count = request.get("recurrence_count")
+        recurrence_interval = request.get("recurrence_interval", 1)
+        end_date = request.get("end_date")
         
         if not start_time_str or not end_time_str:
             raise HTTPException(status_code=400, detail="start_time and end_time are required")
         
         # Parse times
         from datetime import datetime
-        start_time = datetime.fromisoformat(start_time_str)
-        end_time = datetime.fromisoformat(end_time_str)
+        start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00') if 'Z' in start_time_str else start_time_str)
+        end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00') if 'Z' in end_time_str else end_time_str)
         
-        # Check for conflicts
+        # Calculate duration if not provided
+        if not duration_minutes:
+            duration_minutes = int((end_time - start_time).total_seconds() / 60)
+        
+        # Check for conflicts (including recurring event occurrences if applicable)
         conflicts = await calendar_service.check_conflicts(
             start_time=start_time,
             end_time=end_time,
-            buffer_minutes=buffer_minutes
+            buffer_minutes=buffer_minutes,
+            calendar_id=calendar_id,
+            recurrence_type=recurrence_type,
+            recurrence_count=recurrence_count,
+            recurrence_interval=recurrence_interval,
+            end_date=end_date
         )
+        
+        # Find alternative times if there are conflicts
+        alternatives = []
+        if conflicts:
+            try:
+                alternatives = await calendar_service.find_alternative_times(
+                    start_time=start_time,
+                    end_time=end_time,
+                    duration_minutes=duration_minutes,
+                    search_window_hours=24,
+                    calendar_id=calendar_id
+                )
+            except Exception as alt_error:
+                logger.warning(f"Could not find alternative times: {alt_error}")
         
         return {
             "success": True,
             "conflicts": conflicts,
             "has_conflicts": len(conflicts) > 0,
-            "message": f"Found {len(conflicts)} conflicts" if conflicts else "No conflicts found"
+            "alternatives": alternatives,
+            "message": f"Found {len(conflicts)} conflict(s)" if conflicts else "No conflicts found"
         }
         
     except Exception as e:
