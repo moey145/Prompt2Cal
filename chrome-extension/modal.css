@@ -56,3 +56,120 @@
   background: radial-gradient(circle at center, rgba(255, 255, 255, 0.16) 0%, rgba(15, 23, 42, 0.78) 100%);
 }
 
+.detail-row .checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  cursor: pointer;
+  margin: 0;
+  margin-left: 0;
+  vertical-align: middle;
+}
+
+.checkbox-inline input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.checkbox-inline span {
+  color: var(--text-primary);
+  user-select: none;
+  line-height: 1.5;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.attendee-helper {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.attendee-chip-list {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attendee-chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attendee-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.attendee-input-row .text-input {
+  flex: 1;
+}
+
+.attendee-add-button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.attendee-add-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.attendee-add-button:not(:disabled):hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-dark);
+}
+
+.attendee-chip-remove {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attendee-chip-remove:hover {
+  color: var(--text-secondary);
+}
+
+.dark-mode .attendee-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+}
+
+.dark-mode .attendee-add-button {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text-secondary);
+}
+
+.dark-mode .attendee-add-button:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+

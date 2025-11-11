@@ -34,6 +34,12 @@
   font-weight: 600;
   min-width: 70px;
   display: inline-block;
+  vertical-align: middle;
+}
+
+.detail-row.editable-row:has(.checkbox-inline) strong {
+  min-width: 80px;
+  padding-right: 8px;
 }
 
 .editable-row .editable-field.clickable {

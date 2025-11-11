@@ -32,6 +32,8 @@ class ParsedEvent(BaseModel):
     buffer_after: Optional[int] = Field(0, description="Buffer time in minutes after the event")
     end_date: Optional[str] = Field(None, description="End date for recurring events (ISO format)")
     end_after_count: Optional[int] = Field(None, description="End after N occurrences")
+    attendees: List[str] = Field(default_factory=list, description="List of attendee email addresses")
+    add_conference: bool = Field(False, description="Whether to add a Google Meet link to the event")
     original_text: Optional[str] = Field(None, description="Original natural language input that produced this event")
 
 class BulkEventRequest(BaseModel):

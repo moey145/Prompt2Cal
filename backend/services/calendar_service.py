@@ -10,6 +10,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from dotenv import load_dotenv
+from uuid import uuid4
 
 from ..models.event_models import ParsedEvent
 
@@ -296,7 +297,34 @@ class CalendarService:
             
             if parsed_event.notes:
                 event_body['description'] = parsed_event.notes
-            
+
+            # Add attendees if provided
+            if getattr(parsed_event, "attendees", None):
+                attendees_list = []
+                seen_emails = set()
+                for attendee in parsed_event.attendees:
+                    if not attendee:
+                        continue
+                    email = attendee.strip()
+                    if not email:
+                        continue
+                    email_lower = email.lower()
+                    if email_lower in seen_emails:
+                        continue
+                    attendees_list.append({'email': email})
+                    seen_emails.add(email_lower)
+                if attendees_list:
+                    event_body['attendees'] = attendees_list
+
+            # Add Google Meet conference data if requested
+            if getattr(parsed_event, "add_conference", False):
+                event_body['conferenceData'] = {
+                    'createRequest': {
+                        'requestId': f"prompt2cal-{uuid4().hex}",
+                        'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                    }
+                }
+
             # Add color if specified (only use Google Calendar predefined colors)
             if parsed_event.color:
                 color_id = self._get_google_color_id(parsed_event.color)
@@ -323,10 +351,14 @@ class CalendarService:
                 logger.info(f"Adding recurrence rule: {recurrence_rule}")
             
             # Create the main event
-            event = self.service.events().insert(
-                calendarId='primary',
-                body=event_body
-            ).execute()
+            insert_kwargs = {
+                'calendarId': 'primary',
+                'body': event_body,
+            }
+            if 'conferenceData' in event_body:
+                insert_kwargs['conferenceDataVersion'] = 1
+
+            event = self.service.events().insert(**insert_kwargs).execute()
             
             # Create buffer events if specified
             buffer_events = []

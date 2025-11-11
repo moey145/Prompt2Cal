@@ -18,6 +18,8 @@ import {
   Clock,
   MapPin,
   FileText,
+  Users,
+  Video,
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8000";
@@ -26,8 +28,13 @@ const Popup = () => {
   // State
   const [userId, setUserId] = useState(null);
   const [selectedText, setSelectedText] = useState("");
+  const [showSelectedText, setShowSelectedText] = useState(false);
   const [parsedEvent, setParsedEvent] = useState(null);
   const [parsedEvents, setParsedEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingSingle, setLoadingSingle] = useState(false);
+  const [showParsedEvent, setShowParsedEvent] = useState(false);
+  const [showBulkEvents, setShowBulkEvents] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isListening, setIsListening] = useState(false);
@@ -36,19 +43,131 @@ const Popup = () => {
   const [eventInput, setEventInput] = useState("");
   const [selectedColor, setSelectedColor] = useState("#4285f4");
   const [selectedReminder, setSelectedReminder] = useState("none");
-  const [editingStart, setEditingStart] = useState(false);
-  const [editingEnd, setEditingEnd] = useState(false);
-  const [showParsedEvent, setShowParsedEvent] = useState(false);
-  const [showBulkEvents, setShowBulkEvents] = useState(false);
-  const [showSelectedText, setShowSelectedText] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [loadingSingle, setLoadingSingle] = useState(false);
-  const [loadingAuth, setLoadingAuth] = useState(false);
+  const [singleAttendees, setSingleAttendees] = useState([]);
+  const [singleAttendeeInput, setSingleAttendeeInput] = useState("");
+  const [editingAttendees, setEditingAttendees] = useState([]);
+  const [editingAttendeeInput, setEditingAttendeeInput] = useState("");
   const [editingEventIndex, setEditingEventIndex] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [showEventEditForm, setShowEventEditForm] = useState(false);
+  const [editingStart, setEditingStart] = useState(false);
+  const [editingEnd, setEditingEnd] = useState(false);
   const [editedSingleEvent, setEditedSingleEvent] = useState(null);
+  const [showEventEditForm, setShowEventEditForm] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  const isValidEmail = (email = "") =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const ensureUniqueEmails = (emails = []) => {
+    const unique = [];
+    const seen = new Set();
+    emails.forEach((raw) => {
+      if (!raw) return;
+      const trimmed = raw.trim();
+      if (!trimmed) return;
+      if (!isValidEmail(trimmed)) return;
+      const lower = trimmed.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        unique.push(trimmed);
+      }
+    });
+    return unique;
+  };
+
+  const parseAttendeeInput = (value = "") => {
+    if (Array.isArray(value)) {
+      return ensureUniqueEmails(value);
+    }
+    if (typeof value !== "string") {
+      return [];
+    }
+    const parts = value
+      .split(/[\s,;]+/)
+      .map((email) => email.trim())
+      .filter((email) => email.length > 0);
+    return ensureUniqueEmails(parts);
+  };
+
+  const normalizeEventPayload = (event) => {
+    if (!event) return null;
+    const attendeesArray = Array.isArray(event.attendees)
+      ? ensureUniqueEmails(event.attendees)
+      : typeof event.attendees === "string"
+      ? parseAttendeeInput(event.attendees)
+      : [];
+
+    const reminderValue =
+      event.reminder === undefined || event.reminder === null
+        ? "none"
+        : String(event.reminder);
+
+    return {
+      ...event,
+      attendees: attendeesArray,
+      add_conference:
+        typeof event.add_conference === "boolean"
+          ? event.add_conference
+          : Boolean(event.add_conference),
+      reminder: reminderValue,
+    };
+  };
+
+  const handleAddSingleAttendee = () => {
+    if (!editedSingleEvent) return;
+    const newEmails = parseAttendeeInput(singleAttendeeInput);
+    if (!newEmails.length) {
+      if (singleAttendeeInput.trim()) {
+        showMessage("Please enter a valid email address", "error");
+      }
+      return;
+    }
+
+    const combined = ensureUniqueEmails([...singleAttendees, ...newEmails]);
+    if (combined.length === singleAttendees.length) {
+      showMessage("Guest already added", "info");
+      setSingleAttendeeInput("");
+      return;
+    }
+
+    setSingleAttendees(combined);
+    handleSingleEventFormChange("attendees", combined);
+    setSingleAttendeeInput("");
+  };
+
+  const handleRemoveSingleAttendee = (email) => {
+    const filtered = singleAttendees.filter((item) => item !== email);
+    setSingleAttendees(filtered);
+    handleSingleEventFormChange("attendees", filtered);
+  };
+
+  const handleAddEditingAttendee = () => {
+    if (!editingEvent) return;
+    const newEmails = parseAttendeeInput(editingAttendeeInput);
+    if (!newEmails.length) {
+      if (editingAttendeeInput.trim()) {
+        showMessage("Please enter a valid email address", "error");
+      }
+      return;
+    }
+
+    const combined = ensureUniqueEmails([...editingAttendees, ...newEmails]);
+    if (combined.length === editingAttendees.length) {
+      showMessage("Guest already added", "info");
+      setEditingAttendeeInput("");
+      return;
+    }
+
+    setEditingAttendees(combined);
+    setEditingEvent((prev) => (prev ? { ...prev, attendees: combined } : prev));
+    setEditingAttendeeInput("");
+  };
+
+  const handleRemoveEditingAttendee = (email) => {
+    const filtered = editingAttendees.filter((item) => item !== email);
+    setEditingAttendees(filtered);
+    setEditingEvent((prev) => (prev ? { ...prev, attendees: filtered } : prev));
+  };
 
   // Refs
   const recognitionRef = useRef(null);
@@ -255,13 +374,23 @@ const Popup = () => {
 
       if (response.success) {
         if (response.is_bulk && response.parsed_events) {
-          setParsedEvents(response.parsed_events);
+          const normalizedEvents = response.parsed_events
+            .map((event) => normalizeEventPayload(event))
+            .filter(Boolean);
+          setParsedEvents(normalizedEvents);
+          setSelectedColor("#4285f4");
+          setSelectedReminder("none");
           setShowBulkEvents(true);
           showMessage(response.message, "success");
-        } else {
-          setParsedEvent(response.parsed_event);
+        } else if (response.parsed_event) {
+          const normalizedEvent = normalizeEventPayload(response.parsed_event);
+          setParsedEvent(normalizedEvent);
+          setSelectedColor(normalizedEvent?.color || "#4285f4");
+          setSelectedReminder(normalizedEvent?.reminder ?? "none");
           setShowParsedEvent(true);
           showMessage(response.message, "success");
+        } else {
+          showMessage("Failed to parse event", "error");
         }
       } else {
         showMessage("Failed to parse event", "error");
@@ -365,10 +494,16 @@ const Popup = () => {
   };
 
   const openEditModal = (index) => {
+    const current = normalizeEventPayload(parsedEvents[index]);
+    if (!current) return;
+
+    const attendeeList = current.attendees || [];
     setEditingEventIndex(index);
-    setEditingEvent({ ...parsedEvents[index] });
-    setSelectedColor(parsedEvents[index].color || "#4285f4");
-    setSelectedReminder("none");
+    setEditingEvent({ ...current, attendees: attendeeList });
+    setEditingAttendees(attendeeList);
+    setEditingAttendeeInput("");
+    setSelectedColor(current.color || "#4285f4");
+    setSelectedReminder(current.reminder ?? "none");
     setEditingStart(false);
     setEditingEnd(false);
   };
@@ -376,17 +511,29 @@ const Popup = () => {
   const closeEditModal = () => {
     setEditingEventIndex(null);
     setEditingEvent(null);
+    setEditingAttendees([]);
+    setEditingAttendeeInput("");
     setSelectedColor("#4285f4");
     setSelectedReminder("none");
+    setEditingStart(false);
+    setEditingEnd(false);
   };
 
   const saveEditedEvent = () => {
     if (editingEventIndex !== null && editingEvent) {
+      const sanitizedAttendees = ensureUniqueEmails(editingAttendees);
+
+      const sanitizedEvent = {
+        ...editingEvent,
+        attendees: sanitizedAttendees,
+        add_conference: Boolean(editingEvent.add_conference),
+      };
+
       setParsedEvents((prev) =>
         prev.map((ev, i) =>
           i === editingEventIndex
             ? {
-                ...editingEvent,
+                ...sanitizedEvent,
                 color: selectedColor,
                 reminder: selectedReminder,
               }
@@ -406,6 +553,18 @@ const Popup = () => {
     setShowSelectedText(false);
     setSelectedText("");
     setMessage("");
+    setSingleAttendees([]);
+    setSingleAttendeeInput("");
+    setEditingAttendees([]);
+    setEditingAttendeeInput("");
+    setSelectedColor("#4285f4");
+    setSelectedReminder("none");
+    setEditedSingleEvent(null);
+    setShowEventEditForm(false);
+    setEditingEvent(null);
+    setEditingEventIndex(null);
+    setEditingStart(false);
+    setEditingEnd(false);
   };
 
   const toggleVoiceRecognition = async () => {
@@ -665,7 +824,7 @@ const Popup = () => {
       const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
       const dayOfMonth = date.getDate();
       const month = date.getMonth(); // 0 = January, 11 = December
-      
+
       const days = [
         "Sunday",
         "Monday",
@@ -675,7 +834,7 @@ const Popup = () => {
         "Friday",
         "Saturday",
       ];
-      
+
       const months = [
         "January",
         "February",
@@ -701,15 +860,16 @@ const Popup = () => {
       const hasWeekendKeyword = textSources.some((text) =>
         text.includes("weekend")
       );
-      const hasWeekdayKeyword = textSources.some((text) =>
-        text.includes("weekday") ||
-        text.includes("weekdays") ||
-        text.includes("business day") ||
-        text.includes("business days") ||
-        text.includes("workday") ||
-        text.includes("workdays") ||
-        text.includes("work day") ||
-        text.includes("work days")
+      const hasWeekdayKeyword = textSources.some(
+        (text) =>
+          text.includes("weekday") ||
+          text.includes("weekdays") ||
+          text.includes("business day") ||
+          text.includes("business days") ||
+          text.includes("workday") ||
+          text.includes("workdays") ||
+          text.includes("work day") ||
+          text.includes("work days")
       );
       const startsOnWeekend = dayOfWeek === 6 || dayOfWeek === 0;
 
@@ -720,7 +880,7 @@ const Popup = () => {
         const year = date.getFullYear();
         const month = date.getMonth();
         const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-        
+
         // Find all occurrences of this weekday in the month
         const occurrences = [];
         for (let d = 1; d <= lastDayOfMonth; d++) {
@@ -729,21 +889,22 @@ const Popup = () => {
             occurrences.push(d);
           }
         }
-        
+
         // Find which occurrence this date is
         const occurrenceIndex = occurrences.indexOf(dayOfMonth);
         if (occurrenceIndex === -1) return null;
-        
+
         const occurrenceNumber = occurrenceIndex + 1;
         const totalOccurrences = occurrences.length;
-        
+
         // Return "first", "second", "third", "fourth", or "last"
         if (occurrenceNumber === 1) return "first";
         if (occurrenceNumber === 2) return "second";
         if (occurrenceNumber === 3) return "third";
         if (occurrenceNumber === 4) return "fourth";
-        if (occurrenceNumber === totalOccurrences && totalOccurrences > 1) return "last";
-        
+        if (occurrenceNumber === totalOccurrences && totalOccurrences > 1)
+          return "last";
+
         return null;
       };
 
@@ -764,7 +925,8 @@ const Popup = () => {
       } else if (recurrenceType === "weekly") {
         // Check if this is a weekend or weekday event
         // Weekend events start on Saturday or Sunday and recur on both days
-        const isWeekendEvent = hasWeekendKeyword && startsOnWeekend && interval === 1;
+        const isWeekendEvent =
+          hasWeekendKeyword && startsOnWeekend && interval === 1;
         const isWeekdayEvent = hasWeekdayKeyword && interval === 1;
 
         if (isWeekendEvent) {
@@ -804,7 +966,8 @@ const Popup = () => {
         }
       } else {
         // Fallback
-        description = recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
+        description =
+          recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
       }
 
       return description;
@@ -815,8 +978,18 @@ const Popup = () => {
   };
 
   const handleEditSingleEvent = () => {
+    const normalized = normalizeEventPayload(parsedEvent);
+    if (!normalized) return;
+
+    const attendeeList = normalized.attendees || [];
+    setSingleAttendees(attendeeList);
+    setSingleAttendeeInput("");
+    setSelectedColor(normalized.color || "#4285f4");
+    setSelectedReminder(normalized.reminder ?? "none");
+    setEditedSingleEvent({ ...normalized });
+    setEditingStart(false);
+    setEditingEnd(false);
     setShowEventEditForm(true);
-    setEditedSingleEvent({ ...parsedEvent });
   };
 
   const handleSingleEventFormChange = (field, value) => {
@@ -824,14 +997,37 @@ const Popup = () => {
   };
 
   const handleSaveSingleEdit = () => {
-    setParsedEvent(editedSingleEvent);
+    if (!editedSingleEvent) return;
+
+    const sanitizedAttendees = ensureUniqueEmails(singleAttendees);
+
+    const sanitizedEvent = {
+      ...editedSingleEvent,
+      attendees: sanitizedAttendees,
+      add_conference: Boolean(editedSingleEvent.add_conference),
+      color: selectedColor,
+      reminder: selectedReminder,
+    };
+
+    setParsedEvent(sanitizedEvent);
+    setSingleAttendees(sanitizedAttendees);
+    setSelectedColor(sanitizedEvent.color || "#4285f4");
+    setSelectedReminder(sanitizedEvent.reminder ?? "none");
     setShowEventEditForm(false);
     setEditedSingleEvent(null);
+    setSingleAttendeeInput("");
   };
 
   const handleCancelSingleEdit = () => {
     setShowEventEditForm(false);
     setEditedSingleEvent(null);
+    setSingleAttendees([]);
+    setSingleAttendeeInput("");
+    const normalized = normalizeEventPayload(parsedEvent);
+    setSelectedColor(normalized?.color || "#4285f4");
+    setSelectedReminder(normalized?.reminder ?? "none");
+    setEditingStart(false);
+    setEditingEnd(false);
   };
 
   return (
@@ -998,39 +1194,41 @@ const Popup = () => {
                 </button>
               </div>
               {parsedEvent.recurrence_type &&
-                parsedEvent.recurrence_type !== "none" ? (
-                  <div className="event-time-row-confirm">
-                    <Clock className="event-time-icon-confirm" />
-                    <div className="event-time-info-confirm">
-                      <div className="event-start-label-confirm">Starting from</div>
-                      <div className="event-date-confirm">
-                        {formatDateTimeShort(parsedEvent.start_time)}
-                      </div>
-                      <div className="event-time-range-confirm">
-                        {formatTimeShort(parsedEvent.start_time)} -{" "}
-                        {formatTimeShort(parsedEvent.end_time)}
-                      </div>
-                      <div className="recurrence-text-confirm">
-                        {getRecurrenceDescription(parsedEvent) ||
-                          parsedEvent.recurrence_type.charAt(0).toUpperCase() +
-                            parsedEvent.recurrence_type.slice(1)}
-                      </div>
+              parsedEvent.recurrence_type !== "none" ? (
+                <div className="event-time-row-confirm">
+                  <Clock className="event-time-icon-confirm" />
+                  <div className="event-time-info-confirm">
+                    <div className="event-start-label-confirm">
+                      Starting from
+                    </div>
+                    <div className="event-date-confirm">
+                      {formatDateTimeShort(parsedEvent.start_time)}
+                    </div>
+                    <div className="event-time-range-confirm">
+                      {formatTimeShort(parsedEvent.start_time)} -{" "}
+                      {formatTimeShort(parsedEvent.end_time)}
+                    </div>
+                    <div className="recurrence-text-confirm">
+                      {getRecurrenceDescription(parsedEvent) ||
+                        parsedEvent.recurrence_type.charAt(0).toUpperCase() +
+                          parsedEvent.recurrence_type.slice(1)}
                     </div>
                   </div>
-                ) : (
-                  <div className="event-time-row-confirm">
-                    <Clock className="event-time-icon-confirm" />
-                    <div className="event-time-info-confirm">
-                      <div className="event-date-confirm">
-                        {formatDateTimeShort(parsedEvent.start_time)}
-                      </div>
-                      <div className="event-time-range-confirm">
-                        {formatTimeShort(parsedEvent.start_time)} -{" "}
-                        {formatTimeShort(parsedEvent.end_time)}
-                      </div>
+                </div>
+              ) : (
+                <div className="event-time-row-confirm">
+                  <Clock className="event-time-icon-confirm" />
+                  <div className="event-time-info-confirm">
+                    <div className="event-date-confirm">
+                      {formatDateTimeShort(parsedEvent.start_time)}
+                    </div>
+                    <div className="event-time-range-confirm">
+                      {formatTimeShort(parsedEvent.start_time)} -{" "}
+                      {formatTimeShort(parsedEvent.end_time)}
                     </div>
                   </div>
-                )}
+                </div>
+              )}
               {parsedEvent.location && (
                 <div className="event-time-row-confirm">
                   <MapPin className="event-time-icon-confirm" />
@@ -1044,6 +1242,22 @@ const Popup = () => {
                   <FileText className="event-time-icon-confirm" />
                   <div className="event-location-info-confirm">
                     {parsedEvent.notes}
+                  </div>
+                </div>
+              )}
+              {parsedEvent.attendees && parsedEvent.attendees.length > 0 && (
+                <div className="event-time-row-confirm">
+                  <Users className="event-time-icon-confirm" />
+                  <div className="event-location-info-confirm">
+                    {parsedEvent.attendees.join(", ")}
+                  </div>
+                </div>
+              )}
+              {parsedEvent.add_conference && (
+                <div className="event-time-row-confirm">
+                  <Video className="event-time-icon-confirm" />
+                  <div className="event-location-info-confirm">
+                    Google Meet link will be generated
                   </div>
                 </div>
               )}
@@ -1175,6 +1389,65 @@ const Popup = () => {
                       }
                     />
                   </div>
+                  <div className="detail-row editable-row">
+                    <strong>Guests:</strong>
+                    <div className="attendee-input-row">
+                      <input
+                        type="email"
+                        className="text-input"
+                        placeholder="Add guest email"
+                        value={singleAttendeeInput}
+                        onChange={(e) => setSingleAttendeeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddSingleAttendee();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="attendee-add-button"
+                        onClick={handleAddSingleAttendee}
+                        disabled={!singleAttendeeInput.trim()}
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {singleAttendees.length > 0 && (
+                      <div className="attendee-chip-list">
+                        {singleAttendees.map((email) => (
+                          <span key={email} className="attendee-chip">
+                            {email}
+                            <button
+                              type="button"
+                              className="attendee-chip-remove"
+                              aria-label={`Remove ${email}`}
+                              onClick={() => handleRemoveSingleAttendee(email)}
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="detail-row editable-row">
+                    <strong>Google Meet:</strong>
+                    <label className="checkbox-inline">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editedSingleEvent.add_conference)}
+                        onChange={(e) =>
+                          handleSingleEventFormChange(
+                            "add_conference",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      <span>Add Google Meet link</span>
+                    </label>
+                  </div>
                   <div className="detail-row">
                     <strong>Color:</strong>
                     <div className="color-presets">
@@ -1305,40 +1578,41 @@ const Popup = () => {
                       </button>
                     </div>
                   </div>
-                  {event.recurrence_type &&
-                    event.recurrence_type !== "none" ? (
-                      <div className="event-time-row-confirm">
-                        <Clock className="event-time-icon-confirm" />
-                        <div className="event-time-info-confirm">
-                          <div className="event-start-label-confirm">Starting from</div>
-                          <div className="event-date-confirm">
-                            {formatDateTimeShort(event.start_time)}
-                          </div>
-                          <div className="event-time-range-confirm">
-                            {formatTimeShort(event.start_time)} -{" "}
-                            {formatTimeShort(event.end_time)}
-                          </div>
-                          <div className="recurrence-text-confirm">
-                            {getRecurrenceDescription(event) ||
-                              event.recurrence_type.charAt(0).toUpperCase() +
-                                event.recurrence_type.slice(1)}
-                          </div>
+                  {event.recurrence_type && event.recurrence_type !== "none" ? (
+                    <div className="event-time-row-confirm">
+                      <Clock className="event-time-icon-confirm" />
+                      <div className="event-time-info-confirm">
+                        <div className="event-start-label-confirm">
+                          Starting from
+                        </div>
+                        <div className="event-date-confirm">
+                          {formatDateTimeShort(event.start_time)}
+                        </div>
+                        <div className="event-time-range-confirm">
+                          {formatTimeShort(event.start_time)} -{" "}
+                          {formatTimeShort(event.end_time)}
+                        </div>
+                        <div className="recurrence-text-confirm">
+                          {getRecurrenceDescription(event) ||
+                            event.recurrence_type.charAt(0).toUpperCase() +
+                              event.recurrence_type.slice(1)}
                         </div>
                       </div>
-                    ) : (
-                      <div className="event-time-row-confirm">
-                        <Clock className="event-time-icon-confirm" />
-                        <div className="event-time-info-confirm">
-                          <div className="event-date-confirm">
-                            {formatDateTimeShort(event.start_time)}
-                          </div>
-                          <div className="event-time-range-confirm">
-                            {formatTimeShort(event.start_time)} -{" "}
-                            {formatTimeShort(event.end_time)}
-                          </div>
+                    </div>
+                  ) : (
+                    <div className="event-time-row-confirm">
+                      <Clock className="event-time-icon-confirm" />
+                      <div className="event-time-info-confirm">
+                        <div className="event-date-confirm">
+                          {formatDateTimeShort(event.start_time)}
+                        </div>
+                        <div className="event-time-range-confirm">
+                          {formatTimeShort(event.start_time)} -{" "}
+                          {formatTimeShort(event.end_time)}
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
                   {event.location && (
                     <div className="event-time-row-confirm">
                       <MapPin className="event-time-icon-confirm" />
@@ -1352,6 +1626,22 @@ const Popup = () => {
                       <FileText className="event-time-icon-confirm" />
                       <div className="event-location-info-confirm">
                         {event.notes}
+                      </div>
+                    </div>
+                  )}
+                  {event.attendees && event.attendees.length > 0 && (
+                    <div className="event-time-row-confirm">
+                      <Users className="event-time-icon-confirm" />
+                      <div className="event-location-info-confirm">
+                        {event.attendees.join(", ")}
+                      </div>
+                    </div>
+                  )}
+                  {event.add_conference && (
+                    <div className="event-time-row-confirm">
+                      <Video className="event-time-icon-confirm" />
+                      <div className="event-location-info-confirm">
+                        Google Meet link will be generated
                       </div>
                     </div>
                   )}
@@ -1489,6 +1779,68 @@ const Popup = () => {
                         })
                       }
                     />
+                  </div>
+                  <div className="detail-row editable-row">
+                    <strong>Guests:</strong>
+                    <div className="attendee-input-row">
+                      <input
+                        type="email"
+                        className="text-input"
+                        placeholder="Add guest email"
+                        value={editingAttendeeInput}
+                        onChange={(e) =>
+                          setEditingAttendeeInput(e.target.value)
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddEditingAttendee();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="attendee-add-button"
+                        onClick={handleAddEditingAttendee}
+                        disabled={!editingAttendeeInput.trim()}
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {editingAttendees.length > 0 && (
+                      <div className="attendee-chip-list">
+                        {editingAttendees.map((email) => (
+                          <span key={email} className="attendee-chip">
+                            {email}
+                            <button
+                              type="button"
+                              className="attendee-chip-remove"
+                              aria-label={`Remove ${email}`}
+                              onClick={() => handleRemoveEditingAttendee(email)}
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="detail-row editable-row">
+                    <strong>Google Meet:</strong>
+                    <label className="checkbox-inline">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editingEvent.add_conference)}
+                        onChange={(e) =>
+                          setEditingEvent((prev) =>
+                            prev
+                              ? { ...prev, add_conference: e.target.checked }
+                              : prev
+                          )
+                        }
+                      />
+                      <span>Add Google Meet link</span>
+                    </label>
                   </div>
                   <div className="detail-row">
                     <strong>Color:</strong>
