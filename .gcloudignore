@@ -1,0 +1,56 @@
+# Git files
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+*.env
+
+# User tokens (will be generated in Cloud Run)
+backend/user_tokens/
+user_tokens/
+
+# Chrome extension
+chrome-extension/
+frontend/
+
+# Documentation
+*.md
+README.md
+TEST_PROMPTS.md
+
+# Test files
+test_*.py
+tests/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+

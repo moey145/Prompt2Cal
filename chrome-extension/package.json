@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build && node build.js",
+    "build:prod": "node prepare-production.js ${BACKEND_URL} && vite build --mode production && node build.js",
     "preview": "vite preview",
-    "copy-files": "node build.js"
+    "copy-files": "node build.js",
+    "prepare-prod": "node prepare-production.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

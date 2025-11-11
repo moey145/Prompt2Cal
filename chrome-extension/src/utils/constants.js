@@ -1,5 +1,6 @@
 // Constants
-export const API_BASE = "http://localhost:8000";
+// Backend URL - set via environment variable BUILD_TIME_API_BASE or default to localhost for development
+export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 export const EVENT_COLORS = [
   "#4285f4",
