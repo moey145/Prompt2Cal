@@ -1,32 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  Calendar,
-  Calendar1,
-  CalendarSync,
-  CalendarDays,
-  Sun,
-  Moon,
-  LogOut,
-  Sparkles,
-  Mic,
-  Square,
-  Check,
-  X,
-  List,
-  Edit,
-  SquarePen,
-  Clock,
-  MapPin,
-  FileText,
-  Users,
-  Video,
-  Settings,
-} from "lucide-react";
-
-const API_BASE = "http://localhost:8000";
+// Refactored Popup component using extracted components and hooks
+import React, { useState, useEffect } from "react";
+import { Sun, Moon, Settings } from "lucide-react";
+import { useAuth } from "./hooks/useAuth";
+import { useCalendars } from "./hooks/useCalendars";
+import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
+import { makeApiCall } from "./utils/api";
+import { normalizeEventPayload } from "./utils/eventNormalizers";
+import { parseAttendeeInput, ensureUniqueEmails } from "./utils/emailUtils";
+import { DEFAULT_COLOR, DEFAULT_REMINDER } from "./utils/constants";
+import { SettingsDropdown } from "./components/SettingsDropdown";
+import { AuthSection } from "./components/AuthSection";
+import { EventInputSection } from "./components/EventInputSection";
+import { SingleEventCard } from "./components/SingleEventCard";
+import { BulkEventsCard } from "./components/BulkEventsCard";
+import { EditEventModal } from "./components/EditEventModal";
 
 const Popup = () => {
-  // State
+  // Core state
   const [userId, setUserId] = useState(null);
   const [selectedText, setSelectedText] = useState("");
   const [showSelectedText, setShowSelectedText] = useState(false);
@@ -36,149 +26,50 @@ const Popup = () => {
   const [loadingSingle, setLoadingSingle] = useState(false);
   const [showParsedEvent, setShowParsedEvent] = useState(false);
   const [showBulkEvents, setShowBulkEvents] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [loadingAuth, setLoadingAuth] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
   const [eventInput, setEventInput] = useState("");
-  const [selectedColor, setSelectedColor] = useState("#4285f4");
-  const [selectedReminder, setSelectedReminder] = useState("none");
-  const [singleAttendees, setSingleAttendees] = useState([]);
-  const [singleAttendeeInput, setSingleAttendeeInput] = useState("");
-  const [editingAttendees, setEditingAttendees] = useState([]);
-  const [editingAttendeeInput, setEditingAttendeeInput] = useState("");
-  const [editingEventIndex, setEditingEventIndex] = useState(null);
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [editingStart, setEditingStart] = useState(false);
-  const [editingEnd, setEditingEnd] = useState(false);
-  const [editedSingleEvent, setEditedSingleEvent] = useState(null);
-  const [showEventEditForm, setShowEventEditForm] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(DEFAULT_COLOR);
+  const [selectedReminder, setSelectedReminder] = useState(DEFAULT_REMINDER);
   const [darkMode, setDarkMode] = useState(false);
-  const [calendars, setCalendars] = useState([]);
-  const [selectedCalendarId, setSelectedCalendarId] = useState(null);
-  const [loadingCalendars, setLoadingCalendars] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  const isValidEmail = (email = "") =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  // Single event edit state
+  const [singleAttendees, setSingleAttendees] = useState([]);
+  const [singleAttendeeInput, setSingleAttendeeInput] = useState("");
+  const [editedSingleEvent, setEditedSingleEvent] = useState(null);
+  const [showEventEditForm, setShowEventEditForm] = useState(false);
+  const [editingStart, setEditingStart] = useState(false);
+  const [editingEnd, setEditingEnd] = useState(false);
 
-  const ensureUniqueEmails = (emails = []) => {
-    const unique = [];
-    const seen = new Set();
-    emails.forEach((raw) => {
-      if (!raw) return;
-      const trimmed = raw.trim();
-      if (!trimmed) return;
-      if (!isValidEmail(trimmed)) return;
-      const lower = trimmed.toLowerCase();
-      if (!seen.has(lower)) {
-        seen.add(lower);
-        unique.push(trimmed);
-      }
-    });
-    return unique;
-  };
+  // Bulk event edit state
+  const [editingEventIndex, setEditingEventIndex] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingAttendees, setEditingAttendees] = useState([]);
+  const [editingAttendeeInput, setEditingAttendeeInput] = useState("");
+  const [editingStartBulk, setEditingStartBulk] = useState(false);
+  const [editingEndBulk, setEditingEndBulk] = useState(false);
 
-  const parseAttendeeInput = (value = "") => {
-    if (Array.isArray(value)) {
-      return ensureUniqueEmails(value);
-    }
-    if (typeof value !== "string") {
-      return [];
-    }
-    const parts = value
-      .split(/[\s,;]+/)
-      .map((email) => email.trim())
-      .filter((email) => email.length > 0);
-    return ensureUniqueEmails(parts);
-  };
+  // Custom hooks
+  const {
+    isAuthenticated,
+    isCheckingAuth,
+    loadingAuth,
+    checkAuthStatus,
+    handleGoogleAuth: authGoogleAuth,
+    handleLogout: authLogout,
+    setIsAuthenticated,
+  } = useAuth(userId);
 
-  const normalizeEventPayload = (event) => {
-    if (!event) return null;
-    const attendeesArray = Array.isArray(event.attendees)
-      ? ensureUniqueEmails(event.attendees)
-      : typeof event.attendees === "string"
-      ? parseAttendeeInput(event.attendees)
-      : [];
+  const {
+    calendars,
+    selectedCalendarId,
+    loadingCalendars,
+    fetchCalendars,
+    updateSelectedCalendar,
+  } = useCalendars(userId, isAuthenticated);
 
-    const reminderValue =
-      event.reminder === undefined || event.reminder === null
-        ? "none"
-        : String(event.reminder);
-
-    return {
-      ...event,
-      attendees: attendeesArray,
-      add_conference:
-        typeof event.add_conference === "boolean"
-          ? event.add_conference
-          : Boolean(event.add_conference),
-      reminder: reminderValue,
-    };
-  };
-
-  const handleAddSingleAttendee = () => {
-    if (!editedSingleEvent) return;
-    const newEmails = parseAttendeeInput(singleAttendeeInput);
-    if (!newEmails.length) {
-      if (singleAttendeeInput.trim()) {
-        showMessage("Please enter a valid email address", "error");
-      }
-      return;
-    }
-
-    const combined = ensureUniqueEmails([...singleAttendees, ...newEmails]);
-    if (combined.length === singleAttendees.length) {
-      showMessage("Guest already added", "info");
-      setSingleAttendeeInput("");
-      return;
-    }
-
-    setSingleAttendees(combined);
-    handleSingleEventFormChange("attendees", combined);
-    setSingleAttendeeInput("");
-  };
-
-  const handleRemoveSingleAttendee = (email) => {
-    const filtered = singleAttendees.filter((item) => item !== email);
-    setSingleAttendees(filtered);
-    handleSingleEventFormChange("attendees", filtered);
-  };
-
-  const handleAddEditingAttendee = () => {
-    if (!editingEvent) return;
-    const newEmails = parseAttendeeInput(editingAttendeeInput);
-    if (!newEmails.length) {
-      if (editingAttendeeInput.trim()) {
-        showMessage("Please enter a valid email address", "error");
-      }
-      return;
-    }
-
-    const combined = ensureUniqueEmails([...editingAttendees, ...newEmails]);
-    if (combined.length === editingAttendees.length) {
-      showMessage("Guest already added", "info");
-      setEditingAttendeeInput("");
-      return;
-    }
-
-    setEditingAttendees(combined);
-    setEditingEvent((prev) => (prev ? { ...prev, attendees: combined } : prev));
-    setEditingAttendeeInput("");
-  };
-
-  const handleRemoveEditingAttendee = (email) => {
-    const filtered = editingAttendees.filter((item) => item !== email);
-    setEditingAttendees(filtered);
-    setEditingEvent((prev) => (prev ? { ...prev, attendees: filtered } : prev));
-  };
-
-  // Refs
-  const recognitionRef = useRef(null);
-  const originalTextRef = useRef("");
-  const silenceTimeoutRef = useRef(null);
+  const { isListening, toggleVoiceRecognition } = useVoiceRecognition();
 
   // Initialize on mount
   useEffect(() => {
@@ -217,7 +108,6 @@ const Popup = () => {
 
   const initializeUser = async () => {
     try {
-      // Generate or get existing user ID
       const result = await chrome.storage.local.get(["prompt2cal_user_id"]);
       let userIdValue;
 
@@ -229,19 +119,22 @@ const Popup = () => {
       }
 
       setUserId(userIdValue);
-
-      // Check for selected text from content script
       await checkForSelectedText();
 
-      // Check if we were waiting for auth completion
       const authState = await chrome.storage.local.get(["waitingForAuth"]);
       if (authState.waitingForAuth) {
         await chrome.storage.local.remove(["waitingForAuth"]);
         setTimeout(async () => {
-          await checkAuthStatus(userIdValue);
+          const authenticated = await checkAuthStatus(userIdValue);
+          if (authenticated) {
+            await fetchCalendars(userIdValue);
+          }
         }, 500);
       } else {
-        await checkAuthStatus(userIdValue);
+        const authenticated = await checkAuthStatus(userIdValue);
+        if (authenticated) {
+          await fetchCalendars(userIdValue);
+        }
       }
     } catch (error) {
       console.error("Error initializing user:", error);
@@ -286,104 +179,27 @@ const Popup = () => {
         }
       }
     } catch (error) {
-      // Content script might not be loaded, that's ok
       console.log("Error getting selected text:", error);
     }
   };
 
-  const fetchCalendars = async (userIdValue) => {
-    try {
-      setLoadingCalendars(true);
-      const response = await makeApiCall("/calendars", {
-        method: "GET",
-        params: { user_id: userIdValue || userId },
-      });
-
-      if (response.success && response.calendars) {
-        setCalendars(response.calendars);
-
-        // Load saved calendar selection or default to primary
-        const saved = await chrome.storage.local.get(["selectedCalendarId"]);
-        if (saved.selectedCalendarId) {
-          // Verify the saved calendar still exists
-          const exists = response.calendars.find(
-            (c) => c.id === saved.selectedCalendarId
-          );
-          if (exists) {
-            setSelectedCalendarId(saved.selectedCalendarId);
-          } else {
-            // Find primary calendar or first calendar
-            const primary = response.calendars.find((c) => c.primary);
-            setSelectedCalendarId(
-              primary ? primary.id : response.calendars[0]?.id || null
-            );
-          }
-        } else {
-          // Default to primary calendar
-          const primary = response.calendars.find((c) => c.primary);
-          setSelectedCalendarId(
-            primary ? primary.id : response.calendars[0]?.id || null
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch calendars:", error);
-      // Don't show error message, just log it
-    } finally {
-      setLoadingCalendars(false);
-    }
-  };
-
-  const checkAuthStatus = async (userIdValue) => {
-    try {
-      const response = await makeApiCall("/auth/status", {
-        method: "GET",
-        params: { user_id: userIdValue || userId },
-      });
-
-      setIsAuthenticated(response.authenticated);
-
-      // Fetch calendars if authenticated
-      if (response.authenticated) {
-        await fetchCalendars(userIdValue);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setIsAuthenticated(false);
-      showMessage(
-        "Backend server not running. Please start the backend first.",
-        "error"
-      );
-    } finally {
-      setIsCheckingAuth(false);
-    }
+  const showMessage = (text, type = "info") => {
+    setMessage(text);
+    setMessageType(type);
+    setTimeout(() => {
+      setMessage("");
+    }, 5000);
   };
 
   const handleGoogleAuth = async () => {
-    if (loadingAuth) return;
-
     try {
-      setLoadingAuth(true);
-
-      const response = await makeApiCall("/auth/google", {
-        method: "GET",
-        params: { user_id: userId },
-      });
-
-      await chrome.storage.local.set({ waitingForAuth: true });
-      await chrome.tabs.create({ url: response.auth_url });
-      window.close();
+      await authGoogleAuth();
     } catch (error) {
-      console.error("Auth error:", error);
       showMessage(`Authentication error: ${error.message}`, "error");
-    } finally {
-      setLoadingAuth(false);
     }
   };
 
   const handleLogout = async () => {
-    if (loading) return;
-
     if (
       !confirm(
         "Are you sure you want to logout? You'll need to reconnect your Google Calendar."
@@ -394,20 +210,13 @@ const Popup = () => {
 
     try {
       setLoading(true);
-
-      const response = await makeApiCall("/auth/logout", {
-        method: "POST",
-        params: { user_id: userId },
-      });
-
-      if (response.success) {
+      const success = await authLogout();
+      if (success) {
         showMessage("Successfully logged out", "success");
-        setIsAuthenticated(false);
       } else {
-        showMessage("Logout failed: " + response.message, "error");
+        showMessage("Logout failed", "error");
       }
     } catch (error) {
-      console.error("Logout error:", error);
       showMessage(`Logout error: ${error.message}`, "error");
     } finally {
       setLoading(false);
@@ -424,7 +233,6 @@ const Popup = () => {
     if (loadingSingle) return;
 
     try {
-      // Use a single loading state
       setLoadingSingle(true);
       setShowParsedEvent(false);
       setShowBulkEvents(false);
@@ -445,15 +253,15 @@ const Popup = () => {
             .map((event) => normalizeEventPayload(event))
             .filter(Boolean);
           setParsedEvents(normalizedEvents);
-          setSelectedColor("#4285f4");
-          setSelectedReminder("none");
+          setSelectedColor(DEFAULT_COLOR);
+          setSelectedReminder(DEFAULT_REMINDER);
           setShowBulkEvents(true);
           showMessage(response.message, "success");
         } else if (response.parsed_event) {
           const normalizedEvent = normalizeEventPayload(response.parsed_event);
           setParsedEvent(normalizedEvent);
-          setSelectedColor(normalizedEvent?.color || "#4285f4");
-          setSelectedReminder(normalizedEvent?.reminder ?? "none");
+          setSelectedColor(normalizedEvent?.color || DEFAULT_COLOR);
+          setSelectedReminder(normalizedEvent?.reminder ?? DEFAULT_REMINDER);
           setShowParsedEvent(true);
           showMessage(response.message, "success");
         } else {
@@ -530,7 +338,7 @@ const Popup = () => {
 
       const eventsWithColor = parsedEvents.map((event) => ({
         ...event,
-        color: event.color || "#4285f4",
+        color: event.color || DEFAULT_COLOR,
         reminder: selectedReminder,
         calendar_id: selectedCalendarId,
       }));
@@ -571,10 +379,10 @@ const Popup = () => {
     setEditingEvent({ ...current, attendees: attendeeList });
     setEditingAttendees(attendeeList);
     setEditingAttendeeInput("");
-    setSelectedColor(current.color || "#4285f4");
-    setSelectedReminder(current.reminder ?? "none");
-    setEditingStart(false);
-    setEditingEnd(false);
+    setSelectedColor(current.color || DEFAULT_COLOR);
+    setSelectedReminder(current.reminder ?? DEFAULT_REMINDER);
+    setEditingStartBulk(false);
+    setEditingEndBulk(false);
   };
 
   const closeEditModal = () => {
@@ -582,10 +390,10 @@ const Popup = () => {
     setEditingEvent(null);
     setEditingAttendees([]);
     setEditingAttendeeInput("");
-    setSelectedColor("#4285f4");
-    setSelectedReminder("none");
-    setEditingStart(false);
-    setEditingEnd(false);
+    setSelectedColor(DEFAULT_COLOR);
+    setSelectedReminder(DEFAULT_REMINDER);
+    setEditingStartBulk(false);
+    setEditingEndBulk(false);
   };
 
   const saveEditedEvent = () => {
@@ -613,437 +421,32 @@ const Popup = () => {
     }
   };
 
-  const resetForm = () => {
-    setEventInput("");
-    setParsedEvent(null);
-    setParsedEvents([]);
-    setShowParsedEvent(false);
-    setShowBulkEvents(false);
-    setShowSelectedText(false);
-    setSelectedText("");
-    setMessage("");
-    setSingleAttendees([]);
-    setSingleAttendeeInput("");
-    setEditingAttendees([]);
-    setEditingAttendeeInput("");
-    setSelectedColor("#4285f4");
-    setSelectedReminder("none");
-    setEditedSingleEvent(null);
-    setShowEventEditForm(false);
-    setEditingEvent(null);
-    setEditingEventIndex(null);
-    setEditingStart(false);
-    setEditingEnd(false);
-  };
-
-  const toggleVoiceRecognition = async () => {
-    if (
-      !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
-    ) {
-      showMessage("❌ Voice recognition not supported", "error");
+  const handleAddEditingAttendee = () => {
+    if (!editingEvent) return;
+    const newEmails = parseAttendeeInput(editingAttendeeInput);
+    if (!newEmails.length) {
+      if (editingAttendeeInput.trim()) {
+        showMessage("Please enter a valid email address", "error");
+      }
       return;
     }
 
-    if (isListening) {
-      stopVoiceRecognition();
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        stream.getTracks().forEach((track) => track.stop());
-
-        startVoiceRecognition();
-      } catch (error) {
-        console.error("Microphone permission error:", error);
-        showMessage(
-          "❌ Microphone permission denied. Please allow microphone access in your browser settings.",
-          "error"
-        );
-      }
-    }
-  };
-
-  const startVoiceRecognition = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      originalTextRef.current = eventInput;
-    };
-
-    recognition.onresult = (event) => {
-      let interimTranscript = "";
-      let finalTranscript = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        const newText =
-          originalTextRef.current +
-          (originalTextRef.current ? " " : "") +
-          finalTranscript.trim();
-        setEventInput(newText);
-        originalTextRef.current = newText;
-
-        // After getting final transcript, stop listening after 2 seconds of silence
-        if (silenceTimeoutRef.current) {
-          clearTimeout(silenceTimeoutRef.current);
-        }
-        silenceTimeoutRef.current = setTimeout(() => {
-          stopVoiceRecognition();
-        }, 2000);
-      } else if (interimTranscript) {
-        const newText =
-          originalTextRef.current +
-          (originalTextRef.current ? " " : "") +
-          interimTranscript.trim();
-        setEventInput(newText);
-
-        // Reset silence timeout on interim transcript - extend it
-        if (silenceTimeoutRef.current) {
-          clearTimeout(silenceTimeoutRef.current);
-        }
-        silenceTimeoutRef.current = setTimeout(() => {
-          stopVoiceRecognition();
-        }, 2000);
-      }
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      if (silenceTimeoutRef.current) {
-        clearTimeout(silenceTimeoutRef.current);
-      }
-      // Don't automatically restart - user can click button again
-      if (eventInput.trim()) {
-        setMessage("");
-      }
-    };
-
-    recognition.onerror = (event) => {
-      setIsListening(false);
-      if (silenceTimeoutRef.current) {
-        clearTimeout(silenceTimeoutRef.current);
-      }
-
-      let errorMessage = "Voice recognition error";
-      switch (event.error) {
-        case "no-speech":
-          errorMessage = "No speech detected. Please try again.";
-          break;
-        case "audio-capture":
-          errorMessage = "No microphone found. Please check your microphone.";
-          break;
-        case "not-allowed":
-          errorMessage =
-            "Microphone permission denied. Please allow microphone access.";
-          break;
-        case "network":
-          errorMessage = "Network error. Please check your connection.";
-          break;
-        case "aborted":
-          return;
-        default:
-          errorMessage = `Voice recognition error: ${event.error}`;
-      }
-
-      showMessage(`❌ ${errorMessage}`, "error");
-    };
-
-    recognition.start();
-    recognitionRef.current = recognition;
-  };
-
-  const stopVoiceRecognition = () => {
-    if (recognitionRef.current) {
-      if (silenceTimeoutRef.current) {
-        clearTimeout(silenceTimeoutRef.current);
-      }
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {
-        // Recognition might already be stopped
-      }
-      setIsListening(false);
-    }
-  };
-
-  const makeApiCall = async (endpoint, options = {}) => {
-    const url = `${API_BASE}${endpoint}`;
-
-    const defaultOptions = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    const finalOptions = { ...defaultOptions, ...options };
-
-    if (finalOptions.params) {
-      const params = new URLSearchParams(finalOptions.params);
-      const paramString = params.toString();
-      const fullUrl = paramString ? `${url}?${paramString}` : url;
-      delete finalOptions.params;
-
-      const response = await fetch(fullUrl, finalOptions);
-      return await handleResponse(response);
+    const combined = ensureUniqueEmails([...editingAttendees, ...newEmails]);
+    if (combined.length === editingAttendees.length) {
+      showMessage("Guest already added", "info");
+      setEditingAttendeeInput("");
+      return;
     }
 
-    const response = await fetch(url, finalOptions);
-    return await handleResponse(response);
+    setEditingAttendees(combined);
+    setEditingEvent((prev) => (prev ? { ...prev, attendees: combined } : prev));
+    setEditingAttendeeInput("");
   };
 
-  const handleResponse = async (response) => {
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || `HTTP ${response.status}: ${response.statusText}`
-      );
-    }
-
-    return await response.json();
-  };
-
-  const showMessage = (text, type = "info") => {
-    setMessage(text);
-    setMessageType(type);
-
-    setTimeout(() => {
-      setMessage("");
-    }, 5000);
-  };
-
-  const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return "Not specified";
-
-    try {
-      const date = new Date(dateTimeString);
-      return date.toLocaleString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (error) {
-      return dateTimeString;
-    }
-  };
-
-  const toDateTimeLocal = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  const formatDateTimeShort = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    const options = {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    };
-    return date.toLocaleString("en-US", options);
-  };
-
-  const formatTimeShort = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    const options = { hour: "numeric", minute: "2-digit" };
-    return date.toLocaleString("en-US", options);
-  };
-
-  const getRecurrenceDescription = (event) => {
-    if (!event || !event.recurrence_type || event.recurrence_type === "none") {
-      return null;
-    }
-
-    const recurrenceType = event.recurrence_type.toLowerCase();
-    const interval = event.recurrence_interval || 1;
-    const startTime = event.start_time;
-
-    if (!startTime) {
-      // Fallback to simple description if no start_time
-      return recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
-    }
-
-    try {
-      const date = new Date(startTime);
-      const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
-      const dayOfMonth = date.getDate();
-      const month = date.getMonth(); // 0 = January, 11 = December
-
-      const days = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-
-      const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-
-      const dayName = days[dayOfWeek];
-      const monthName = months[month];
-
-      const textSources = [event.title, event.notes, event.original_text]
-        .filter(Boolean)
-        .map((text) => text.toLowerCase());
-
-      const hasWeekendKeyword = textSources.some((text) =>
-        text.includes("weekend")
-      );
-      const hasWeekdayKeyword = textSources.some(
-        (text) =>
-          text.includes("weekday") ||
-          text.includes("weekdays") ||
-          text.includes("business day") ||
-          text.includes("business days") ||
-          text.includes("workday") ||
-          text.includes("workdays") ||
-          text.includes("work day") ||
-          text.includes("work days")
-      );
-      const startsOnWeekend = dayOfWeek === 6 || dayOfWeek === 0;
-
-      // Helper to determine which occurrence of weekday in month (1st, 2nd, 3rd, 4th, last)
-      const getWeekdayOccurrence = (date) => {
-        const dayOfMonth = date.getDate();
-        const dayOfWeek = date.getDay();
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-
-        // Find all occurrences of this weekday in the month
-        const occurrences = [];
-        for (let d = 1; d <= lastDayOfMonth; d++) {
-          const testDate = new Date(year, month, d);
-          if (testDate.getDay() === dayOfWeek) {
-            occurrences.push(d);
-          }
-        }
-
-        // Find which occurrence this date is
-        const occurrenceIndex = occurrences.indexOf(dayOfMonth);
-        if (occurrenceIndex === -1) return null;
-
-        const occurrenceNumber = occurrenceIndex + 1;
-        const totalOccurrences = occurrences.length;
-
-        // Return "first", "second", "third", "fourth", or "last"
-        if (occurrenceNumber === 1) return "first";
-        if (occurrenceNumber === 2) return "second";
-        if (occurrenceNumber === 3) return "third";
-        if (occurrenceNumber === 4) return "fourth";
-        if (occurrenceNumber === totalOccurrences && totalOccurrences > 1)
-          return "last";
-
-        return null;
-      };
-
-      let description = "";
-
-      if (recurrenceType === "daily") {
-        if (interval === 1) {
-          if (hasWeekendKeyword) {
-            description = "Weekends";
-          } else if (hasWeekdayKeyword) {
-            description = "Weekdays";
-          } else {
-            description = "Daily";
-          }
-        } else {
-          description = `Every ${interval === 2 ? "other" : interval} day`;
-        }
-      } else if (recurrenceType === "weekly") {
-        // Check if this is a weekend or weekday event
-        // Weekend events start on Saturday or Sunday and recur on both days
-        const isWeekendEvent =
-          hasWeekendKeyword && startsOnWeekend && interval === 1;
-        const isWeekdayEvent = hasWeekdayKeyword && interval === 1;
-
-        if (isWeekendEvent) {
-          description = "Weekends";
-        } else if (isWeekdayEvent) {
-          description = "Weekdays";
-        } else if (interval === 1) {
-          // Since we don't have recurrence_days, we'll show the specific day
-          description = `Weekly on ${dayName}`;
-        } else if (interval === 2) {
-          description = `Every other ${dayName}`;
-        } else {
-          description = `Every ${interval} weeks on ${dayName}`;
-        }
-      } else if (recurrenceType === "monthly") {
-        if (interval === 1) {
-          const occurrence = getWeekdayOccurrence(date);
-          if (occurrence) {
-            description = `Monthly on the ${occurrence} ${dayName}`;
-          } else {
-            // Fallback to day of month
-            description = `Monthly on day ${dayOfMonth}`;
-          }
-        } else {
-          const occurrence = getWeekdayOccurrence(date);
-          if (occurrence) {
-            description = `Every ${interval} months on the ${occurrence} ${dayName}`;
-          } else {
-            description = `Every ${interval} months on day ${dayOfMonth}`;
-          }
-        }
-      } else if (recurrenceType === "yearly") {
-        if (interval === 1) {
-          description = `Annually on ${monthName} ${dayOfMonth}`;
-        } else {
-          description = `Every ${interval} years on ${monthName} ${dayOfMonth}`;
-        }
-      } else {
-        // Fallback
-        description =
-          recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
-      }
-
-      return description;
-    } catch (e) {
-      // Fallback if date parsing fails
-      return recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
-    }
+  const handleRemoveEditingAttendee = (email) => {
+    const filtered = editingAttendees.filter((item) => item !== email);
+    setEditingAttendees(filtered);
+    setEditingEvent((prev) => (prev ? { ...prev, attendees: filtered } : prev));
   };
 
   const handleEditSingleEvent = () => {
@@ -1053,8 +456,8 @@ const Popup = () => {
     const attendeeList = normalized.attendees || [];
     setSingleAttendees(attendeeList);
     setSingleAttendeeInput("");
-    setSelectedColor(normalized.color || "#4285f4");
-    setSelectedReminder(normalized.reminder ?? "none");
+    setSelectedColor(normalized.color || DEFAULT_COLOR);
+    setSelectedReminder(normalized.reminder ?? DEFAULT_REMINDER);
     setEditedSingleEvent({ ...normalized });
     setEditingStart(false);
     setEditingEnd(false);
@@ -1063,6 +466,34 @@ const Popup = () => {
 
   const handleSingleEventFormChange = (field, value) => {
     setEditedSingleEvent({ ...editedSingleEvent, [field]: value });
+  };
+
+  const handleAddSingleAttendee = () => {
+    if (!editedSingleEvent) return;
+    const newEmails = parseAttendeeInput(singleAttendeeInput);
+    if (!newEmails.length) {
+      if (singleAttendeeInput.trim()) {
+        showMessage("Please enter a valid email address", "error");
+      }
+      return;
+    }
+
+    const combined = ensureUniqueEmails([...singleAttendees, ...newEmails]);
+    if (combined.length === singleAttendees.length) {
+      showMessage("Guest already added", "info");
+      setSingleAttendeeInput("");
+      return;
+    }
+
+    setSingleAttendees(combined);
+    handleSingleEventFormChange("attendees", combined);
+    setSingleAttendeeInput("");
+  };
+
+  const handleRemoveSingleAttendee = (email) => {
+    const filtered = singleAttendees.filter((item) => item !== email);
+    setSingleAttendees(filtered);
+    handleSingleEventFormChange("attendees", filtered);
   };
 
   const handleSaveSingleEdit = () => {
@@ -1080,8 +511,8 @@ const Popup = () => {
 
     setParsedEvent(sanitizedEvent);
     setSingleAttendees(sanitizedAttendees);
-    setSelectedColor(sanitizedEvent.color || "#4285f4");
-    setSelectedReminder(sanitizedEvent.reminder ?? "none");
+    setSelectedColor(sanitizedEvent.color || DEFAULT_COLOR);
+    setSelectedReminder(sanitizedEvent.reminder ?? DEFAULT_REMINDER);
     setShowEventEditForm(false);
     setEditedSingleEvent(null);
     setSingleAttendeeInput("");
@@ -1093,8 +524,39 @@ const Popup = () => {
     setSingleAttendees([]);
     setSingleAttendeeInput("");
     const normalized = normalizeEventPayload(parsedEvent);
-    setSelectedColor(normalized?.color || "#4285f4");
-    setSelectedReminder(normalized?.reminder ?? "none");
+    setSelectedColor(normalized?.color || DEFAULT_COLOR);
+    setSelectedReminder(normalized?.reminder ?? DEFAULT_REMINDER);
+    setEditingStart(false);
+    setEditingEnd(false);
+  };
+
+  const handleToggleVoice = async () => {
+    try {
+      await toggleVoiceRecognition(eventInput, setEventInput);
+    } catch (error) {
+      showMessage(`❌ ${error.message}`, "error");
+    }
+  };
+
+  const resetForm = () => {
+    setEventInput("");
+    setParsedEvent(null);
+    setParsedEvents([]);
+    setShowParsedEvent(false);
+    setShowBulkEvents(false);
+    setShowSelectedText(false);
+    setSelectedText("");
+    setMessage("");
+    setSingleAttendees([]);
+    setSingleAttendeeInput("");
+    setEditingAttendees([]);
+    setEditingAttendeeInput("");
+    setSelectedColor(DEFAULT_COLOR);
+    setSelectedReminder(DEFAULT_REMINDER);
+    setEditedSingleEvent(null);
+    setShowEventEditForm(false);
+    setEditingEvent(null);
+    setEditingEventIndex(null);
     setEditingStart(false);
     setEditingEnd(false);
   };
@@ -1112,43 +574,17 @@ const Popup = () => {
               >
                 <Settings size={18} />
               </button>
-              {showSettings && (
-                <div className="settings-dropdown">
-                  <div className="settings-section">
-                    <label className="settings-label">Calendar:</label>
-                    <select
-                      className="settings-calendar-select"
-                      value={selectedCalendarId || ""}
-                      onChange={async (e) => {
-                        const newCalendarId = e.target.value;
-                        setSelectedCalendarId(newCalendarId);
-                        await chrome.storage.local.set({
-                          selectedCalendarId: newCalendarId,
-                        });
-                        // Don't close dropdown - let user see the change
-                      }}
-                      disabled={loadingCalendars}
-                    >
-                      {calendars.map((cal) => (
-                        <option key={cal.id} value={cal.id}>
-                          {cal.summary} {cal.primary ? "(Primary)" : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="settings-divider"></div>
-                  <button
-                    className="settings-logout-button"
-                    onClick={() => {
-                      setShowSettings(false);
-                      handleLogout();
-                    }}
-                  >
-                    <LogOut size={16} />
-                    Logout
-                  </button>
-                </div>
-              )}
+              <SettingsDropdown
+                showSettings={showSettings}
+                setShowSettings={setShowSettings}
+                calendars={calendars}
+                selectedCalendarId={selectedCalendarId}
+                loadingCalendars={loadingCalendars}
+                onCalendarChange={async (e) => {
+                  await updateSelectedCalendar(e.target.value);
+                }}
+                onLogout={handleLogout}
+              />
             </div>
           )}
         </div>
@@ -1182,832 +618,94 @@ const Popup = () => {
       </div>
 
       {!isCheckingAuth && !isAuthenticated && (
-        <div className="auth-section" id="authSection">
-          <button
-            id="authButton"
-            className="auth-button"
-            onClick={handleGoogleAuth}
-            disabled={loadingAuth}
-          >
-            {loadingAuth ? (
-              <>
-                <div className="dots-spinner">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                </div>{" "}
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Calendar size={18} /> Connect Google Calendar
-              </>
-            )}
-          </button>
-        </div>
+        <AuthSection onAuth={handleGoogleAuth} loadingAuth={loadingAuth} />
       )}
 
       <div className="main-section" id="mainSection">
-        <div className="event-card">
-          <label htmlFor="eventInput" className="input-label">
-            <Sparkles size={18} className="inline-icon" /> Describe your event:
-          </label>
-          <div className="input-container">
-            <textarea
-              id="eventInput"
-              placeholder="Type your event in plain language..."
-              rows="5"
-              value={eventInput}
-              onChange={(e) => setEventInput(e.target.value)}
-            />
-            <button
-              id="voiceButton"
-              className={`voice-button ${isListening ? "listening" : ""}`}
-              title={isListening ? "Stop listening" : "Click to speak"}
-              onClick={toggleVoiceRecognition}
-            >
-              {isListening ? <Square size={20} /> : <Mic size={22} />}
-            </button>
-          </div>
-          <div className="action-buttons-main">
-            <button
-              id="parseEventButton"
-              className="action-button action-single"
-              onClick={() => handleParseEvent(null)}
-              disabled={loadingSingle || !eventInput.trim()}
-              title="Parse event (auto-detects single or multiple)"
-            >
-              {loadingSingle ? (
-                <>
-                  <div className="dots-spinner">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                  </div>{" "}
-                  Parsing...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} className="inline-icon" /> Parse Event
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {showSelectedText && (
-          <div className="selected-text-section">
-            <div className="selected-text-label">Selected text:</div>
-            <div className="selected-text">{selectedText}</div>
-            <button
-              className="use-selected-button"
-              onClick={() => {
-                setEventInput(selectedText);
-                setShowSelectedText(false);
-              }}
-            >
-              📝 Use Selected Text
-            </button>
-          </div>
-        )}
+        <EventInputSection
+          eventInput={eventInput}
+          setEventInput={setEventInput}
+          onParse={handleParseEvent}
+          isListening={isListening}
+          onToggleVoice={handleToggleVoice}
+          loadingSingle={loadingSingle}
+          showSelectedText={showSelectedText}
+          selectedText={selectedText}
+          onUseSelectedText={() => {
+            setEventInput(selectedText);
+            setShowSelectedText(false);
+          }}
+        />
 
         {showParsedEvent && parsedEvent && (
-          <div className="event-card-confirm">
-            <div className="event-card-header-confirm">
-              <div className="event-card-header-left-confirm">
-                {parsedEvent.recurrence_type &&
-                parsedEvent.recurrence_type !== "none" ? (
-                  <CalendarSync className="event-card-icon-confirm" />
-                ) : (
-                  <Calendar1 className="event-card-icon-confirm" />
-                )}
-                {parsedEvent.recurrence_type &&
-                parsedEvent.recurrence_type !== "none" ? (
-                  <h3>Confirm Recurring Event</h3>
-                ) : (
-                  <h3>Confirm Event</h3>
-                )}
-              </div>
-            </div>
-            <div className="event-card-content-confirm">
-              <div className="event-title-row-confirm">
-                <div className="event-title-confirm">{parsedEvent.title}</div>
-                <button
-                  className="edit-button-confirm"
-                  onClick={handleEditSingleEvent}
-                  title="Edit event"
-                >
-                  <SquarePen size={18} />
-                </button>
-              </div>
-              {parsedEvent.recurrence_type &&
-              parsedEvent.recurrence_type !== "none" ? (
-                <div className="event-time-row-confirm">
-                  <Clock className="event-time-icon-confirm" />
-                  <div className="event-time-info-confirm">
-                    <div className="event-start-label-confirm">
-                      Starting from
-                    </div>
-                    <div className="event-date-confirm">
-                      {formatDateTimeShort(parsedEvent.start_time)}
-                    </div>
-                    <div className="event-time-range-confirm">
-                      {formatTimeShort(parsedEvent.start_time)} -{" "}
-                      {formatTimeShort(parsedEvent.end_time)}
-                    </div>
-                    <div className="recurrence-text-confirm">
-                      {getRecurrenceDescription(parsedEvent) ||
-                        parsedEvent.recurrence_type.charAt(0).toUpperCase() +
-                          parsedEvent.recurrence_type.slice(1)}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="event-time-row-confirm">
-                  <Clock className="event-time-icon-confirm" />
-                  <div className="event-time-info-confirm">
-                    <div className="event-date-confirm">
-                      {formatDateTimeShort(parsedEvent.start_time)}
-                    </div>
-                    <div className="event-time-range-confirm">
-                      {formatTimeShort(parsedEvent.start_time)} -{" "}
-                      {formatTimeShort(parsedEvent.end_time)}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {parsedEvent.location && (
-                <div className="event-time-row-confirm">
-                  <MapPin className="event-time-icon-confirm" />
-                  <div className="event-location-info-confirm">
-                    {parsedEvent.location}
-                  </div>
-                </div>
-              )}
-              {parsedEvent.notes && (
-                <div className="event-time-row-confirm">
-                  <FileText className="event-time-icon-confirm" />
-                  <div className="event-location-info-confirm">
-                    {parsedEvent.notes}
-                  </div>
-                </div>
-              )}
-              {parsedEvent.attendees && parsedEvent.attendees.length > 0 && (
-                <div className="event-time-row-confirm">
-                  <Users className="event-time-icon-confirm" />
-                  <div className="event-location-info-confirm">
-                    {parsedEvent.attendees.join(", ")}
-                  </div>
-                </div>
-              )}
-              {parsedEvent.add_conference && (
-                <div className="event-time-row-confirm">
-                  <Video className="event-time-icon-confirm" />
-                  <div className="event-location-info-confirm">
-                    Google Meet link will be generated
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="action-buttons">
-              <button
-                className="create-button"
-                onClick={handleCreateEvent}
-                disabled={loading}
-              >
-                <Check size={16} className="inline-icon" /> Create Event
-              </button>
-              <button
-                className="cancel-button"
-                onClick={() => setShowParsedEvent(false)}
-                disabled={loading}
-              >
-                <X size={16} className="inline-icon" /> Cancel
-              </button>
-            </div>
-          </div>
+          <SingleEventCard
+            parsedEvent={parsedEvent}
+            onEdit={handleEditSingleEvent}
+            onCreate={handleCreateEvent}
+            onCancel={() => setShowParsedEvent(false)}
+            loading={loading}
+          />
         )}
 
         {showEventEditForm && editedSingleEvent && (
-          <div className="modal-overlay" onClick={handleCancelSingleEdit}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="parsed-event">
-                <div className="event-details">
-                  <h3>
-                    <Edit size={20} className="inline-icon" /> Edit Event
-                  </h3>
-                  <div className="detail-row editable-row">
-                    <strong>Title:</strong>
-                    <input
-                      className="text-input"
-                      type="text"
-                      value={editedSingleEvent.title || ""}
-                      onChange={(e) =>
-                        handleSingleEventFormChange("title", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Start:</strong>
-                    {editingStart ? (
-                      <input
-                        type="datetime-local"
-                        className="datetime-input"
-                        value={toDateTimeLocal(
-                          new Date(editedSingleEvent.start_time)
-                        )}
-                        onChange={(e) => {
-                          const d = new Date(e.target.value);
-                          if (!isNaN(d.getTime())) {
-                            const duration =
-                              editedSingleEvent.duration_minutes || 60;
-                            const endDate = new Date(
-                              d.getTime() + duration * 60000
-                            );
-                            handleSingleEventFormChange(
-                              "start_time",
-                              d.toISOString()
-                            );
-                            handleSingleEventFormChange(
-                              "end_time",
-                              endDate.toISOString()
-                            );
-                          }
-                        }}
-                        onBlur={() => setEditingStart(false)}
-                      />
-                    ) : (
-                      <span
-                        className="editable-field clickable"
-                        onClick={() => setEditingStart(true)}
-                      >
-                        {formatDateTime(editedSingleEvent.start_time)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>End:</strong>
-                    {editingEnd ? (
-                      <input
-                        type="datetime-local"
-                        className="datetime-input"
-                        value={toDateTimeLocal(
-                          new Date(editedSingleEvent.end_time)
-                        )}
-                        onChange={(e) => {
-                          const d = new Date(e.target.value);
-                          if (!isNaN(d.getTime())) {
-                            handleSingleEventFormChange(
-                              "end_time",
-                              d.toISOString()
-                            );
-                          }
-                        }}
-                        onBlur={() => setEditingEnd(false)}
-                      />
-                    ) : (
-                      <span
-                        className="editable-field clickable"
-                        onClick={() => setEditingEnd(true)}
-                      >
-                        {formatDateTime(editedSingleEvent.end_time)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Location:</strong>
-                    <input
-                      className="text-input"
-                      type="text"
-                      value={editedSingleEvent.location || ""}
-                      onChange={(e) =>
-                        handleSingleEventFormChange("location", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Notes:</strong>
-                    <textarea
-                      className="text-input"
-                      rows="2"
-                      value={editedSingleEvent.notes || ""}
-                      onChange={(e) =>
-                        handleSingleEventFormChange("notes", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Guests:</strong>
-                    <div className="attendee-input-row">
-                      <input
-                        type="email"
-                        className="text-input"
-                        placeholder="Add guest email"
-                        value={singleAttendeeInput}
-                        onChange={(e) => setSingleAttendeeInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddSingleAttendee();
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="attendee-add-button"
-                        onClick={handleAddSingleAttendee}
-                        disabled={!singleAttendeeInput.trim()}
-                      >
-                        Add
-                      </button>
-                    </div>
-                    {singleAttendees.length > 0 && (
-                      <div className="attendee-chip-list">
-                        {singleAttendees.map((email) => (
-                          <span key={email} className="attendee-chip">
-                            {email}
-                            <button
-                              type="button"
-                              className="attendee-chip-remove"
-                              aria-label={`Remove ${email}`}
-                              onClick={() => handleRemoveSingleAttendee(email)}
-                            >
-                              <X size={12} />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Google Meet:</strong>
-                    <label className="checkbox-inline">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(editedSingleEvent.add_conference)}
-                        onChange={(e) =>
-                          handleSingleEventFormChange(
-                            "add_conference",
-                            e.target.checked
-                          )
-                        }
-                      />
-                      <span>Add Google Meet link</span>
-                    </label>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Color:</strong>
-                    <div className="color-presets">
-                      {[
-                        "#4285f4",
-                        "#ea4335",
-                        "#fbbc04",
-                        "#34a853",
-                        "#9c27b0",
-                        "#ff9800",
-                        "#795548",
-                        "#607d8b",
-                      ].map((c) => (
-                        <div
-                          key={c}
-                          className={`color-preset ${
-                            selectedColor === c ? "selected" : ""
-                          }`}
-                          style={{ backgroundColor: c }}
-                          onClick={() => setSelectedColor(c)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Reminders:</strong>
-                    <div className="reminder-controls">
-                      <select
-                        className="reminder-select"
-                        value={selectedReminder}
-                        onChange={(e) => setSelectedReminder(e.target.value)}
-                      >
-                        <option value="none">No reminder</option>
-                        <option value="5">5 minutes before</option>
-                        <option value="10">10 minutes before</option>
-                        <option value="15">15 minutes before</option>
-                        <option value="30">30 minutes before</option>
-                        <option value="60">1 hour before</option>
-                        <option value="120">2 hours before</option>
-                        <option value="1440">1 day before</option>
-                        <option value="2880">2 days before</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="action-buttons">
-                  <button
-                    className="create-button"
-                    onClick={handleSaveSingleEdit}
-                    disabled={loading}
-                  >
-                    <Check size={16} className="inline-icon" /> Save Changes
-                  </button>
-                  <button
-                    className="cancel-button"
-                    onClick={handleCancelSingleEdit}
-                    disabled={loading}
-                  >
-                    <X size={16} className="inline-icon" /> Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EditEventModal
+            event={editedSingleEvent}
+            attendees={singleAttendees}
+            attendeeInput={singleAttendeeInput}
+            setAttendeeInput={setSingleAttendeeInput}
+            onAddAttendee={handleAddSingleAttendee}
+            onRemoveAttendee={handleRemoveSingleAttendee}
+            selectedColor={selectedColor}
+            setSelectedColor={setSelectedColor}
+            selectedReminder={selectedReminder}
+            setSelectedReminder={setSelectedReminder}
+            editingStart={editingStart}
+            setEditingStart={setEditingStart}
+            editingEnd={editingEnd}
+            setEditingEnd={setEditingEnd}
+            onFieldChange={handleSingleEventFormChange}
+            onSave={handleSaveSingleEdit}
+            onCancel={handleCancelSingleEdit}
+            loading={loading}
+          />
         )}
 
         {showBulkEvents && parsedEvents.length > 0 && (
-          <div className="event-card-confirm">
-            <div className="event-card-header-confirm">
-              <div className="event-card-header-left-confirm">
-                {(() => {
-                  const recurringCount = parsedEvents.filter(
-                    (e) => e.recurrence_type && e.recurrence_type !== "none"
-                  ).length;
-                  return recurringCount > 0 ? (
-                    <CalendarSync className="event-card-icon-confirm" />
-                  ) : (
-                    <CalendarDays className="event-card-icon-confirm" />
-                  );
-                })()}
-                {(() => {
-                  const recurringCount = parsedEvents.filter(
-                    (e) => e.recurrence_type && e.recurrence_type !== "none"
-                  ).length;
-                  if (
-                    recurringCount === parsedEvents.length &&
-                    recurringCount > 0
-                  ) {
-                    return (
-                      <h3>Confirm {parsedEvents.length} Recurring Events</h3>
-                    );
-                  } else if (recurringCount > 0) {
-                    return (
-                      <h3>
-                        Confirm {parsedEvents.length} Events ({recurringCount}{" "}
-                        Recurring)
-                      </h3>
-                    );
-                  } else {
-                    return <h3>Confirm {parsedEvents.length} Events</h3>;
-                  }
-                })()}
-              </div>
-            </div>
-            <div className="events-list-confirm">
-              {parsedEvents.map((event, index) => (
-                <div key={index} className="event-item-confirm">
-                  <div className="event-title-row-confirm">
-                    <div className="event-title-confirm">{event.title}</div>
-                    <div className="event-item-controls-confirm">
-                      <button
-                        className="edit-button-confirm"
-                        title="Edit"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEditModal(index);
-                        }}
-                      >
-                        <SquarePen size={18} />
-                      </button>
-                      <button
-                        className="remove-event-confirm"
-                        title="Remove"
-                        onClick={() => removeParsedEvent(index)}
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-                  </div>
-                  {event.recurrence_type && event.recurrence_type !== "none" ? (
-                    <div className="event-time-row-confirm">
-                      <Clock className="event-time-icon-confirm" />
-                      <div className="event-time-info-confirm">
-                        <div className="event-start-label-confirm">
-                          Starting from
-                        </div>
-                        <div className="event-date-confirm">
-                          {formatDateTimeShort(event.start_time)}
-                        </div>
-                        <div className="event-time-range-confirm">
-                          {formatTimeShort(event.start_time)} -{" "}
-                          {formatTimeShort(event.end_time)}
-                        </div>
-                        <div className="recurrence-text-confirm">
-                          {getRecurrenceDescription(event) ||
-                            event.recurrence_type.charAt(0).toUpperCase() +
-                              event.recurrence_type.slice(1)}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="event-time-row-confirm">
-                      <Clock className="event-time-icon-confirm" />
-                      <div className="event-time-info-confirm">
-                        <div className="event-date-confirm">
-                          {formatDateTimeShort(event.start_time)}
-                        </div>
-                        <div className="event-time-range-confirm">
-                          {formatTimeShort(event.start_time)} -{" "}
-                          {formatTimeShort(event.end_time)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {event.location && (
-                    <div className="event-time-row-confirm">
-                      <MapPin className="event-time-icon-confirm" />
-                      <div className="event-location-info-confirm">
-                        {event.location}
-                      </div>
-                    </div>
-                  )}
-                  {event.notes && (
-                    <div className="event-time-row-confirm">
-                      <FileText className="event-time-icon-confirm" />
-                      <div className="event-location-info-confirm">
-                        {event.notes}
-                      </div>
-                    </div>
-                  )}
-                  {event.attendees && event.attendees.length > 0 && (
-                    <div className="event-time-row-confirm">
-                      <Users className="event-time-icon-confirm" />
-                      <div className="event-location-info-confirm">
-                        {event.attendees.join(", ")}
-                      </div>
-                    </div>
-                  )}
-                  {event.add_conference && (
-                    <div className="event-time-row-confirm">
-                      <Video className="event-time-icon-confirm" />
-                      <div className="event-location-info-confirm">
-                        Google Meet link will be generated
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="action-buttons">
-              <button
-                className="create-button"
-                onClick={handleCreateAllEvents}
-                disabled={loading}
-              >
-                <Check size={16} className="inline-icon" /> Create All Events
-              </button>
-              <button
-                className="cancel-button"
-                onClick={() => setShowBulkEvents(false)}
-                disabled={loading}
-              >
-                <X size={16} className="inline-icon" /> Cancel
-              </button>
-            </div>
-          </div>
+          <BulkEventsCard
+            parsedEvents={parsedEvents}
+            onEdit={openEditModal}
+            onRemove={removeParsedEvent}
+            onCreateAll={handleCreateAllEvents}
+            onCancel={() => setShowBulkEvents(false)}
+            loading={loading}
+          />
         )}
 
         {editingEvent && editingEventIndex !== null && (
-          <div className="modal-overlay" onClick={closeEditModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="parsed-event">
-                <div className="event-details">
-                  <h3>
-                    <Edit size={20} className="inline-icon" /> Edit Event
-                  </h3>
-                  <div className="detail-row editable-row">
-                    <strong>Title:</strong>
-                    <input
-                      className="text-input"
-                      type="text"
-                      value={editingEvent.title || ""}
-                      onChange={(e) =>
-                        setEditingEvent({
-                          ...editingEvent,
-                          title: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Start:</strong>
-                    {editingStart ? (
-                      <input
-                        type="datetime-local"
-                        className="datetime-input"
-                        value={toDateTimeLocal(
-                          new Date(editingEvent.start_time)
-                        )}
-                        onChange={(e) => {
-                          const d = new Date(e.target.value);
-                          if (!isNaN(d.getTime())) {
-                            const duration =
-                              editingEvent.duration_minutes || 60;
-                            const endDate = new Date(
-                              d.getTime() + duration * 60000
-                            );
-                            setEditingEvent({
-                              ...editingEvent,
-                              start_time: d.toISOString(),
-                              end_time: endDate.toISOString(),
-                            });
-                          }
-                        }}
-                        onBlur={() => setEditingStart(false)}
-                      />
-                    ) : (
-                      <span
-                        className="editable-field clickable"
-                        onClick={() => setEditingStart(true)}
-                      >
-                        {formatDateTime(editingEvent.start_time)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>End:</strong>
-                    {editingEnd ? (
-                      <input
-                        type="datetime-local"
-                        className="datetime-input"
-                        value={toDateTimeLocal(new Date(editingEvent.end_time))}
-                        onChange={(e) => {
-                          const d = new Date(e.target.value);
-                          if (!isNaN(d.getTime())) {
-                            setEditingEvent({
-                              ...editingEvent,
-                              end_time: d.toISOString(),
-                            });
-                          }
-                        }}
-                        onBlur={() => setEditingEnd(false)}
-                      />
-                    ) : (
-                      <span
-                        className="editable-field clickable"
-                        onClick={() => setEditingEnd(true)}
-                      >
-                        {formatDateTime(editingEvent.end_time)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Location:</strong>
-                    <input
-                      className="text-input"
-                      type="text"
-                      value={editingEvent.location || ""}
-                      onChange={(e) =>
-                        setEditingEvent({
-                          ...editingEvent,
-                          location: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Notes:</strong>
-                    <textarea
-                      className="text-input"
-                      rows="2"
-                      value={editingEvent.notes || ""}
-                      onChange={(e) =>
-                        setEditingEvent({
-                          ...editingEvent,
-                          notes: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Guests:</strong>
-                    <div className="attendee-input-row">
-                      <input
-                        type="email"
-                        className="text-input"
-                        placeholder="Add guest email"
-                        value={editingAttendeeInput}
-                        onChange={(e) =>
-                          setEditingAttendeeInput(e.target.value)
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddEditingAttendee();
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="attendee-add-button"
-                        onClick={handleAddEditingAttendee}
-                        disabled={!editingAttendeeInput.trim()}
-                      >
-                        Add
-                      </button>
-                    </div>
-                    {editingAttendees.length > 0 && (
-                      <div className="attendee-chip-list">
-                        {editingAttendees.map((email) => (
-                          <span key={email} className="attendee-chip">
-                            {email}
-                            <button
-                              type="button"
-                              className="attendee-chip-remove"
-                              aria-label={`Remove ${email}`}
-                              onClick={() => handleRemoveEditingAttendee(email)}
-                            >
-                              <X size={12} />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="detail-row editable-row">
-                    <strong>Google Meet:</strong>
-                    <label className="checkbox-inline">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(editingEvent.add_conference)}
-                        onChange={(e) =>
-                          setEditingEvent((prev) =>
-                            prev
-                              ? { ...prev, add_conference: e.target.checked }
-                              : prev
-                          )
-                        }
-                      />
-                      <span>Add Google Meet link</span>
-                    </label>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Color:</strong>
-                    <div className="color-presets">
-                      {[
-                        "#4285f4",
-                        "#ea4335",
-                        "#fbbc04",
-                        "#34a853",
-                        "#9c27b0",
-                        "#ff9800",
-                        "#795548",
-                        "#607d8b",
-                      ].map((c) => (
-                        <div
-                          key={c}
-                          className={`color-preset ${
-                            selectedColor === c ? "selected" : ""
-                          }`}
-                          style={{ backgroundColor: c }}
-                          onClick={() => setSelectedColor(c)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Reminders:</strong>
-                    <div className="reminder-controls">
-                      <select
-                        className="reminder-select"
-                        value={selectedReminder}
-                        onChange={(e) => setSelectedReminder(e.target.value)}
-                      >
-                        <option value="none">No reminder</option>
-                        <option value="5">5 minutes before</option>
-                        <option value="10">10 minutes before</option>
-                        <option value="15">15 minutes before</option>
-                        <option value="30">30 minutes before</option>
-                        <option value="60">1 hour before</option>
-                        <option value="120">2 hours before</option>
-                        <option value="1440">1 day before</option>
-                        <option value="2880">2 days before</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="action-buttons">
-                  <button className="create-button" onClick={saveEditedEvent}>
-                    <Check size={16} className="inline-icon" /> Save Changes
-                  </button>
-                  <button className="cancel-button" onClick={closeEditModal}>
-                    <X size={16} className="inline-icon" /> Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EditEventModal
+            event={editingEvent}
+            attendees={editingAttendees}
+            attendeeInput={editingAttendeeInput}
+            setAttendeeInput={setEditingAttendeeInput}
+            onAddAttendee={handleAddEditingAttendee}
+            onRemoveAttendee={handleRemoveEditingAttendee}
+            selectedColor={selectedColor}
+            setSelectedColor={setSelectedColor}
+            selectedReminder={selectedReminder}
+            setSelectedReminder={setSelectedReminder}
+            editingStart={editingStartBulk}
+            setEditingStart={setEditingStartBulk}
+            editingEnd={editingEndBulk}
+            setEditingEnd={setEditingEndBulk}
+            onFieldChange={(field, value) => {
+              setEditingEvent((prev) =>
+                prev ? { ...prev, [field]: value } : prev
+              );
+            }}
+            onSave={saveEditedEvent}
+            onCancel={closeEditModal}
+            loading={loading}
+          />
         )}
 
         {message && <div className={`message ${messageType}`}>{message}</div>}
