@@ -28,9 +28,18 @@ app = FastAPI(
 )
 
 # Configure CORS
+# Get allowed origins from environment variable (comma-separated)
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000")
+allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+
+# Add Chrome extension origin if provided
+chrome_ext_id = os.getenv("CHROME_EXTENSION_ID")
+if chrome_ext_id:
+    allowed_origins.append(f"chrome-extension://{chrome_ext_id}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
