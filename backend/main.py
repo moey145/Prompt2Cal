@@ -104,9 +104,9 @@ async def auth_status(user_id: str = None):
 
 @app.get("/calendars")
 async def get_calendars(user_id: str = None):
-    """Get list of user's calendars."""
+    """Get list of user's writable calendars only."""
     try:
-        calendars = await calendar_service.get_calendars(user_id=user_id)
+        calendars = await calendar_service.get_calendars(user_id=user_id, writable_only=True)
         return {
             "success": True,
             "calendars": calendars

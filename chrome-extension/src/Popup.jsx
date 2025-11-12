@@ -645,6 +645,7 @@ const Popup = () => {
     }
   };
 
+
   const checkBulkEventConflicts = async (events) => {
     if (!events || events.length === 0 || !isAuthenticated) {
       return;

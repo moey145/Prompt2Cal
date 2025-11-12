@@ -1,7 +1,7 @@
 // Conflict warning component
 import React from "react";
-import { AlertTriangle, Clock, Calendar } from "lucide-react";
-import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
+import { AlertTriangle, Clock } from "lucide-react";
+import { formatTimeShort } from "../utils/dateFormatters";
 
 // Helper to format conflict time
 const formatConflictTime = (isoString) => {
@@ -87,7 +87,6 @@ export const ConflictWarning = ({
           </div>
         ))}
       </div>
-
     </div>
   );
 };

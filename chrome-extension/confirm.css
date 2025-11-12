@@ -287,6 +287,76 @@
   border-top: 1px solid rgba(255, 193, 7, 0.3);
 }
 
+.suggest-alternatives-button {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #ffc107;
+  color: #856404;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+  margin-bottom: 12px;
+}
+
+.suggest-alternatives-button:hover:not(:disabled) {
+  background-color: #ffb300;
+  border-color: #f57c00;
+  transform: translateY(-1px);
+}
+
+.suggest-alternatives-button:active:not(:disabled) {
+  transform: translateY(0);
+  background-color: #ffa000;
+}
+
+.suggest-alternatives-button:disabled {
+  background-color: rgba(255, 193, 7, 0.5);
+  border-color: rgba(255, 152, 0, 0.5);
+  color: rgba(133, 100, 4, 0.6);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.dark-mode .suggest-alternatives-button {
+  background-color: rgba(255, 193, 7, 0.2);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.dark-mode .suggest-alternatives-button:hover:not(:disabled) {
+  background-color: rgba(255, 193, 7, 0.3);
+  border-color: #ffb300;
+}
+
+.dark-mode .suggest-alternatives-button:active:not(:disabled) {
+  background-color: rgba(255, 193, 7, 0.25);
+}
+
+.dark-mode .suggest-alternatives-button:disabled {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: rgba(255, 193, 7, 0.5);
+}
+
+.suggest-alternatives-button .spinning {
+  animation: spin 1s linear infinite;
+}
+
+.no-alternatives-message {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-style: italic;
+}
+
 .alternatives-header {
   display: flex;
   align-items: center;

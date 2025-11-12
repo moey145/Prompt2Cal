@@ -915,21 +915,26 @@ class CalendarService:
     async def find_alternative_times(self, start_time: datetime, end_time: datetime, duration_minutes: int, 
                                      search_window_hours: int = 24, calendar_id: Optional[str] = None) -> List[Dict]:
         """
-        Find alternative available time slots near the proposed time.
+        Find alternative available time slots on the same day as the proposed event.
+        Prioritizes same-day alternatives: one before and one after the conflict.
         
         Args:
             start_time: Proposed meeting start time
             end_time: Proposed meeting end time
             duration_minutes: Duration of the meeting
-            search_window_hours: How many hours before/after to search (default 24)
+            search_window_hours: How many hours before/after to search if same-day not found (default 24)
             calendar_id: Optional calendar ID (defaults to 'primary')
         """
         try:
-            # Search window: from (start_time - search_window_hours) to (start_time + search_window_hours)
+            # Get the start and end of the same day as the proposed event
+            same_day_start = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
+            same_day_end = start_time.replace(hour=23, minute=59, second=59, microsecond=999999)
+            
+            # Also get a wider search window in case same-day doesn't have both slots
             search_start = start_time - timedelta(hours=search_window_hours)
             search_end = start_time + timedelta(hours=search_window_hours)
             
-            # Get all events in the search window
+            # Get all events in the wider search window
             existing_events = await self.get_events_in_range(search_start, search_end, calendar_id=calendar_id)
             
             # Build list of busy time blocks
@@ -949,56 +954,108 @@ class CalendarService:
             # Sort busy blocks by start time
             busy_blocks.sort(key=lambda x: x[0])
             
-            # Find available slots
-            alternatives = []
-            current_time = search_start
-            
-            # Round to nearest 15 minutes
-            current_time = current_time.replace(minute=(current_time.minute // 15) * 15, second=0, microsecond=0)
-            
-            while current_time + timedelta(minutes=duration_minutes) <= search_end:
-                slot_start = current_time
-                slot_end = current_time + timedelta(minutes=duration_minutes)
+            def find_available_slots(search_start_time, search_end_time, same_day_only=False):
+                """Helper function to find available slots in a time range."""
+                slots = []
+                current_time = search_start_time
                 
-                # Check if this slot conflicts with any busy block
-                has_conflict = False
-                for busy_start, busy_end in busy_blocks:
-                    if (slot_start < busy_end and slot_end > busy_start):
-                        has_conflict = True
-                        # Skip to after this busy block
-                        current_time = busy_end
-                        # Round to nearest 15 minutes
-                        current_time = current_time.replace(minute=((current_time.minute // 15) + 1) * 15, second=0, microsecond=0)
+                # Round to nearest 15 minutes
+                current_time = current_time.replace(minute=(current_time.minute // 15) * 15, second=0, microsecond=0)
+                
+                # Ensure we don't go past the search end
+                max_time = min(search_end_time, search_end)
+                
+                while current_time + timedelta(minutes=duration_minutes) <= max_time:
+                    slot_start = current_time
+                    slot_end = current_time + timedelta(minutes=duration_minutes)
+                    
+                    # Check if this slot conflicts with any busy block
+                    has_conflict = False
+                    for busy_start, busy_end in busy_blocks:
+                        if (slot_start < busy_end and slot_end > busy_start):
+                            has_conflict = True
+                            # Skip to after this busy block
+                            current_time = busy_end
+                            # Round to nearest 15 minutes
+                            current_time = current_time.replace(minute=((current_time.minute // 15) + 1) * 15, second=0, microsecond=0)
+                            break
+                    
+                    if not has_conflict:
+                        # Check if this slot is in the past
+                        now = datetime.now(slot_start.tzinfo) if slot_start.tzinfo else datetime.now()
+                        if slot_start > now:
+                            # If same_day_only, check if it's on the same day by comparing dates
+                            is_same_day = True
+                            if same_day_only:
+                                # Compare just the date part (year, month, day)
+                                slot_date = slot_start.date()
+                                start_date = start_time.date()
+                                is_same_day = (slot_date == start_date)
+                            
+                            if not same_day_only or is_same_day:
+                                slots.append({
+                                    'start': slot_start.isoformat(),
+                                    'end': slot_end.isoformat(),
+                                    'formatted_start': slot_start.strftime('%A, %B %d at %I:%M %p'),
+                                    'formatted_time': f"{slot_start.strftime('%I:%M %p')} - {slot_end.strftime('%I:%M %p')}",
+                                    'minutes_from_proposed': int((slot_start - start_time).total_seconds() / 60)
+                                })
+                        current_time += timedelta(minutes=15)
+                    
+                    # Safety limit
+                    if len(slots) >= 20:
                         break
                 
-                if not has_conflict:
-                    # Check if this slot is in the past
-                    if slot_start > datetime.now(slot_start.tzinfo) if slot_start.tzinfo else datetime.now():
-                        alternatives.append({
-                            'start': slot_start.isoformat(),
-                            'end': slot_end.isoformat(),
-                            'formatted_start': slot_start.strftime('%A, %B %d at %I:%M %p'),
-                            'formatted_time': f"{slot_start.strftime('%I:%M %p')} - {slot_end.strftime('%I:%M %p')}",
-                            'minutes_from_proposed': int((slot_start - start_time).total_seconds() / 60)
-                        })
-                    current_time += timedelta(minutes=15)
-                
-                # Limit to 5 alternatives
-                if len(alternatives) >= 5:
-                    break
+                return slots
             
-            # Sort by proximity, then limit to two before and two after the proposed start time
-            before_slots = [slot for slot in alternatives if slot['minutes_from_proposed'] < 0]
-            after_slots = [slot for slot in alternatives if slot['minutes_from_proposed'] >= 0]
-
-            before_slots.sort(key=lambda x: abs(x['minutes_from_proposed']))
-            after_slots.sort(key=lambda x: x['minutes_from_proposed'])
-
+            # Find alternatives by searching outward from the conflict time
+            # We want the nearest available slots before and after the conflict, not just any slot on the day
+            
+            # Define reasonable search window: 3 hours before and 3 hours after the conflict
+            search_window_hours = 3
+            search_before_start = start_time - timedelta(hours=search_window_hours)
+            search_after_end = end_time + timedelta(hours=search_window_hours)
+            
+            # Ensure we stay within the same day and reasonable hours (6 AM to 11 PM)
+            reasonable_start = same_day_start.replace(hour=6, minute=0)
+            reasonable_end = same_day_end.replace(hour=23, minute=0)
+            
+            # Ensure timezone is preserved
+            if start_time.tzinfo:
+                reasonable_start = reasonable_start.replace(tzinfo=start_time.tzinfo)
+                reasonable_end = reasonable_end.replace(tzinfo=start_time.tzinfo)
+            
+            # Clamp search window to same day and reasonable hours
+            search_before_start = max(search_before_start, reasonable_start, same_day_start)
+            search_after_end = min(search_after_end, reasonable_end, same_day_end)
+            
+            # Search backwards from conflict time for nearest available slot before
+            before_slots = find_available_slots(search_before_start, start_time, same_day_only=True)
+            before_slots = [slot for slot in before_slots if slot['minutes_from_proposed'] < 0]
+            before_slots.sort(key=lambda x: abs(x['minutes_from_proposed']))  # Closest first
+            
+            # Search forwards from conflict end time for nearest available slot after
+            after_slots = find_available_slots(end_time, search_after_end, same_day_only=True)
+            after_slots = [slot for slot in after_slots if slot['minutes_from_proposed'] >= 0]
+            after_slots.sort(key=lambda x: x['minutes_from_proposed'])  # Closest first
+            
             selected_slots: List[Dict] = []
-            selected_slots.extend(before_slots[:2])
-            selected_slots.extend(after_slots[:2])
             
-            return selected_slots
+            # Get the nearest slot before (within 3 hours)
+            if before_slots:
+                nearest_before = before_slots[0]
+                # Only include if it's within 3 hours before the conflict
+                if abs(nearest_before['minutes_from_proposed']) <= 180:  # 3 hours = 180 minutes
+                    selected_slots.append(nearest_before)
+            
+            # Get the nearest slot after (within 3 hours)
+            if after_slots:
+                nearest_after = after_slots[0]
+                # Only include if it's within 3 hours after the conflict
+                if nearest_after['minutes_from_proposed'] <= 180:  # 3 hours = 180 minutes
+                    selected_slots.append(nearest_after)
+            
+            return selected_slots  # Return nearest alternatives (1 before, 1 after if available within 3 hours)
             
         except Exception as e:
             logger.error(f"Error finding alternative times: {str(e)}")

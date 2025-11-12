@@ -28,7 +28,7 @@ export const useCalendars = (userId, isAuthenticated) => {
           if (exists) {
             setSelectedCalendarId(saved.selectedCalendarId);
           } else {
-            // Saved calendar no longer exists or is read-only, switch to primary or first available
+            // Saved calendar no longer exists, switch to primary or first available
             const primary = response.calendars.find((c) => c.primary);
             const newCalendarId = primary ? primary.id : response.calendars[0]?.id || null;
             setSelectedCalendarId(newCalendarId);
