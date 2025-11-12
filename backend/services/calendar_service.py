@@ -139,6 +139,11 @@ class CalendarService:
         if not self.CLIENT_ID or not self.CLIENT_SECRET:
             raise Exception("Google OAuth credentials not found. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file")
         
+        # Log credentials (masked for security)
+        logger.info(f"Using CLIENT_ID: {self.CLIENT_ID[:20]}... (length: {len(self.CLIENT_ID)})")
+        logger.info(f"Using CLIENT_SECRET: {'*' * min(len(self.CLIENT_SECRET), 20)}... (length: {len(self.CLIENT_SECRET)})")
+        logger.info(f"Using REDIRECT_URI: {self.REDIRECT_URI}")
+        
         # Create client config from environment variables
         client_config = {
             "web": {
@@ -157,7 +162,11 @@ class CalendarService:
         )
         
         # Exchange code for credentials
-        flow.fetch_token(code=code)
+        try:
+            flow.fetch_token(code=code)
+        except Exception as e:
+            logger.error(f"Failed to fetch token. CLIENT_ID: {self.CLIENT_ID[:20]}..., CLIENT_SECRET length: {len(self.CLIENT_SECRET) if self.CLIENT_SECRET else 0}, REDIRECT_URI: {self.REDIRECT_URI}")
+            raise
         creds = flow.credentials
         
         # Determine token file path based on user_id
