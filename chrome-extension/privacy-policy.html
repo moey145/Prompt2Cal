@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt2Cal Privacy Policy</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.6;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: #f7f7f8;
+        color: #1d1d1f;
+      }
+
+      .page {
+        margin: 0 auto;
+        max-width: 850px;
+        padding: 48px 24px 80px;
+        background: #ffffff;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      h2 {
+        margin-top: 2.5rem;
+        font-size: 1.35rem;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 1rem 0;
+      }
+
+      ul {
+        padding-left: 1.4rem;
+        margin: 1rem 0;
+      }
+
+      li {
+        margin: 0.5rem 0;
+      }
+
+      a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+
+      a:hover,
+      a:focus {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 600px) {
+        .page {
+          padding: 32px 16px 64px;
+          margin: 0 0 32px;
+          box-shadow: none;
+        }
+
+        h1 {
+          font-size: 1.75rem;
+        }
+
+        h2 {
+          font-size: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Prompt2Cal Privacy Policy</h1>
+      <p>Last updated: November 12, 2025</p>
+
+      <p>
+        Prompt2Cal (“we”, “our”, or “us”) is a Google Chrome extension that
+        helps you turn natural language text into calendar events. We respect
+        your privacy and are committed to protecting the personal information
+        you share with us. This privacy policy explains what data we collect,
+        how we use it, and the choices you have.
+      </p>
+
+      <h2>Information We Collect</h2>
+      <p>Prompt2Cal handles the following categories of information:</p>
+      <ul>
+        <li>
+          <strong>User-provided event text.</strong> The text you type or paste
+          into the extension popup or capture via voice recognition so that we
+          can parse it into event details.
+        </li>
+        <li>
+          <strong>Calendar metadata.</strong> Names and identifiers of calendars
+          you select when creating events, obtained through the Google Calendar
+          API with your permission.
+        </li>
+        <li>
+          <strong>Event details.</strong> Titles, times, recurrence rules,
+          notes, attendees, meeting links, and other fields required to create
+          calendar events.
+        </li>
+        <li>
+          <strong>Authentication tokens.</strong> OAuth tokens provided by
+          Google when you sign in, stored securely on your device (and on your
+          account’s backend workspace if you deploy and authenticate with the
+          optional cloud service).
+        </li>
+        <li>
+          <strong>Usage diagnostics (anonymous).</strong> Non-identifiable logs
+          on the backend services (for example, error traces and performance
+          timings). These never include the actual text of your events.
+        </li>
+      </ul>
+
+      <h2>How We Use Your Information</h2>
+      <p>
+        We use the collected information solely to deliver the functionality of
+        the extension:
+      </p>
+      <ul>
+        <li>
+          Parse your input text with our event parsing service (which may call
+          OpenAI’s API) and return structured event details.
+        </li>
+        <li>
+          Check for scheduling conflicts and suggest alternatives when you
+          request it.
+        </li>
+        <li>
+          Create, update, or delete events on your selected Google Calendar as
+          instructed.
+        </li>
+        <li>
+          Generate notifications (toasts) within the extension UI about success
+          or errors.
+        </li>
+        <li>
+          Improve reliability, troubleshoot issues, and secure the service.
+        </li>
+      </ul>
+
+      <h2>Data Storage and Retention</h2>
+      <p>
+        Prompt2Cal stores most data locally in the extension context. When you
+        deploy and connect to the optional Prompt2Cal backend service:
+      </p>
+      <ul>
+        <li>
+          OAuth tokens are encrypted and stored in the backend&rsquo;s secure
+          storage so that the service can act on your behalf.
+        </li>
+        <li>
+          Event parsing requests sent to OpenAI are transient and not retained
+          beyond the session needed to fulfill the request, according to OpenAI
+          API policies.
+        </li>
+        <li>
+          Logs omit sensitive content and are retained temporarily for
+          diagnostics before automatic deletion.
+        </li>
+      </ul>
+
+      <h2>Sharing and Disclosure</h2>
+      <p>
+        We do not sell or rent your personal information. Data is shared only
+        with:
+      </p>
+      <ul>
+        <li>
+          <strong>Google Calendar API.</strong> Required to create and manage
+          events on your calendars.
+        </li>
+        <li>
+          <strong>OpenAI API.</strong> When parsing event text (your input text
+          is transmitted to OpenAI for processing).
+        </li>
+        <li>
+          <strong>Service providers.</strong> If you deploy the backend on
+          Google Cloud, information is processed according to Google Cloud’s
+          security and privacy standards.
+        </li>
+        <li>
+          <strong>Legal requirements.</strong> We may disclose information if
+          required by law or in response to valid requests by public
+          authorities.
+        </li>
+      </ul>
+
+      <h2>Your Choices and Controls</h2>
+      <ul>
+        <li>
+          You can disconnect the extension from your Google account at any time
+          from the settings menu or via Google’s
+          <a
+            href="https://myaccount.google.com/permissions"
+            rel="noreferrer noopener"
+            target="_blank"
+            >Account Permissions</a
+          >
+          page.
+        </li>
+        <li>
+          You can delete OAuth tokens stored by the backend service by running
+          the provided cleanup script or deleting the user token files.
+        </li>
+        <li>
+          You may remove the extension from Chrome to stop all data collection
+          and interaction.
+        </li>
+      </ul>
+
+      <h2>Security</h2>
+      <p>
+        We use industry-standard security practices to protect your information,
+        including HTTPS for all communication and encrypted storage for OAuth
+        tokens. Nevertheless, no online service is entirely risk-free. Please
+        use strong, unique passwords and keep your devices secure.
+      </p>
+
+      <h2>Children’s Privacy</h2>
+      <p>
+        Prompt2Cal is not intended for use by children under the age of 13. We
+        do not knowingly collect personal information from children. If you are
+        a parent or guardian and believe your child has provided personal
+        information, please contact us so that we can delete it.
+      </p>
+
+      <h2>International Users</h2>
+      <p>
+        If you use Prompt2Cal from outside Australia, be aware that data may be
+        processed in the country where you deploy the backend (for example, the
+        United States if you deploy on Google Cloud Run in the us-central1
+        region) and in regions where our service providers operate.
+      </p>
+
+      <h2>Changes to This Policy</h2>
+      <p>
+        We may update this privacy policy from time to time. Any changes will be
+        posted on this page with an updated “Last updated” date. Your continued
+        use of Prompt2Cal after changes constitutes acceptance of the revised
+        policy.
+      </p>
+
+      <h2>Contact Us</h2>
+      <p>
+        If you have questions or concerns about this privacy policy, please
+        email <a href="mailto:support@prompt2cal.com">support@prompt2cal.com</a>
+        or open an issue on the project GitHub repository:
+        <a
+          href="https://github.com/moey145/Prompt2Cal"
+          rel="noreferrer noopener"
+          target="_blank"
+          >github.com/moey145/Prompt2Cal</a
+        >.
+      </p>
+    </main>
+  </body>
+</html>
+

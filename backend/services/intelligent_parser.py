@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
-CACHE_VERSION = "v27"  # Increment when cache format changes (v27: fix time parsing for "today at 7pm" and "tomorrow at 7pm" patterns)
+CACHE_VERSION = "v29"  # Increment when cache format changes (v29: add post-processing to extract time from title if missing from start_time)
 
 
 class IntelligentEventParser:
@@ -75,7 +75,7 @@ class IntelligentEventParser:
         - "Every sunday strategy meeting at 9am -11am for 8 weeks at Greenacre gym"
         - "Every other Tuesday mentoring session at 5pm for 2 months"
         """
-        start_time = time.time()
+        parse_start_time = time.time()
         
         try:
             # Sanitize input
@@ -91,7 +91,9 @@ class IntelligentEventParser:
                 # This is important because cache might have been populated before normalization fixes
                 normalized_result = []
                 for cached_event in cached_result:
-                    normalized_event = self._normalize_recurrence(cached_event, sanitized)
+                    # Apply post-processing to extract time from title if missing from start_time
+                    normalized_event = self._apply_time_extraction_post_processing(cached_event, sanitized)
+                    normalized_event = self._normalize_recurrence(normalized_event, sanitized)
                     normalized_result.append(normalized_event)
                 self.success_count += 1
                 return normalized_result
@@ -119,6 +121,8 @@ class IntelligentEventParser:
             # Convert to ParsedEvent objects
             parsed_events = []
             for event_data in events:
+                # Log what LLM returned for debugging
+                logger.info(f"LLM returned - title: '{event_data.get('title')}', start_time: '{event_data.get('start_time')}'")
                 # Convert recurrence_type string to enum
                 recurrence_str = event_data.get("recurrence_type", "none")
                 recurrence_enum = RecurrenceType(recurrence_str) if recurrence_str else RecurrenceType.NONE
@@ -133,9 +137,33 @@ class IntelligentEventParser:
                 if not duration or duration < 5:
                     duration = 60
                 
-                parsed_event = ParsedEvent(
+                start_time = event_data.get("start_time")
+                
+                # Create a temporary ParsedEvent to apply post-processing
+                temp_event = ParsedEvent(
                     title=title,
-                    start_time=event_data.get("start_time"),
+                    start_time=start_time,
+                    end_time=event_data.get("end_time"),
+                    duration_minutes=duration,
+                    location=event_data.get("location"),
+                    notes=event_data.get("notes"),
+                    recurrence_type=recurrence_enum,
+                    recurrence_count=event_data.get("recurrence_count"),
+                    recurrence_interval=event_data.get("recurrence_interval", 1),
+                    buffer_before=event_data.get("buffer_before", 0),
+                    buffer_after=event_data.get("buffer_after", 0),
+                    end_date=event_data.get("end_date"),
+                    end_after_count=event_data.get("end_after_count"),
+                    color=event_data.get("color"),
+                    reminder=event_data.get("reminder")
+                )
+                
+                # Apply post-processing to extract time from title if missing from start_time
+                temp_event = self._apply_time_extraction_post_processing(temp_event, sanitized)
+                
+                parsed_event = ParsedEvent(
+                    title=temp_event.title,
+                    start_time=temp_event.start_time,
                     end_time=event_data.get("end_time"),
                     duration_minutes=duration,
                     location=event_data.get("location"),
@@ -166,7 +194,7 @@ class IntelligentEventParser:
                 _cache.pop(next(iter(_cache)))
             _cache[cache_key] = parsed_events
             
-            duration = time.time() - start_time
+            duration = time.time() - parse_start_time
             logger.info(f"Parse successful in {duration:.2f}s: {len(parsed_events)} events")
             self.success_count += 1
             
@@ -207,6 +235,61 @@ class IntelligentEventParser:
             text = text[:500]
         
         return text.strip()
+
+    def _apply_time_extraction_post_processing(self, event: ParsedEvent, original_text: str) -> ParsedEvent:
+        """
+        Post-processing: Extract time from title or original text if missing from start_time.
+        This handles cases like "Meeting 7pm tomorrow" where LLM might put "7pm" in title.
+        """
+        if not event.start_time:
+            return event
+        
+        # Check if start_time already has a time
+        if re.search(r'\d{1,2}\s*([ap]m|:\d{2})', event.start_time.lower()):
+            return event  # Time already present, no need to extract
+        
+        # Check if time is in title
+        title_lower = event.title.lower() if event.title else ""
+        time_in_title = re.search(r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)', title_lower)
+        if time_in_title:
+            hour = time_in_title.group(1)
+            minute = time_in_title.group(2) if time_in_title.group(2) else ""
+            ampm = time_in_title.group(3)
+            time_str = f"{hour}{':' + minute if minute else ''}{ampm}"
+            new_start_time = f"{event.start_time} at {time_str}"
+            # Remove time from title
+            new_title = re.sub(r'\s*\d{1,2}(?::\d{2})?\s*[ap]m\s*', ' ', event.title, flags=re.IGNORECASE).strip()
+            logger.info(f"Extracted time from title: '{time_str}', updated start_time to: '{new_start_time}', cleaned title to: '{new_title}'")
+            
+            # Create updated event
+            if hasattr(event, 'model_copy'):
+                return event.model_copy(update={"start_time": new_start_time, "title": new_title})
+            else:
+                event_dict = event.dict() if hasattr(event, 'dict') else event.__dict__.copy()
+                event_dict["start_time"] = new_start_time
+                event_dict["title"] = new_title
+                return ParsedEvent(**event_dict)
+        
+        # Also check original text if time still not found
+        text_lower = original_text.lower()
+        time_in_text = re.search(r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)', text_lower)
+        if time_in_text:
+            hour = time_in_text.group(1)
+            minute = time_in_text.group(2) if time_in_text.group(2) else ""
+            ampm = time_in_text.group(3)
+            time_str = f"{hour}{':' + minute if minute else ''}{ampm}"
+            new_start_time = f"{event.start_time} at {time_str}"
+            logger.info(f"Extracted time from original text: '{time_str}', updated start_time to: '{new_start_time}'")
+            
+            # Create updated event
+            if hasattr(event, 'model_copy'):
+                return event.model_copy(update={"start_time": new_start_time})
+            else:
+                event_dict = event.dict() if hasattr(event, 'dict') else event.__dict__.copy()
+                event_dict["start_time"] = new_start_time
+                return ParsedEvent(**event_dict)
+        
+        return event
 
     def _normalize_recurrence(self, event: ParsedEvent, original_text: str = "") -> ParsedEvent:
         """Normalize recurrence info returned by LLM."""
@@ -750,6 +833,11 @@ Instructions:
    - If no clear title is given, create one based on the activity described
    - Examples: "Doctor's appointment next Friday" → "Doctor's appointment", "Lunch with Sarah" → "Lunch with Sarah", "Meeting tomorrow at 2pm" → "Meeting"
  2. Parse the start time into natural language format (e.g., "next Tuesday at 1pm")
+    - CRITICAL: ALWAYS include the time in start_time if it's mentioned in the input, even if it appears before the date word
+      * "Meeting 7pm tomorrow" → start_time: "tomorrow at 7pm" (NOT "tomorrow" without time, and title should be "Meeting" not "Meeting 7pm")
+      * "Lunch 12pm today" → start_time: "today at 12pm" (NOT "today" without time)
+      * "Appointment 3pm next Friday" → start_time: "next Friday at 3pm" (NOT "next Friday" without time)
+      * Extract the time from anywhere in the input and combine it with the date in start_time
     - CRITICAL: For standalone weekday names (without "next" or "this"), use "this [day]" meaning the upcoming occurrence
       * "on Thursday at 3pm" or "Thursday at 3pm" → start_time: "this Thursday at 3pm" (NOT "next Thursday at 3pm")
       * Only use "next [day]" when the user explicitly says "next"

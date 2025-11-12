@@ -185,10 +185,23 @@ class RulesParser:
 
         title = match.group("title").strip().rstrip(",")
         rel = match.group("relative")
+
+        # Extract time from the title if present (e.g., "Meeting 7pm tomorrow")
+        time_match = re.search(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)", title, re.IGNORECASE)
+        start_literal = rel
+        if time_match:
+            hour = time_match.group(1)
+            minute = time_match.group(2) if time_match.group(2) else ""
+            ampm = time_match.group(3)
+            time_str = f"{hour}{':' + minute if minute else ''}{ampm}"
+            start_literal = f"{rel} at {time_str}"
+            # Remove the time portion from the title to avoid duplication
+            title = re.sub(r"\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\s*", " ", title, flags=re.IGNORECASE).strip()
+
         return [
             RuleEvent(
                 title=title,
-                start=rel,
+                start=start_literal,
                 duration_minutes=60,
             )
         ]
