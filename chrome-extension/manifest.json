@@ -11,6 +11,7 @@
   ],
   "host_permissions": [
     "http://localhost:8000/*",
+    "https://prompt2cal-backend-139801429107.us-central1.run.app/*",
     "https://accounts.google.com/*",
     "https://www.googleapis.com/*"
   ],
@@ -19,9 +20,15 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ]
     }
   ],
   "action": {
@@ -40,11 +47,16 @@
     "48": "assets/Logo.png",
     "128": "assets/Logo.png"
   },
-  
   "web_accessible_resources": [
     {
-      "resources": ["popup-react.html", "icons/Logo.svg", "icons/DarkModeLogo.svg"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "popup-react.html",
+        "icons/Logo.svg",
+        "icons/DarkModeLogo.svg"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

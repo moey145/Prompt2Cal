@@ -321,12 +321,17 @@ class DateParser:
             if 'today' in date_string:
                 target_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
                 
-                # Extract time if present
-                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', date_string)
+                # Extract time if present - improved regex to handle both "at 7pm" and "7pm" patterns
+                # Try "at 7pm" pattern first, then try "7pm" pattern (without "at")
+                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', date_string, re.IGNORECASE)
+                if not time_match:
+                    # Try pattern without "at" (e.g., "today 7pm" or "7pm today")
+                    time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)', date_string, re.IGNORECASE)
+                
                 if time_match:
                     hour = int(time_match.group(1))
                     minute = int(time_match.group(2)) if time_match.group(2) else 0
-                    ampm = time_match.group(3)
+                    ampm = time_match.group(3).lower() if time_match.group(3) else None
                     
                     logger.info(f"Extracted time: hour={hour}, minute={minute}, ampm={ampm}")
                     
@@ -353,12 +358,16 @@ class DateParser:
             if 'day after tomorrow' in date_string:
                 target_date = now + timedelta(days=2)
                 
-                # Extract time if present
-                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', date_string)
+                # Extract time if present - improved regex to handle both "at 7pm" and "7pm" patterns
+                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', date_string, re.IGNORECASE)
+                if not time_match:
+                    # Try pattern without "at" (e.g., "day after tomorrow 7pm" or "7pm day after tomorrow")
+                    time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)', date_string, re.IGNORECASE)
+                
                 if time_match:
                     hour = int(time_match.group(1))
                     minute = int(time_match.group(2)) if time_match.group(2) else 0
-                    ampm = time_match.group(3)
+                    ampm = time_match.group(3).lower() if time_match.group(3) else None
                     
                     logger.info(f"Extracted time: hour={hour}, minute={minute}, ampm={ampm}")
                     
@@ -385,12 +394,16 @@ class DateParser:
             if 'tomorrow' in date_string:
                 target_date = now + timedelta(days=1)
                 
-                # Extract time if present - improved regex
-                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', date_string)
+                # Extract time if present - improved regex to handle both "at 7pm" and "7pm" patterns
+                time_match = re.search(r'at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?', date_string, re.IGNORECASE)
+                if not time_match:
+                    # Try pattern without "at" (e.g., "tomorrow 7pm" or "7pm tomorrow")
+                    time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)', date_string, re.IGNORECASE)
+                
                 if time_match:
                     hour = int(time_match.group(1))
                     minute = int(time_match.group(2)) if time_match.group(2) else 0
-                    ampm = time_match.group(3)
+                    ampm = time_match.group(3).lower() if time_match.group(3) else None
                     
                     logger.info(f"Extracted time: hour={hour}, minute={minute}, ampm={ampm}")
                     

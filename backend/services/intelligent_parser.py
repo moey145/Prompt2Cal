@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
-CACHE_VERSION = "v26"  # Increment when cache format changes (v26: remove recurrence words like "Every Monday" from event titles, keep only the event name)
+CACHE_VERSION = "v27"  # Increment when cache format changes (v27: fix time parsing for "today at 7pm" and "tomorrow at 7pm" patterns)
 
 
 class IntelligentEventParser:
