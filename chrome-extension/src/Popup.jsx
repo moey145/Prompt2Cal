@@ -53,7 +53,6 @@ const Popup = () => {
 
   // Conflict detection state
   const [conflicts, setConflicts] = useState([]);
-  const [alternatives, setAlternatives] = useState([]);
   const [checkingConflicts, setCheckingConflicts] = useState(false);
   const [bulkEventConflicts, setBulkEventConflicts] = useState({}); // Map of event index to conflicts
 
@@ -637,7 +636,6 @@ const Popup = () => {
 
       if (response.success) {
         setConflicts(response.conflicts || []);
-        setAlternatives(response.alternatives || []);
       }
     } catch (error) {
       console.error("Error checking conflicts:", error);
@@ -645,26 +643,6 @@ const Popup = () => {
     } finally {
       setCheckingConflicts(false);
     }
-  };
-
-  const handleSelectAlternative = (alternative) => {
-    if (!parsedEvent) return;
-
-    // Update the event with the alternative time
-    const updatedEvent = {
-      ...parsedEvent,
-      start_time: alternative.start,
-      end_time: alternative.end,
-    };
-
-    setParsedEvent(updatedEvent);
-    setConflicts([]);
-    setAlternatives([]);
-
-    // Re-check conflicts for the new time
-    checkEventConflicts(updatedEvent);
-
-    showMessage("Event time updated", "success");
   };
 
   const checkBulkEventConflicts = async (events) => {
@@ -706,7 +684,6 @@ const Popup = () => {
         if (response.success && response.has_conflicts) {
           conflictsMap[i] = {
             conflicts: response.conflicts || [],
-            alternatives: response.alternatives || [],
           };
         }
       } catch (error) {
@@ -738,7 +715,6 @@ const Popup = () => {
     setEditingStart(false);
     setEditingEnd(false);
     setConflicts([]);
-    setAlternatives([]);
     setBulkEventConflicts({});
   };
 
@@ -827,8 +803,6 @@ const Popup = () => {
             loading={loading}
             loadingSingle={loadingSingle}
             conflicts={conflicts}
-            alternatives={alternatives}
-            onSelectAlternative={handleSelectAlternative}
             checkingConflicts={checkingConflicts}
           />
         )}
@@ -866,26 +840,6 @@ const Popup = () => {
             loading={loading}
             loadingSingle={loadingSingle}
             eventConflicts={bulkEventConflicts}
-            onSelectAlternative={(eventIndex, alternative) => {
-              // Update the specific event in bulk events
-              const updatedEvents = [...parsedEvents];
-              updatedEvents[eventIndex] = {
-                ...updatedEvents[eventIndex],
-                start_time: alternative.start,
-                end_time: alternative.end,
-              };
-              setParsedEvents(updatedEvents);
-
-              // Remove conflicts for this event and re-check
-              const newConflicts = { ...bulkEventConflicts };
-              delete newConflicts[eventIndex];
-              setBulkEventConflicts(newConflicts);
-
-              // Re-check conflicts for the updated event
-              checkBulkEventConflicts(updatedEvents);
-
-              showMessage("Event time updated", "success");
-            }}
           />
         )}
 

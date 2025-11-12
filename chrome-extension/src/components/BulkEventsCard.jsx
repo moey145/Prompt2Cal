@@ -25,7 +25,6 @@ export const BulkEventsCard = ({
   loading,
   loadingSingle,
   eventConflicts,
-  onSelectAlternative,
 }) => {
   if (!parsedEvents || parsedEvents.length === 0) return null;
 
@@ -163,8 +162,6 @@ export const BulkEventsCard = ({
                 <div style={{ marginTop: "12px" }}>
                   <ConflictWarning
                     conflicts={eventConflicts[index].conflicts}
-                    alternatives={eventConflicts[index].alternatives}
-                    onSelectAlternative={(alt) => onSelectAlternative && onSelectAlternative(index, alt)}
                     eventStartTime={event.start_time}
                     eventEndTime={event.end_time}
                   />

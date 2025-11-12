@@ -987,10 +987,18 @@ class CalendarService:
                 if len(alternatives) >= 5:
                     break
             
-            # Sort by proximity to proposed time
-            alternatives.sort(key=lambda x: abs(x['minutes_from_proposed']))
+            # Sort by proximity, then limit to two before and two after the proposed start time
+            before_slots = [slot for slot in alternatives if slot['minutes_from_proposed'] < 0]
+            after_slots = [slot for slot in alternatives if slot['minutes_from_proposed'] >= 0]
+
+            before_slots.sort(key=lambda x: abs(x['minutes_from_proposed']))
+            after_slots.sort(key=lambda x: x['minutes_from_proposed'])
+
+            selected_slots: List[Dict] = []
+            selected_slots.extend(before_slots[:2])
+            selected_slots.extend(after_slots[:2])
             
-            return alternatives[:5]  # Return top 5 alternatives
+            return selected_slots
             
         except Exception as e:
             logger.error(f"Error finding alternative times: {str(e)}")

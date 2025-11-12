@@ -24,8 +24,6 @@ export const SingleEventCard = ({
   loading,
   loadingSingle,
   conflicts,
-  alternatives,
-  onSelectAlternative,
   checkingConflicts,
 }) => {
   if (!parsedEvent) return null;
@@ -129,8 +127,6 @@ export const SingleEventCard = ({
         {!checkingConflicts && conflicts && conflicts.length > 0 && (
           <ConflictWarning
             conflicts={conflicts}
-            alternatives={alternatives}
-            onSelectAlternative={onSelectAlternative}
             eventStartTime={parsedEvent.start_time}
             eventEndTime={parsedEvent.end_time}
           />

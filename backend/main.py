@@ -730,7 +730,6 @@ async def find_meeting_slots(request: dict):
 async def check_conflicts(request: dict):
     """
     Check if a proposed meeting time conflicts with existing events.
-    Also returns alternative time suggestions.
     """
     try:
         user_id = request.get("user_id")
@@ -776,25 +775,10 @@ async def check_conflicts(request: dict):
             end_date=end_date
         )
         
-        # Find alternative times if there are conflicts
-        alternatives = []
-        if conflicts:
-            try:
-                alternatives = await calendar_service.find_alternative_times(
-                    start_time=start_time,
-                    end_time=end_time,
-                    duration_minutes=duration_minutes,
-                    search_window_hours=24,
-                    calendar_id=calendar_id
-                )
-            except Exception as alt_error:
-                logger.warning(f"Could not find alternative times: {alt_error}")
-        
         return {
             "success": True,
             "conflicts": conflicts,
             "has_conflicts": len(conflicts) > 0,
-            "alternatives": alternatives,
             "message": f"Found {len(conflicts)} conflict(s)" if conflicts else "No conflicts found"
         }
         
