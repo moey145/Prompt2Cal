@@ -30,7 +30,7 @@ class Prompt2CalBackground {
       // Set default settings
       chrome.storage.local.set({
         prompt2cal_settings: {
-          api_base: "http://localhost:8000",
+          api_base: "https://prompt2cal-backend-139801429107.us-central1.run.app",
           auto_parse_selected: true,
           show_hints: true,
         },
@@ -109,7 +109,7 @@ class Prompt2CalBackground {
     const result = await chrome.storage.local.get(["prompt2cal_settings"]);
     return (
       result.prompt2cal_settings || {
-        api_base: "http://localhost:8000",
+        api_base: "https://prompt2cal-backend-139801429107.us-central1.run.app",
         auto_parse_selected: true,
         show_hints: true,
       }
