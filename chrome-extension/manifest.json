@@ -10,7 +10,6 @@
     "scripting"
   ],
   "host_permissions": [
-    "http://localhost:8000/*",
     "https://prompt2cal-backend-139801429107.us-central1.run.app/*",
     "https://accounts.google.com/*",
     "https://www.googleapis.com/*"

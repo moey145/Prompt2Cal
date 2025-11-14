@@ -736,10 +736,6 @@ async def check_conflicts(request: dict):
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")
         
-        # Load user credentials
-        if user_id:
-            calendar_service._load_user_credentials(user_id)
-        
         # Parse request parameters
         start_time_str = request.get("start_time")
         end_time_str = request.get("end_time")
@@ -764,6 +760,7 @@ async def check_conflicts(request: dict):
             duration_minutes = int((end_time - start_time).total_seconds() / 60)
         
         # Check for conflicts (including recurring event occurrences if applicable)
+        # Token refresh is handled inside check_conflicts method
         conflicts = await calendar_service.check_conflicts(
             start_time=start_time,
             end_time=end_time,
@@ -772,7 +769,8 @@ async def check_conflicts(request: dict):
             recurrence_type=recurrence_type,
             recurrence_count=recurrence_count,
             recurrence_interval=recurrence_interval,
-            end_date=end_date
+            end_date=end_date,
+            user_id=user_id
         )
         
         return {

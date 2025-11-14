@@ -194,6 +194,72 @@ class CalendarService:
         # Reinitialize service with new credentials
         self.service = build('calendar', 'v3', credentials=creds)
     
+    def _ensure_valid_credentials(self, user_id: Optional[str] = None) -> bool:
+        """Ensure credentials are valid and refresh if needed. Returns True if valid."""
+        if not user_id:
+            return False
+        
+        user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
+        token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
+        
+        if not os.path.exists(token_file):
+            return False
+        
+        try:
+            # Load user token data
+            with open(token_file, 'r') as f:
+                token_data = json.load(f)
+            
+            if not self.CLIENT_ID or not self.CLIENT_SECRET:
+                logger.error("Cannot refresh credentials: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
+                return False
+            
+            # Reconstruct credentials
+            from datetime import datetime as dt
+            expiry = None
+            if token_data.get('expiry'):
+                expiry = dt.fromisoformat(token_data['expiry'])
+            
+            creds = Credentials(
+                token=token_data.get('token'),
+                refresh_token=token_data.get('refresh_token'),
+                token_uri=token_data.get('token_uri', 'https://oauth2.googleapis.com/token'),
+                client_id=self.CLIENT_ID,
+                client_secret=self.CLIENT_SECRET,
+                scopes=token_data.get('scopes', self.SCOPES),
+                expiry=expiry
+            )
+            
+            # Refresh if expired or about to expire (within 5 minutes)
+            if creds and creds.refresh_token:
+                from datetime import timedelta
+                if creds.expired or (creds.expiry and creds.expiry <= dt.now() + timedelta(minutes=5)):
+                    logger.info(f"Refreshing expired token for user: {user_id}")
+                    creds.refresh(Request())
+                    # Save refreshed token
+                    token_data = {
+                        "token": creds.token,
+                        "refresh_token": creds.refresh_token,
+                        "token_uri": creds.token_uri,
+                        "scopes": creds.scopes,
+                        "expiry": creds.expiry.isoformat() if creds.expiry else None
+                    }
+                    with open(token_file, 'w') as token:
+                        json.dump(token_data, token)
+                    logger.info(f"Token refreshed successfully for user: {user_id}")
+            
+            # Rebuild service with fresh credentials
+            if creds and creds.valid:
+                self.service = build('calendar', 'v3', credentials=creds)
+                return True
+            else:
+                logger.warning(f"Credentials are not valid for user: {user_id}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error ensuring valid credentials for user {user_id}: {e}")
+            return False
+    
     def _load_user_credentials(self, user_id: Optional[str] = None):
         """Load credentials for a specific user."""
         if user_id:
@@ -231,10 +297,9 @@ class CalendarService:
                             expiry=expiry
                         )
                     
-                    if creds and creds.valid:
-                        self.service = build('calendar', 'v3', credentials=creds)
-                        return True
-                    elif creds and creds.expired and creds.refresh_token:
+                    # Refresh if expired
+                    if creds and creds.expired and creds.refresh_token:
+                        logger.info(f"Refreshing expired token for user: {user_id}")
                         creds.refresh(Request())
                         # Save refreshed token (without client credentials)
                         token_data = {
@@ -246,6 +311,8 @@ class CalendarService:
                         }
                         with open(token_file, 'w') as token:
                             json.dump(token_data, token)
+                    
+                    if creds and creds.valid:
                         self.service = build('calendar', 'v3', credentials=creds)
                         return True
                 except Exception as e:
@@ -263,7 +330,9 @@ class CalendarService:
             writable_only: If True, only return calendars where user has write access (writer/owner)
         """
         if user_id:
-            self._load_user_credentials(user_id)
+            # Ensure credentials are valid and refreshed before API call
+            if not self._ensure_valid_credentials(user_id):
+                self._load_user_credentials(user_id)
         
         if not self.service:
             raise Exception("Google Calendar service not initialized. Please authenticate first.")
@@ -295,16 +364,17 @@ class CalendarService:
         """
         Create an event in Google Calendar and return the event link.
         """
-        # Prefer the original_text parameter, but fall back to the event payload if not supplied
-        if original_text is None:
-            original_text = getattr(parsed_event, "original_text", None)
-        
-        # Load user-specific credentials if user_id is provided
+        # Ensure credentials are valid and refreshed before API call
         if user_id:
-            self._load_user_credentials(user_id)
+            if not self._ensure_valid_credentials(user_id):
+                self._load_user_credentials(user_id)
         
         if not self.service:
             raise Exception("Google Calendar service not initialized. Please authenticate first.")
+        
+        # Prefer the original_text parameter, but fall back to the event payload if not supplied
+        if original_text is None:
+            original_text = getattr(parsed_event, "original_text", None)
         
         # Validate parsed event data
         if not parsed_event.title:
@@ -604,7 +674,7 @@ class CalendarService:
         
         return color_mapping.get(normalized_color, None)
 
-    async def get_events_in_range(self, start_time: datetime, end_time: datetime, calendar_id: Optional[str] = None) -> List[Dict]:
+    async def get_events_in_range(self, start_time: datetime, end_time: datetime, calendar_id: Optional[str] = None, user_id: Optional[str] = None) -> List[Dict]:
         """
         Get all events in a specific time range from Google Calendar.
         
@@ -612,7 +682,13 @@ class CalendarService:
             start_time: Start of time range
             end_time: End of time range
             calendar_id: Optional calendar ID (defaults to 'primary')
+            user_id: Optional user ID to load credentials for
         """
+        # Ensure credentials are valid and refreshed before API call
+        if user_id:
+            if not self._ensure_valid_credentials(user_id):
+                self._load_user_credentials(user_id)
+        
         if not self.service:
             raise Exception("Google Calendar service not initialized. Please authenticate first.")
         
@@ -727,7 +803,7 @@ class CalendarService:
             logger.error(f"Error finding available slots: {str(e)}")
             raise Exception(f"Failed to find available slots: {str(e)}")
 
-    async def check_conflicts(self, start_time: datetime, end_time: datetime, buffer_minutes: int = 15, calendar_id: Optional[str] = None, recurrence_type: Optional[str] = None, recurrence_count: Optional[int] = None, recurrence_interval: int = 1, end_date: Optional[str] = None) -> List[Dict]:
+    async def check_conflicts(self, start_time: datetime, end_time: datetime, buffer_minutes: int = 15, calendar_id: Optional[str] = None, recurrence_type: Optional[str] = None, recurrence_count: Optional[int] = None, recurrence_interval: int = 1, end_date: Optional[str] = None, user_id: Optional[str] = None) -> List[Dict]:
         """
         Check if a proposed meeting time conflicts with existing events.
         For recurring events, checks conflicts for multiple future occurrences.
@@ -741,7 +817,16 @@ class CalendarService:
             recurrence_count: Optional number of occurrences to check (defaults to 10 for recurring events)
             recurrence_interval: Interval between occurrences (defaults to 1)
             end_date: Optional end date for recurring events
+            user_id: Optional user ID to load credentials for
         """
+        # Ensure credentials are valid and refreshed before API call
+        if user_id:
+            if not self._ensure_valid_credentials(user_id):
+                self._load_user_credentials(user_id)
+        
+        if not self.service:
+            raise Exception("Google Calendar service not initialized. Please authenticate first.")
+        
         try:
             # Determine how many occurrences to check
             occurrences_to_check = 1
