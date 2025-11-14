@@ -178,12 +178,15 @@ class CalendarService:
             token_file = self.TOKEN_FILE
         
         # Save only user-specific tokens (without client_id/secret)
+        # Store initial authentication timestamp to enforce 1-month re-authentication
+        from datetime import datetime as dt
         token_data = {
             "token": creds.token,
             "refresh_token": creds.refresh_token,
             "token_uri": creds.token_uri,
             "scopes": creds.scopes,
-            "expiry": creds.expiry.isoformat() if creds.expiry else None
+            "expiry": creds.expiry.isoformat() if creds.expiry else None,
+            "auth_timestamp": dt.now().isoformat()  # Store when authentication was first done
         }
         
         with open(token_file, 'w') as token:
@@ -195,7 +198,8 @@ class CalendarService:
         self.service = build('calendar', 'v3', credentials=creds)
     
     def _ensure_valid_credentials(self, user_id: Optional[str] = None) -> bool:
-        """Ensure credentials are valid and refresh if needed. Returns True if valid."""
+        """Ensure credentials are valid and refresh if needed. Returns True if valid.
+        Forces re-authentication after 14 days for security."""
         if not user_id:
             return False
         
@@ -214,8 +218,24 @@ class CalendarService:
                 logger.error("Cannot refresh credentials: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
                 return False
             
+            # Check if authentication is older than 14 days
+            from datetime import datetime as dt, timedelta
+            auth_timestamp = token_data.get('auth_timestamp')
+            if auth_timestamp:
+                auth_date = dt.fromisoformat(auth_timestamp)
+                days_since_auth = (dt.now() - auth_date).days
+                
+                if days_since_auth >= 14:
+                    logger.info(f"Authentication expired after 14 days for user: {user_id} (authenticated {days_since_auth} days ago)")
+                    # Delete the token file to force re-authentication
+                    try:
+                        os.remove(token_file)
+                        logger.info(f"Removed expired token file for user: {user_id}")
+                    except Exception as e:
+                        logger.error(f"Error removing expired token file: {e}")
+                    return False
+            
             # Reconstruct credentials
-            from datetime import datetime as dt
             expiry = None
             if token_data.get('expiry'):
                 expiry = dt.fromisoformat(token_data['expiry'])
@@ -232,17 +252,17 @@ class CalendarService:
             
             # Refresh if expired or about to expire (within 5 minutes)
             if creds and creds.refresh_token:
-                from datetime import timedelta
                 if creds.expired or (creds.expiry and creds.expiry <= dt.now() + timedelta(minutes=5)):
                     logger.info(f"Refreshing expired token for user: {user_id}")
                     creds.refresh(Request())
-                    # Save refreshed token
+                    # Save refreshed token (preserve auth_timestamp)
                     token_data = {
                         "token": creds.token,
                         "refresh_token": creds.refresh_token,
                         "token_uri": creds.token_uri,
                         "scopes": creds.scopes,
-                        "expiry": creds.expiry.isoformat() if creds.expiry else None
+                        "expiry": creds.expiry.isoformat() if creds.expiry else None,
+                        "auth_timestamp": auth_timestamp  # Preserve original auth timestamp
                     }
                     with open(token_file, 'w') as token:
                         json.dump(token_data, token)
@@ -261,7 +281,8 @@ class CalendarService:
             return False
     
     def _load_user_credentials(self, user_id: Optional[str] = None):
-        """Load credentials for a specific user."""
+        """Load credentials for a specific user.
+        Forces re-authentication after 14 days for security."""
         if user_id:
             user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
             token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
@@ -270,6 +291,23 @@ class CalendarService:
                     # Load user token data (without client credentials)
                     with open(token_file, 'r') as f:
                         token_data = json.load(f)
+                    
+                    # Check if authentication is older than 14 days
+                    from datetime import datetime as dt
+                    auth_timestamp = token_data.get('auth_timestamp')
+                    if auth_timestamp:
+                        auth_date = dt.fromisoformat(auth_timestamp)
+                        days_since_auth = (dt.now() - auth_date).days
+                        
+                        if days_since_auth >= 14:
+                            logger.info(f"Authentication expired after 14 days for user: {user_id} (authenticated {days_since_auth} days ago)")
+                            # Delete the token file to force re-authentication
+                            try:
+                                os.remove(token_file)
+                                logger.info(f"Removed expired token file for user: {user_id}")
+                            except Exception as e:
+                                logger.error(f"Error removing expired token file: {e}")
+                            return False
                     
                     # Reconstruct credentials with client_id/secret from env
                     if not self.CLIENT_ID or not self.CLIENT_SECRET:
@@ -282,7 +320,6 @@ class CalendarService:
                         creds = Credentials.from_authorized_user_file(token_file, self.SCOPES)
                     else:
                         # New format - reconstruct credentials
-                        from datetime import datetime as dt
                         expiry = None
                         if token_data.get('expiry'):
                             expiry = dt.fromisoformat(token_data['expiry'])
@@ -301,16 +338,19 @@ class CalendarService:
                     if creds and creds.expired and creds.refresh_token:
                         logger.info(f"Refreshing expired token for user: {user_id}")
                         creds.refresh(Request())
-                        # Save refreshed token (without client credentials)
-                        token_data = {
+                        # Save refreshed token (preserve auth_timestamp if it exists)
+                        refreshed_token_data = {
                             "token": creds.token,
                             "refresh_token": creds.refresh_token,
                             "token_uri": creds.token_uri,
                             "scopes": creds.scopes,
                             "expiry": creds.expiry.isoformat() if creds.expiry else None
                         }
+                        # Preserve auth_timestamp if it exists
+                        if auth_timestamp:
+                            refreshed_token_data["auth_timestamp"] = auth_timestamp
                         with open(token_file, 'w') as token:
-                            json.dump(token_data, token)
+                            json.dump(refreshed_token_data, token)
                     
                     if creds and creds.valid:
                         self.service = build('calendar', 'v3', credentials=creds)
