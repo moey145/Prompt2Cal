@@ -17,19 +17,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "css": [
-        "content.css"
-      ]
-    }
-  ],
   "action": {
     "default_popup": "popup-react.html",
     "default_title": "Prompt2Cal",
@@ -54,7 +41,8 @@
         "icons/DarkModeLogo.svg"
       ],
       "matches": [
-        "<all_urls>"
+        "https://*/*",
+        "http://*/*"
       ]
     }
   ]
