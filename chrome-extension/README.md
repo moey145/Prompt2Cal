@@ -1,256 +1,139 @@
-# Prompt2Cal Chrome Extension (React + Vite)
+# Prompt2Cal 📅
 
-⚛️ **React-powered Chrome Extension** with voice input, AI parsing, and Google Calendar integration.
+**Turn natural language into calendar events instantly.**
 
-## 🚀 Quick Start
+Create Google Calendar events by simply typing or speaking in plain English. No more clicking through multiple fields—just describe your event and let AI do the rest.
 
-### 1. Install Dependencies
+## 🚀 Get Started
 
-```bash
-npm install
-```
+**[Install from Chrome Web Store →](https://chrome.google.com/webstore)** (Search for "Prompt2Cal")
 
-### 2. Build the Extension
+1. Click the extension icon in your browser
+2. Connect your Google Calendar (one-time setup)
+3. Start creating events with natural language!
 
-```bash
-npm run build
-```
+## ✨ Key Features
 
-### 3. Load in Chrome
+### 🎤 **Voice Input**
 
-1. Open Chrome → `chrome://extensions/`
-2. Enable "Developer mode" (toggle top-right)
-3. Click "Load unpacked"
-4. Select the `dist/` folder
-5. Done! 🎉
+Speak your events naturally—just click the microphone and talk. Perfect for hands-free event creation.
 
-## 🎯 Features
+### 🤖 **AI-Powered Parsing**
 
-✅ **Voice Input** - Speak your events naturally  
-✅ **AI Parsing** - GPT-powered natural language understanding  
-✅ **React + Vite** - Modern, fast, component-based  
-✅ **Lucide React Icons** - Beautiful, consistent icons  
-✅ **Google Calendar** - OAuth2 authentication & event creation  
-✅ **Bulk Events** - Parse and create multiple events at once  
-✅ **Color Picker** - Customize event colors  
-✅ **Reminders** - Set reminder notifications
+Advanced AI understands natural language, so you can say things like:
 
-## 📁 Project Structure
+- "Lunch with Sarah next Tuesday at 1pm"
+- "Team meeting every Monday at 9am for the next month"
+- "Doctor appointment tomorrow at 3:30pm"
 
-```
-chrome-extension/
-├── src/
-│   ├── Popup.jsx          # Main React component
-│   ├── main.jsx           # React entry point
-│   └── index.css          # Styles
-├── dist/                  # Built extension (load this in Chrome!)
-│   ├── manifest.json
-│   ├── popup-react.html
-│   ├── assets/
-│   │   ├── popup.js       # Bundled React app
-│   │   └── popup.css
-│   └── [static files]
-├── popup-react.html       # HTML template
-├── background.js          # Service worker
-├── content.js             # Content script
-├── vite.config.js         # Vite configuration
-├── package.json           # Dependencies
-└── build.js               # Post-build script
-```
+### ⚠️ **Smart Conflict Detection**
 
-## 🛠️ Development
+Automatically checks your calendar for scheduling conflicts before creating events, so you never double-book.
 
-### Build Commands
+### 📋 **Selected Text**
 
-```bash
-npm run build        # Production build
-npm run dev          # Development watch mode
-npm run copy-files   # Copy static files only
-```
+Select text from any webpage and the extension will automatically detect it—perfect for quickly adding events from emails or web pages.
 
-### Development Workflow
+### 📅 **Bulk Event Creation**
 
-1. Edit `src/Popup.jsx` or other files
-2. Run `npm run dev` for auto-rebuild
-3. Reload extension in `chrome://extensions/`
-4. Test changes
+Parse multiple events at once from a single text block. Great for importing schedules or meeting notes.
 
-### Helper Scripts
+### 🎨 **Fully Customizable**
 
-- **Windows**: `run_extension_dev.bat`
-- **Unix/Mac**: `run_extension_dev.sh`
-
-## 🎨 Tech Stack
-
-- **React 18** - UI library
-- **Vite** - Build tool & bundler
-- **Lucide React** - Icon library
-- **Web Speech API** - Voice recognition
-- **Chrome Extension APIs** - Browser integration
-- **Google Calendar API** - Calendar integration
-
-## 📦 Dependencies
-
-```json
-{
-  "react": "^18.2.0",
-  "react-dom": "^18.2.0",
-  "lucide-react": "^0.292.0"
-}
-```
-
-## 🔧 Backend Setup
-                                        
-The extension requires a backend server running on `http://localhost:8000`.
-
-From the project root:
-
-```bash
-python run_backend.py
-```
-
-See the main project README for backend setup instructions.
-
-## 🎨 Using Lucide React Icons
-
-Import and use icons as React components:
-
-```jsx
-import { Calendar, Sparkles, Mic } from 'lucide-react';
-
-<Calendar size={20} />
-<Sparkles size={16} className="inline-icon" />
-<Mic size={20} />
-```
-
-[Browse all icons →](https://lucide.dev/icons/)
-
-## 📚 Documentation
-
-- **[START-HERE.md](START-HERE.md)** - Getting started guide
-- **[QUICK-START.md](QUICK-START.md)** - Quick start guide
-- **[BUILD-INSTRUCTIONS.txt](BUILD-INSTRUCTIONS.txt)** - Build instructions
-- **[EXTENSION-STRUCTURE.md](EXTENSION-STRUCTURE.md)** - File structure
-- **[REACT-CONVERSION-SUMMARY.md](REACT-CONVERSION-SUMMARY.md)** - Technical details
+- Choose event colors
+- Set reminder notifications
+- Add locations and attendees
+- Select which calendar to use
+- Beautiful dark mode support
 
 ## 🎯 How It Works
 
-1. **User Input**: Type or speak event description
-2. **AI Parsing**: Backend uses GPT to parse natural language
-3. **Confirmation**: Review parsed event details
-4. **Creation**: Event created in Google Calendar via OAuth2
+1. **Type or speak** your event in plain language
+2. **AI parses** your text into structured event details
+3. **Review and edit** the parsed event (if needed)
+4. **Confirm** and it's added to your Google Calendar instantly
 
-### Example Flow
+### Example
 
-```
-Input: "Lunch with Sarah next Tuesday at 1pm"
-   ↓
-Parse with GPT
-   ↓
-Extract:
-  - Title: "Lunch with Sarah"
-  - Date: Next Tuesday
-  - Time: 1:00 PM - 2:00 PM
-   ↓
-Create in Google Calendar
-```
+**Input:** `"Lunch with Sarah next Tuesday at 1pm"`
 
-## 🔑 Features in Detail
+**Result:** A calendar event created with:
 
-### Voice Recognition
+- Title: "Lunch with Sarah"
+- Date: Next Tuesday
+- Time: 1:00 PM - 2:00 PM
+- Automatically checked for conflicts
 
-- Click microphone icon to start
-- Speak naturally
-- Auto-stops after 2 seconds of silence
-- Appends to existing text
+## 💡 Use Cases
 
-### Single vs Multiple Events
+- **Quick event creation** from emails or messages
+- **Voice-to-calendar** for hands-free scheduling
+- **Bulk import** of events from text documents
+- **Smart scheduling** with automatic conflict detection
+- **Multi-calendar management** with easy calendar selection
 
-- **Single**: Parse one event description
-- **Multiple**: Extract multiple events from one text block
+## 🔒 Privacy & Security
 
-### Selected Text Detection
+- **Secure OAuth2** authentication with Google
+- **Local storage** of preferences only
+- **No data selling** or third-party sharing
+- **Minimal permissions** required
+- **14-day re-authentication** for enhanced security
 
-- Automatically detects text selected on webpage
-- Option to use selected text as input
+[View Full Privacy Policy →](https://moey145.github.io/Prompt2Cal/privacy-policy.html)
 
-### Event Customization
+## 🎨 Permissions Explained
 
-- Custom colors
-- Reminder notifications
-- Location and notes support
+We only request the permissions we need:
+
+- **activeTab** - To detect text you've selected on web pages
+- **storage** - To save your preferences (calendar choice, dark mode, etc.)
+- **identity** - To securely connect to your Google Calendar
+- **scripting** - To enable the selected text feature
 
 ## 🐛 Troubleshooting
 
-**Extension not loading?**
+**Can't connect to Google Calendar?**
 
-- Make sure you ran `npm run build`
-- Load the `dist/` folder (not the root)
-- Check for build errors
+- Make sure you're signed into Chrome with your Google account
+- Check that you've granted the necessary permissions
+- Try disconnecting and reconnecting in the extension settings
 
-**Build errors?**
+**Voice recognition not working?**
 
-- Delete `node_modules/` and run `npm install`
-- Ensure Node.js 16+ is installed
+- Allow microphone permissions when prompted
+- Ensure you're on HTTPS or localhost
+- Check your system microphone settings
 
-**Backend errors?**
+**Events not being created?**
 
-- Start backend: `python run_backend.py`
-- Backend must run on `http://localhost:8000`
-- Check backend logs for API errors
+- Verify you're connected to Google Calendar
+- Check that you've selected a writable calendar
+- Look for error messages in the extension popup
 
-**Icons not showing?**
+**Need help?**
 
-- Check browser console (F12) for errors
-- Ensure lucide-react is installed
-- Try rebuilding: `npm run build`
+- Check the [Privacy Policy](https://moey145.github.io/Prompt2Cal/privacy-policy.html) for more information
+- Ensure you're using the latest version from the Chrome Web Store
 
-**Voice not working?**
+## 📝 What's Next?
 
-- Allow microphone permissions in Chrome
-- Check microphone settings in OS
-- Only works on HTTPS or localhost
+Prompt2Cal is actively maintained and improved. Future updates may include:
 
-## 📊 Build Output
+- Recurring event patterns
+- Time zone detection
+- Integration with more calendar services
+- Enhanced AI parsing capabilities
 
-```
-dist/
-├── manifest.json          # Extension manifest
-├── popup-react.html       # Popup HTML
-├── assets/
-│   ├── popup.js          # ~157 KB bundled React app
-│   └── popup.css         # ~13 KB bundled styles
-├── background.js         # Service worker
-├── content.js            # Content script
-├── content.css           # Content styles
-└── icons/                # Extension icons
-```
+## 🤝 About
 
-## 🚀 Deployment
+Prompt2Cal is designed to make calendar management effortless. Instead of filling out multiple form fields, just describe your event naturally and let AI handle the rest.
 
-For production use:
+**Version:** 1.0.0  
+**License:** See LICENSE file in project root
 
-1. Build: `npm run build`
-2. Test the `dist/` folder locally
-3. Zip the `dist/` folder
-4. Upload to Chrome Web Store
+---
 
-## 🤝 Contributing
+**[Install Prompt2Cal from Chrome Web Store →](https://chrome.google.com/webstore)**
 
-The extension is part of the Prompt2Cal project. See the main repository README for contribution guidelines.
-
-## 📝 License
-
-See LICENSE file in project root.
-
-## 🎉 You're Ready!
-
-Your React Chrome extension is ready to go. Build it and start creating calendar events with voice and natural language! 🚀
-
-**Next Steps:**
-
-1. `npm install` - Install dependencies
-2. `npm run build` - Build the extension
-3. Load `dist/` in Chrome
-4. Start backend: `python run_backend.py`
-5. Create events! 🎉
+_Turn your words into calendar events. It's that simple._ ✨
