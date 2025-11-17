@@ -88,7 +88,6 @@ We only request the permissions we need:
 
 - **activeTab** - To detect text you've selected on web pages
 - **storage** - To save your preferences (calendar choice, dark mode, etc.)
-- **identity** - To securely connect to your Google Calendar
 - **scripting** - To enable the selected text feature
 
 ## 🐛 Troubleshooting
