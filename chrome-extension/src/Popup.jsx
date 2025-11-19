@@ -455,13 +455,13 @@ const Popup = () => {
       };
 
       const updatedEvents = parsedEvents.map((ev, i) =>
-        i === editingEventIndex
-          ? {
+          i === editingEventIndex
+            ? {
               ...sanitizedEvent,
-              color: selectedColor,
-              reminder: selectedReminder,
-            }
-          : ev
+                color: selectedColor,
+                reminder: selectedReminder,
+              }
+            : ev
       );
 
       setParsedEvents(updatedEvents);
@@ -790,9 +790,9 @@ const Popup = () => {
           showSelectedText={showSelectedText}
           selectedText={selectedText}
           onUseSelectedText={() => {
-            setEventInput(selectedText);
-            setShowSelectedText(false);
-          }}
+                setEventInput(selectedText);
+                setShowSelectedText(false);
+              }}
         />
 
         {showParsedEvent && parsedEvent && (
