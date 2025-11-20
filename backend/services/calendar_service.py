@@ -250,23 +250,47 @@ class CalendarService:
                 expiry=expiry
             )
             
-            # Refresh if expired or about to expire (within 5 minutes)
+            # Refresh if expired or about to expire (within 20 minutes)
+            # This ensures tokens are refreshed proactively before expiration
             if creds and creds.refresh_token:
-                if creds.expired or (creds.expiry and creds.expiry <= dt.now() + timedelta(minutes=5)):
+                should_refresh = creds.expired
+                if not should_refresh and creds.expiry:
+                    # Refresh if token expires within 20 minutes (proactive refresh)
+                    time_until_expiry = creds.expiry - dt.now()
+                    should_refresh = time_until_expiry <= timedelta(minutes=20)
+                
+                if should_refresh:
                     logger.info(f"Refreshing expired token for user: {user_id}")
-                    creds.refresh(Request())
-                    # Save refreshed token (preserve auth_timestamp)
-                    token_data = {
-                        "token": creds.token,
-                        "refresh_token": creds.refresh_token,
-                        "token_uri": creds.token_uri,
-                        "scopes": creds.scopes,
-                        "expiry": creds.expiry.isoformat() if creds.expiry else None,
-                        "auth_timestamp": auth_timestamp  # Preserve original auth timestamp
-                    }
-                    with open(token_file, 'w') as token:
-                        json.dump(token_data, token)
-                    logger.info(f"Token refreshed successfully for user: {user_id}")
+                    try:
+                        # Preserve the refresh_token before refreshing (in case Google doesn't return it)
+                        original_refresh_token = creds.refresh_token
+                        creds.refresh(Request())
+                        # Save refreshed token (preserve auth_timestamp and refresh_token)
+                        # Use original refresh_token if new one is None (shouldn't happen, but safety check)
+                        refresh_token_to_save = creds.refresh_token if creds.refresh_token else original_refresh_token
+                        token_data = {
+                            "token": creds.token,
+                            "refresh_token": refresh_token_to_save,
+                            "token_uri": creds.token_uri,
+                            "scopes": creds.scopes,
+                            "expiry": creds.expiry.isoformat() if creds.expiry else None,
+                            "auth_timestamp": auth_timestamp  # Preserve original auth timestamp
+                        }
+                        with open(token_file, 'w') as token:
+                            json.dump(token_data, token)
+                        logger.info(f"Token refreshed successfully for user: {user_id}")
+                    except Exception as refresh_error:
+                        logger.error(f"Failed to refresh token for user {user_id}: {refresh_error}")
+                        # Don't delete the token file - it might still be valid for a short time
+                        # Only delete if refresh token is invalid (which would require re-auth anyway)
+                        # Check if it's a refresh token error
+                        error_str = str(refresh_error).lower()
+                        if 'invalid_grant' in error_str or 'invalid_token' in error_str or 'token has been expired or revoked' in error_str:
+                            logger.warning(f"Refresh token is invalid for user {user_id}, requiring re-authentication")
+                            # Only delete if it's been 14+ days OR if refresh token is definitely invalid
+                            # For now, keep the token file - the 14-day check will handle it
+                        # Return False so caller knows credentials aren't valid
+                        return False
             
             # Rebuild service with fresh credentials
             if creds and creds.valid:
@@ -334,23 +358,48 @@ class CalendarService:
                             expiry=expiry
                         )
                     
-                    # Refresh if expired
-                    if creds and creds.expired and creds.refresh_token:
+                    # Refresh if expired or about to expire (within 20 minutes)
+                    # This ensures tokens are refreshed proactively before expiration
+                    should_refresh = False
+                    if creds and creds.refresh_token:
+                        should_refresh = creds.expired
+                        if not should_refresh and creds.expiry:
+                            # Refresh if token expires within 20 minutes (proactive refresh)
+                            time_until_expiry = creds.expiry - dt.now()
+                            should_refresh = time_until_expiry <= timedelta(minutes=20)
+                    
+                    if should_refresh:
                         logger.info(f"Refreshing expired token for user: {user_id}")
-                        creds.refresh(Request())
-                        # Save refreshed token (preserve auth_timestamp if it exists)
-                        refreshed_token_data = {
-                            "token": creds.token,
-                            "refresh_token": creds.refresh_token,
-                            "token_uri": creds.token_uri,
-                            "scopes": creds.scopes,
-                            "expiry": creds.expiry.isoformat() if creds.expiry else None
-                        }
-                        # Preserve auth_timestamp if it exists
-                        if auth_timestamp:
-                            refreshed_token_data["auth_timestamp"] = auth_timestamp
-                        with open(token_file, 'w') as token:
-                            json.dump(refreshed_token_data, token)
+                        try:
+                            # Preserve the refresh_token before refreshing (in case Google doesn't return it)
+                            original_refresh_token = creds.refresh_token
+                            creds.refresh(Request())
+                            # Save refreshed token (preserve auth_timestamp and refresh_token)
+                            # Use original refresh_token if new one is None (shouldn't happen, but safety check)
+                            refresh_token_to_save = creds.refresh_token if creds.refresh_token else original_refresh_token
+                            refreshed_token_data = {
+                                "token": creds.token,
+                                "refresh_token": refresh_token_to_save,
+                                "token_uri": creds.token_uri,
+                                "scopes": creds.scopes,
+                                "expiry": creds.expiry.isoformat() if creds.expiry else None
+                            }
+                            # Preserve auth_timestamp if it exists
+                            if auth_timestamp:
+                                refreshed_token_data["auth_timestamp"] = auth_timestamp
+                            with open(token_file, 'w') as token:
+                                json.dump(refreshed_token_data, token)
+                            logger.info(f"Token refreshed successfully for user: {user_id}")
+                        except Exception as refresh_error:
+                            logger.error(f"Failed to refresh token for user {user_id}: {refresh_error}")
+                            # Don't delete the token file immediately - check if it's a refresh token error
+                            error_str = str(refresh_error).lower()
+                            if 'invalid_grant' in error_str or 'invalid_token' in error_str or 'token has been expired or revoked' in error_str:
+                                logger.warning(f"Refresh token is invalid for user {user_id}")
+                                # Only delete if it's been 14+ days - otherwise keep it for retry
+                                # The 14-day check above will handle deletion
+                            # Return False to indicate credentials aren't valid
+                            return False
                     
                     if creds and creds.valid:
                         self.service = build('calendar', 'v3', credentials=creds)
