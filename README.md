@@ -1,42 +1,127 @@
 # Prompt2Cal 📅
 
-Convert natural language descriptions into Google Calendar events with AI-powered parsing and confirmation.
+**Turn natural language into Google Calendar events instantly.**
 
-## 🎤 **NEW: Voice-Enabled Chrome Extension!**
+Create calendar events by simply typing or speaking in plain English. No more clicking through multiple fields—just describe your event and let AI do the rest.
 
-This project now includes a **React-powered Chrome Extension with voice recognition**! Create calendar events by speaking naturally.
+## 🚀 Get Started
 
-### Built with Modern Tech:
+**[Install from Chrome Web Store →](https://chrome.google.com/webstore)** (Search for "Prompt2Cal")
 
-- ⚛️ **React + Vite** - Fast, modern component architecture
-- 🎨 **Lucide React Icons** - Beautiful, consistent icons
-- 🎤 **Voice Input** - Web Speech API integration
-- 📅 **Google Calendar** - OAuth2 & event creation
+1. Click the extension icon in your browser
+2. Connect your Google Calendar (one-time setup, stays connected for 14 days)
+3. Start creating events with natural language!
 
-👉 **[Get Started](chrome-extension/START-HERE.md)** | **[Quick Start](chrome-extension/QUICK-START.md)** | **[Voice Guide](VOICE_EXTENSION_GUIDE.md)**
+## ✨ Key Features
 
-## Features
+### 🎤 **Voice Input**
 
-- 🎤 **Voice Recognition**: Speak your events naturally (Chrome Extension)
-- 🤖 **AI-Powered Parsing**: Uses OpenAI GPT to understand natural language
-- 📅 **Google Calendar Integration**: Seamlessly creates events in your calendar
-- ✅ **Confirmation System**: Review and confirm parsed event details before creation
-- 🎨 **Modern UI**: Beautiful Chrome extension with responsive design
-- 🔐 **OAuth2 Authentication**: Secure Google Calendar access
-- 🌐 **Multi-User Support**: Each user gets their own authenticated session
+Speak your events naturally—just click the microphone and talk. Perfect for hands-free event creation.
 
-## Example Usage
+### 🤖 **AI-Powered Parsing**
 
-Input: `"Lunch with Sarah next Tuesday at 1pm"`
+Advanced AI understands natural language, so you can say things like:
 
-Output: Creates a calendar event with:
+- "Lunch with Sarah next Tuesday at 1pm"
+- "Team meeting every Monday at 9am for the next month"
+- "Doctor appointment tomorrow at 3:30pm"
+- "Conference call with John on Friday at 2pm"
+
+### ⚠️ **Smart Conflict Detection**
+
+Automatically checks your calendar for scheduling conflicts before creating events, so you never double-book.
+
+### 📋 **Selected Text**
+
+Select text from any webpage and the extension will automatically detect it—perfect for quickly adding events from emails or web pages.
+
+### 📅 **Bulk Event Creation**
+
+Parse multiple events at once from a single text block. Great for importing schedules or meeting notes.
+
+### 🔄 **Recurring Events**
+
+Create repeating events with natural language:
+
+- "Daily standup at 9am"
+- "Weekly team meeting every Monday"
+- "Monthly review on the first Friday"
+
+### 🎨 **Fully Customizable**
+
+- Choose event colors
+- Set reminder notifications
+- Add locations and attendees
+- Select which calendar to use
+- Beautiful dark mode support
+
+## 🎯 How It Works
+
+1. **Type or speak** your event in natural language
+2. **AI parses** your text into structured event data
+3. **Review and confirm** the parsed details
+4. **Event is created** in your Google Calendar instantly
+
+## 📖 Example Usage
+
+**Input:** `"Lunch with Sarah next Tuesday at 1pm"`
+
+**Output:** Creates a calendar event with:
 
 - Title: "Lunch with Sarah"
-- Start: Next Tuesday at 1:00 PM
-- End: Next Tuesday at 2:00 PM (1 hour duration)
-- Location: (if specified)
+- Date: Next Tuesday at 1:00 PM
+- Duration: 1 hour (default)
+- Automatically added to your selected Google Calendar
 
-## Quick Start
+## 🔒 Privacy & Security
+
+- Your data is processed securely through our backend API
+- Google Calendar authentication uses OAuth2 (industry standard)
+- No data is stored permanently—only processed to create your events
+- Full privacy policy available at: [https://moey145.github.io/Prompt2Cal/privacy-policy.html](https://moey145.github.io/Prompt2Cal/privacy-policy.html)
+
+## 🛠️ Technical Architecture
+
+This project consists of:
+
+### Chrome Extension (Frontend)
+
+- **Tech Stack:** React + Vite, Lucide React Icons
+- **Features:** Voice recognition, conflict detection, bulk parsing
+- **Location:** `chrome-extension/`
+
+### Backend API
+
+- **Tech Stack:** FastAPI (Python), OpenAI GPT, Google Calendar API
+- **Deployment:** Google Cloud Run
+- **Features:** Natural language parsing, event creation, OAuth2 handling
+- **Location:** `backend/`
+
+### Key Services
+
+- **Rules Parser:** Deterministic parsing for common patterns
+- **Intelligent Parser:** AI-powered parsing for complex natural language
+- **Calendar Service:** Google Calendar integration with conflict detection
+
+## 📁 Project Structure
+
+```
+Prompt2Cal/
+├── chrome-extension/          # Chrome extension (React + Vite)
+│   ├── src/                   # React components
+│   ├── manifest.json          # Extension manifest
+│   └── dist/                  # Built extension
+├── backend/                   # FastAPI backend
+│   ├── main.py                # API endpoints
+│   ├── services/              # Parsing & calendar services
+│   └── models/                # Data models
+├── docs/                      # Documentation & website
+│   ├── index.html             # Homepage
+│   └── privacy-policy.html    # Privacy policy
+└── README.md                  # This file
+```
+
+## 🔧 Development
 
 ### Prerequisites
 
@@ -47,7 +132,7 @@ Output: Creates a calendar event with:
 
 ### Backend Setup
 
-1. **Install Python dependencies:**
+1. **Install dependencies:**
 
    ```bash
    pip install -r requirements.txt
@@ -69,202 +154,77 @@ Output: Creates a calendar event with:
    - Download the `credentials.json` file
    - Place `credentials.json` in the `backend/` directory
 
-4. **Run the backend:**
+4. **Run locally:**
    ```bash
    cd backend
    python main.py
    ```
 
-The API will be available at `http://localhost:8000`
+### Chrome Extension Setup
 
-### Frontend Setup (Vite + React)
-
-1. **Install Node.js dependencies:**
+1. **Install dependencies:**
 
    ```bash
-   cd frontend
+   cd chrome-extension
    npm install
    ```
 
-2. **Start the development server:**
+2. **Build the extension:**
+
    ```bash
-   npm run dev
+   npm run build
    ```
 
-The frontend will be available at `http://localhost:3000`
+3. **Load in Chrome:**
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `chrome-extension/dist` folder
 
-Or use the convenience scripts:
-- Windows: Double-click `frontend/run_frontend_vite.bat`
-- Linux/Mac: Run `./frontend/run_frontend_vite.sh`
+## 📝 API Endpoints
 
-## API Endpoints
-
-### `POST /create_event`
+### `POST /parse_event`
 
 Parse natural language into structured event data.
-
-**Request:**
-
-```json
-{
-  "text": "Lunch with Sarah next Tuesday at 1pm"
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "parsed_event": {
-    "title": "Lunch with Sarah",
-    "start_time": "2024-01-16T13:00:00",
-    "end_time": "2024-01-16T14:00:00",
-    "location": null,
-    "notes": null,
-    "duration_minutes": 60
-  },
-  "message": "Event parsed successfully. Please confirm details.",
-  "requires_confirmation": true
-}
-```
 
 ### `POST /confirm_event`
 
 Create the confirmed event in Google Calendar.
 
-**Request:**
+### `GET /calendars`
 
-```json
-{
-  "title": "Lunch with Sarah",
-  "start_time": "2024-01-16T13:00:00",
-  "end_time": "2024-01-16T14:00:00",
-  "location": null,
-  "notes": null,
-  "duration_minutes": 60
-}
-```
+Get user's available Google Calendars.
 
-**Response:**
+### `GET /check_conflicts`
 
-```json
-{
-  "success": true,
-  "message": "Event created successfully!",
-  "event_link": "https://calendar.google.com/calendar/event?eid=...",
-  "requires_confirmation": false
-}
-```
+Check for scheduling conflicts.
 
-### `GET /auth/google`
+## 🤝 Contributing
 
-Get Google OAuth2 authorization URL.
-
-### `GET /auth/callback`
-
-Handle Google OAuth2 callback.
-
-## Project Structure
-
-```
-Prompt2Cal/
-├── backend/
-│   ├── main.py                 # FastAPI application
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── event_models.py     # Pydantic models
-│   └── services/
-│       ├── __init__.py
-│       ├── event_parser.py     # LLM parsing service
-│       └── calendar_service.py # Google Calendar integration
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── App.js             # Main React component
-│   │   ├── App.css            # Styling
-│   │   ├── index.js           # React entry point
-│   │   └── index.css          # Global styles
-│   └── package.json
-├── requirements.txt           # Python dependencies
-├── env.example               # Environment variables template
-└── README.md
-```
-
-## Configuration
-
-### Environment Variables
-
-- `OPENAI_API_KEY`: Your OpenAI API key for natural language processing
-- `GOOGLE_APPLICATION_CREDENTIALS`: Path to Google credentials file
-- `PORT`: Server port (default: 8000)
-
-### Google Calendar Setup
-
-1. Create a Google Cloud Project
-2. Enable the Google Calendar API
-3. Create OAuth 2.0 credentials
-4. Set authorized redirect URIs:
-   - `http://localhost:8000/auth/callback`
-5. Download credentials and save as `backend/credentials.json`
-
-## Development
-
-### Running in Development Mode
-
-**Backend:**
-
-```bash
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm start
-```
-
-### Testing
-
-Test the API endpoints using curl or a tool like Postman:
-
-```bash
-# Parse an event
-curl -X POST "http://localhost:8000/create_event" \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Lunch with Sarah next Tuesday at 1pm"}'
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **OpenAI API Key Error**: Make sure your API key is valid and has sufficient credits
-2. **Google Calendar Authentication**: Ensure credentials.json is in the correct location
-3. **CORS Issues**: The frontend is configured to proxy requests to the backend
-4. **Date Parsing Issues**: The system uses dateparser with fallbacks for edge cases
-
-### Logs
-
-Check the console output for detailed error messages and debugging information.
-
-## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Submit a pull request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
+## 🔗 Links
+
+- **Chrome Web Store:** [Install Prompt2Cal](https://chrome.google.com/webstore)
+- **Homepage:** [https://moey145.github.io/Prompt2Cal/](https://moey145.github.io/Prompt2Cal/)
+- **Privacy Policy:** [https://moey145.github.io/Prompt2Cal/privacy-policy.html](https://moey145.github.io/Prompt2Cal/privacy-policy.html)
+
+## 🙏 Acknowledgments
 
 - OpenAI for the GPT API
 - Google for the Calendar API
 - FastAPI for the excellent Python web framework
 - React for the frontend framework
+
+---
+
+**Made with ❤️ for easier calendar management**
