@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Prompt2Cal API",
     description="Convert natural language to calendar events",
-    version="1.0.0"
+    version="1.0.2"
 )
 
 # Configure CORS
