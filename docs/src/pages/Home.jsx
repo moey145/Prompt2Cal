@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import './Home.css'
+import { Link } from "react-router-dom";
+import "./Home.css";
 
 function Home() {
   return (
@@ -10,7 +10,9 @@ function Home() {
             <img className="brand-logo" src="/logo.svg" alt="Prompt2Cal logo" />
             <div className="brand-text">
               <h1>Prompt2Cal</h1>
-              <p className="tagline">Turn natural language into calendar events instantly</p>
+              <p className="tagline">
+                Turn natural language into calendar events instantly
+              </p>
             </div>
           </div>
         </header>
@@ -19,9 +21,11 @@ function Home() {
           <section className="section">
             <h2>About Prompt2Cal</h2>
             <p>
-              Prompt2Cal is a Chrome extension that converts natural language into Google Calendar events. 
-              Simply type or speak your event in plain English, and AI handles the rest. No more clicking 
-              through multiple form fields—just describe your event and it's added to your calendar.
+              Prompt2Cal is a Chrome extension that converts natural language
+              into Google Calendar events. Simply type or speak your event in
+              plain English, and AI handles the rest. No more clicking through
+              multiple form fields, just describe your event and it's added to
+              your calendar.
             </p>
           </section>
 
@@ -58,10 +62,10 @@ function Home() {
           </section>
 
           <div className="cta">
-            <a 
-              href="https://chrome.google.com/webstore" 
+            <a
+              href="https://chrome.google.com/webstore"
               className="cta-button"
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
             >
               Install from Chrome Web Store
@@ -73,9 +77,9 @@ function Home() {
           <p>&copy; 2025 Prompt2Cal. All rights reserved.</p>
           <div className="footer-links">
             <Link to="/privacy-policy">Privacy Policy</Link>
-            <a 
-              href="https://github.com/moey145/Prompt2Cal" 
-              target="_blank" 
+            <a
+              href="https://github.com/moey145/Prompt2Cal"
+              target="_blank"
               rel="noopener noreferrer"
             >
               GitHub
@@ -84,7 +88,7 @@ function Home() {
         </footer>
       </div>
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;
