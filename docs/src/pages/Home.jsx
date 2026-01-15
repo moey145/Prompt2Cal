@@ -6,8 +6,13 @@ function Home() {
     <div className="home">
       <div className="container">
         <header className="header">
-          <h1>Prompt2Cal</h1>
-          <p className="tagline">Turn natural language into calendar events instantly</p>
+          <div className="brand">
+            <img className="brand-logo" src="/logo.svg" alt="Prompt2Cal logo" />
+            <div className="brand-text">
+              <h1>Prompt2Cal</h1>
+              <p className="tagline">Turn natural language into calendar events instantly</p>
+            </div>
+          </div>
         </header>
 
         <main className="content">
