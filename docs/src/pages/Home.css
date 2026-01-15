@@ -33,9 +33,9 @@
 }
 
 .brand-logo {
-  width: 54px;
-  height: 54px;
-  padding: 10px;
+  width: 96px;
+  height: 96px;
+  padding: 14px;
   border-radius: 14px;
   background: #ffffff;
   border: 1px solid rgba(220, 38, 38, 0.35);
@@ -193,5 +193,11 @@
 
   .brand {
     justify-content: flex-start;
+  }
+
+  .brand-logo {
+    width: 78px;
+    height: 78px;
+    padding: 12px;
   }
 }
