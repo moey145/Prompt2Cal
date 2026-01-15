@@ -211,3 +211,8 @@ backend/user_tokens/
 backend/token.json
 backend/credentials.json
 *.json.bak
+
+# Node / Vite
+node_modules/
+dist/
+docs/dist/
