@@ -63,7 +63,7 @@ function Home() {
 
           <div className="cta">
             <a
-               href="https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm"
+              href="https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm"
               className="cta-button"
               target="_blank"
               rel="noopener noreferrer"
