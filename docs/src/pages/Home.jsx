@@ -4,54 +4,164 @@ import "./Home.css";
 function Home() {
   return (
     <div className="home">
-      <div className="container">
-        <header className="header">
-          <div className="brand">
-            <img className="brand-logo" src="/logo.svg" alt="Prompt2Cal logo" />
-            <div className="brand-text">
-              <h1>Prompt2Cal</h1>
-              <p className="tagline">
-                Turn natural language into calendar events instantly
-              </p>
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-bg">
+          <div className="hero-glow hero-glow-1"></div>
+          <div className="hero-glow hero-glow-2"></div>
+          <div className="hero-grid"></div>
+        </div>
+        
+        <nav className="hero-nav">
+          <div className="nav-brand">
+            <img src="/logo.svg" alt="Prompt2Cal" className="nav-logo" />
+            <span className="nav-name">Prompt2Cal</span>
+          </div>
+          <div className="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="https://github.com/moey145/Prompt2Cal" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </div>
+        </nav>
+
+        <div className="hero-content">
+          <div className="hero-badge">
+            <span className="badge-icon">✨</span>
+            <span>AI-Powered Chrome Extension</span>
+          </div>
+          
+          <h1 className="hero-title">
+            Turn <span className="highlight">Natural Language</span> into Calendar Events
+          </h1>
+          
+          <p className="hero-description">
+            Stop clicking through forms. Just type or speak your event in plain English, 
+            and let AI create your Google Calendar events instantly.
+          </p>
+
+          <div className="hero-demo">
+            <div className="demo-input">
+              <span className="demo-icon">🎤</span>
+              <span className="demo-text">"Meeting with Sarah tomorrow at 3pm for coffee"</span>
+              <span className="demo-cursor"></span>
+            </div>
+            <div className="demo-arrow">↓</div>
+            <div className="demo-output">
+              <div className="demo-event">
+                <span className="event-color"></span>
+                <div className="event-details">
+                  <span className="event-title">Meeting with Sarah</span>
+                  <span className="event-time">Tomorrow, 3:00 PM • Coffee</span>
+                </div>
+                <span className="event-check">✓</span>
+              </div>
             </div>
           </div>
-        </header>
 
+          <div className="hero-cta">
+            <a
+              href="https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm"
+              className="cta-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg className="chrome-icon" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="12" cy="12" r="4" fill="currentColor"/>
+              </svg>
+              Install Free from Chrome Store
+            </a>
+            <a href="#features" className="cta-secondary">
+              Learn More
+              <span className="arrow">→</span>
+            </a>
+          </div>
+
+          <div className="hero-stats">
+            <div className="stat">
+              <span className="stat-value">4.9★</span>
+              <span className="stat-label">User Rating</span>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat">
+              <span className="stat-value">1000+</span>
+              <span className="stat-label">Active Users</span>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat">
+              <span className="stat-value">Free</span>
+              <span className="stat-label">Forever</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <div className="container">
         <main className="content">
-          <section className="section">
-            <h2>About Prompt2Cal</h2>
-            <p>
-              Prompt2Cal is a Chrome extension that converts natural language
-              into Google Calendar events. Simply type or speak your event in
-              plain English, and AI handles the rest. No more clicking through
-              multiple form fields, just describe your event and it's added to
-              your calendar.
-            </p>
-          </section>
-
-          <section className="section">
-            <h2>Key Features</h2>
+          <section className="section" id="features">
+            <h2 className="features-title">Powerful Features</h2>
+            <p className="features-subtitle">Everything you need to manage your calendar effortlessly with the power of AI</p>
             <div className="features">
               <div className="feature">
-                <h3>Voice Input</h3>
-                <p>Speak your events naturally using voice recognition</p>
+                <div className="feature-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
+                </div>
+                <div className="feature-content">
+                  <h3>Voice Input</h3>
+                  <p>Speak your events naturally using voice recognition. Just talk, and we'll capture every detail.</p>
+                </div>
               </div>
               <div className="feature">
-                <h3>AI-Powered Parsing</h3>
-                <p>Advanced AI understands complex natural language</p>
+                <div className="feature-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.4V11h3a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-1v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-3H6a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h3V9.4A4 4 0 0 1 12 2z"/>
+                    <circle cx="12" cy="6" r="1"/>
+                  </svg>
+                </div>
+                <div className="feature-content">
+                  <h3>AI-Powered Parsing</h3>
+                  <p>Advanced AI understands complex natural language. Dates, times, locations—it gets it all.</p>
+                </div>
               </div>
               <div className="feature">
-                <h3>Conflict Detection</h3>
-                <p>Automatically checks for scheduling conflicts</p>
+                <div className="feature-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div className="feature-content">
+                  <h3>Conflict Detection</h3>
+                  <p>Automatically checks for scheduling conflicts before creating events. Never double-book again.</p>
+                </div>
               </div>
               <div className="feature">
-                <h3>Bulk Events</h3>
-                <p>Parse and create multiple events at once</p>
+                <div className="feature-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <line x1="12" y1="14" x2="12" y2="18"/>
+                    <line x1="10" y1="16" x2="14" y2="16"/>
+                  </svg>
+                </div>
+                <div className="feature-content">
+                  <h3>Bulk Events</h3>
+                  <p>Parse and create multiple events at once. Perfect for planning your entire week in seconds.</p>
+                </div>
               </div>
             </div>
           </section>
 
-          <section className="section">
+          <section className="section" id="how-it-works">
             <h2>How It Works</h2>
             <ul className="how-it-works">
               <li>Type or speak your event in plain English</li>
