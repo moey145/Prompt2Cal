@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Prompt2Cal - Natural Language Calendar",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Convert natural language text to calendar events with AI-powered parsing and Google Calendar integration",
   "permissions": [
     "activeTab",

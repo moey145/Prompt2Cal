@@ -34,6 +34,7 @@ const Popup = () => {
   const [selectedReminder, setSelectedReminder] = useState(DEFAULT_REMINDER);
   const [darkMode, setDarkMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [authPending, setAuthPending] = useState(false);
 
   // Single event edit state
   const [singleAttendees, setSingleAttendees] = useState([]);
@@ -129,18 +130,21 @@ const Popup = () => {
 
       const authState = await chrome.storage.local.get(["waitingForAuth"]);
       if (authState.waitingForAuth) {
+        setAuthPending(true);
         await chrome.storage.local.remove(["waitingForAuth"]);
         setTimeout(async () => {
           const authenticated = await checkAuthStatus(userIdValue);
           if (authenticated) {
             await fetchCalendars(userIdValue);
           }
+          setAuthPending(false);
         }, 500);
       } else {
         const authenticated = await checkAuthStatus(userIdValue);
         if (authenticated) {
           await fetchCalendars(userIdValue);
         }
+        setAuthPending(false);
       }
     } catch (error) {
       console.error("Error initializing user:", error);
@@ -775,7 +779,7 @@ const Popup = () => {
         </div>
       </div>
 
-      {!isCheckingAuth && !isAuthenticated && (
+      {!isCheckingAuth && !isAuthenticated && !authPending && (
         <AuthSection onAuth={handleGoogleAuth} loadingAuth={loadingAuth} />
       )}
 
