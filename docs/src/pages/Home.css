@@ -644,6 +644,7 @@ html {
   padding: 40px 24px;
   text-align: center;
   border-top: 1px solid #e2e8f0;
+  width: 100%;
 }
 
 .footer p {

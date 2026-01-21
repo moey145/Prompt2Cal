@@ -45,11 +45,9 @@ export const useAuth = (userId) => {
 
       if (cachedStatus === true) {
         setIsAuthenticated(true);
-        // keep isCheckingAuth true until server confirms status
-      } else {
-        setIsAuthenticated(false);
-        setIsCheckingAuth(false);
       }
+      // Keep isCheckingAuth true until server confirms status
+      // This prevents the flash of the auth button
     };
 
     initializeAuthState();

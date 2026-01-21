@@ -237,21 +237,21 @@ function Home() {
             </a>
           </div>
         </main>
-
-        <footer className="footer">
-          <p>&copy; 2025 Prompt2Cal. All rights reserved.</p>
-          <div className="footer-links">
-            <Link to="/privacy-policy">Privacy Policy</Link>
-            <a
-              href="https://github.com/moey145/Prompt2Cal"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
-            </a>
-          </div>
-        </footer>
       </div>
+
+      <footer className="footer">
+        <p>&copy; 2025 Prompt2Cal. All rights reserved.</p>
+        <div className="footer-links">
+          <Link to="/privacy-policy">Privacy Policy</Link>
+          <a
+            href="https://github.com/moey145/Prompt2Cal"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
