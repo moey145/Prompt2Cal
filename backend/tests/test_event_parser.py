@@ -56,3 +56,23 @@ def test_event_parser_rules_first(event_parser, text, validator):
 def test_event_parser_bulk(event_parser, text, expected_count):
     events = asyncio.run(event_parser.parse_bulk_events(text))
     assert len(events) == expected_count, f"Expected {expected_count} events, got {len(events)}"
+
+
+def test_resolve_event_datetimes_preserves_multi_day_range(event_parser):
+    tz = pytz.timezone("Australia/Sydney")
+    from backend.models.event_models import ParsedEvent
+
+    event = ParsedEvent(
+        title="Vacation",
+        start_time="December 20th at 9am",
+        end_time="January 5th at 5pm",
+        duration_minutes=60,
+        recurrence_type="none",
+    )
+    event_parser._resolve_event_datetimes(event, tz)
+
+    start = datetime.fromisoformat(event.start_time)
+    end = datetime.fromisoformat(event.end_time)
+    assert end > start + timedelta(days=1)
+    assert start.month == 12 and start.day == 20
+    assert end.month == 1 and end.day == 5

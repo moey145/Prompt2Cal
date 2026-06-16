@@ -38,6 +38,29 @@ class EventParser:
         self.date_parser = DateParser()
         self.event_expander = EventExpander()
         self.multiple_event_detector = MultipleEventDetector()
+
+    def _resolve_event_datetimes(self, event: ParsedEvent, local_tz: pytz.timezone) -> None:
+        """Convert natural-language start/end times to ISO, preserving multi-day ranges."""
+        if event.start_time and not str(event.start_time).startswith("20"):
+            start_datetime = self.date_parser.parse_start_time(str(event.start_time), local_tz)
+            if start_datetime:
+                event.start_time = start_datetime.isoformat()
+
+        if event.end_time and not str(event.end_time).startswith("20"):
+            end_datetime = self.date_parser.parse_start_time(str(event.end_time), local_tz)
+            if not end_datetime:
+                end_datetime = self.date_parser.parse_end_date(str(event.end_time), local_tz)
+            if end_datetime:
+                event.end_time = end_datetime.isoformat()
+
+        if (
+            event.duration_minutes
+            and event.start_time
+            and str(event.start_time).startswith("20")
+            and (not event.end_time or not str(event.end_time).startswith("20"))
+        ):
+            start_dt = datetime.fromisoformat(event.start_time)
+            event.end_time = (start_dt + timedelta(minutes=event.duration_minutes)).isoformat()
     
     async def is_multiple_events(self, text: str) -> bool:
         """Determine if the input text describes multiple events."""
@@ -223,17 +246,7 @@ class EventParser:
                     # Parse dates and expand recurring events
                     parsed_events = []
                     for event in events:
-                        # Parse start time
-                        if event.start_time:
-                            start_datetime = self.date_parser.parse_start_time(event.start_time, local_tz)
-                            if start_datetime:
-                                event.start_time = start_datetime.isoformat()
-                        
-                        # Calculate end_time from duration_minutes if not set or if it's in natural language
-                        if event.duration_minutes and (not event.end_time or not event.end_time.startswith('20')):
-                            start_dt = datetime.fromisoformat(event.start_time)
-                            end_dt = start_dt + timedelta(minutes=event.duration_minutes)
-                            event.end_time = end_dt.isoformat()
+                        self._resolve_event_datetimes(event, local_tz)
                         
                         # Check for recurrence and expand if needed
                         recurrence_str = str(event.recurrence_type).lower() if event.recurrence_type else "none"
@@ -332,6 +345,7 @@ class EventParser:
                 # Handle RuleEvent objects (they have attributes, not dictionary keys)
                 if hasattr(event_data, 'start'):
                     start_time_str = event_data.start
+                    end_time_str = getattr(event_data, 'end', None)
                     title = event_data.title
                     duration_minutes = event_data.duration_minutes or 60
                     recurrence_type = event_data.recurrence_type
@@ -368,8 +382,14 @@ class EventParser:
                 if start_time_str:
                     start_datetime = self.date_parser.parse_start_time(start_time_str, local_tz)
                     if start_datetime:
-                        end_datetime = start_datetime + timedelta(minutes=duration_minutes)
-                        
+                        end_datetime = None
+                        if end_time_str:
+                            end_datetime = self.date_parser.parse_start_time(end_time_str, local_tz)
+                            if not end_datetime:
+                                end_datetime = self.date_parser.parse_end_date(end_time_str, local_tz)
+                        if not end_datetime:
+                            end_datetime = start_datetime + timedelta(minutes=duration_minutes)
+
                         return ParsedEvent(
                             title=title,
                             start_time=start_datetime.isoformat(),
@@ -391,21 +411,7 @@ class EventParser:
                 events = await self.intelligent_parser.parse(text, str(local_tz))
                 if events and len(events) > 0:
                     event = events[0]
-                    # Parse the start_time if it's still in natural language
-                    if event.start_time and not event.start_time.startswith('20'):
-                        start_datetime = self.date_parser.parse_start_time(event.start_time, local_tz)
-                        if start_datetime:
-                            event.start_time = start_datetime.isoformat()
-                    
-                    # Calculate end_time from duration_minutes if not set or if it's in natural language
-                    if event.duration_minutes and (not event.end_time or not event.end_time.startswith('20')):
-                        start_dt = datetime.fromisoformat(event.start_time)
-                        end_dt = start_dt + timedelta(minutes=event.duration_minutes)
-                        event.end_time = end_dt.isoformat()
-                    
-                    # Don't set default recurrence_count - normalization already handled it
-                    # For indefinite recurring events (e.g., "Every Monday"), count should remain None
-                    # Setting a default here would override the normalization that correctly sets it to None
+                    self._resolve_event_datetimes(event, local_tz)
                     
                     return event
             

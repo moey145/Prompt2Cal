@@ -31,19 +31,6 @@ REACT VERSION (Vite + React + Lucide React Icons)
 
 ================================================================================
 
-HELPER SCRIPTS
-================================================================================
-
-Windows:
-   run_extension_dev.bat
-
-Unix/Mac:
-   ./run_extension_dev.sh
-
-These scripts start development mode automatically.
-
-================================================================================
-
 FILE STRUCTURE
 ================================================================================
 
