@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+import os
+from typing import List
+
+from dotenv import load_dotenv
+
+from backend.services.intelligent_parser import IntelligentEventParser
+from backend.services.rules_parser import parse_with_rules
+
+from .models import EvalEvent
+from .normalize import parsed_event_to_eval_event, rule_event_to_eval_event
+
+load_dotenv()
+
+
+class RegexExtractor:
+    """Rules-based extractor for benchmark evaluation (single event per input)."""
+
+    def extract(self, text: str, timezone: str) -> List[EvalEvent]:
+        rule_events = parse_with_rules(text, timezone)
+        if not rule_events:
+            return []
+        return [rule_event_to_eval_event(rule_events[0], timezone)]
+
+
+class LLMExtractor:
+    """LLM-based extractor for benchmark evaluation."""
+
+    def __init__(self, api_key: str | None = None):
+        key = api_key or os.getenv("OPENAI_API_KEY")
+        if not key:
+            raise RuntimeError("OPENAI_API_KEY is required for LLM extraction runs.")
+        self.parser = IntelligentEventParser(key)
+
+    async def extract(
+        self,
+        text: str,
+        timezone: str,
+        *,
+        use_cache: bool = False,
+        temperature: float = 0.0,
+    ) -> List[EvalEvent]:
+        parsed_events = await self.parser.parse(
+            text,
+            timezone,
+            use_cache=use_cache,
+            temperature=temperature,
+        )
+        return [parsed_event_to_eval_event(event, timezone) for event in parsed_events]

@@ -1,0 +1,224 @@
+{
+  "generated_at": "2026-06-16T03:52:02.144472+00:00",
+  "dataset_version": "1.0",
+  "timezone": "Australia/Sydney",
+  "llm_runs": 3,
+  "llm_temperature": 0.0,
+  "regex_only": false,
+  "results": [
+    {
+      "input_id": "clean_01",
+      "category": "clean",
+      "text": "Team meeting next Tuesday at 3pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-06-23T15:00:00+10:00",
+            "end_time": "2026-06-23T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-06-23T15:00:00+10:00",
+            "end_time": "2026-06-23T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-06-23T15:00:00+10:00",
+            "end_time": "2026-06-23T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team meeting",
+          "start_time": "2026-06-23T15:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_01",
+      "category": "ambiguous",
+      "text": "Dinner with Sarah next Thursday around 7ish",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-06-25T19:00:00+10:00",
+            "end_time": "2026-06-25T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-06-25T19:00:00+10:00",
+            "end_time": "2026-06-25T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-06-25T19:00:00+10:00",
+            "end_time": "2026-06-25T20:00:00+10:00",
+            "location": null,
+            "notes": "approximate time: around 7ish",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dinner with sarah",
+          "start_time": "2026-06-25T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "missing_01",
+      "category": "missing_fields",
+      "text": "Meeting with John next Tuesday (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meeting with john",
+            "start_time": "2026-06-23T14:00:00+10:00",
+            "end_time": "2026-06-23T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting with john",
+            "start_time": "2026-06-23T14:00:00+10:00",
+            "end_time": "2026-06-23T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting with john",
+            "start_time": "2026-06-23T14:00:00+10:00",
+            "end_time": "2026-06-23T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting with john",
+          "start_time": "2026-06-23T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.3333333333333333
+      }
+    }
+  ],
+  "summary": {
+    "accuracy": {
+      "llm_mean_f1": 0.8484848484848485,
+      "llm_std_f1": 0.10497277621629562,
+      "regex_mean_f1": 0.0,
+      "regex_std_f1": 0.0
+    },
+    "robustness": {
+      "llm_drop": 1.0,
+      "regex_drop": 0.0
+    },
+    "consistency": {
+      "llm_pairwise_agreement_mean": 0.7777777777777777,
+      "llm_pairwise_agreement_std": 0.3849001794597505
+    },
+    "hallucination": {
+      "llm_rate_mean": 0.3333333333333333,
+      "llm_rate_std": 0.0,
+      "regex_rate_mean": 0.0,
+      "regex_rate_std": 0.0
+    },
+    "statistics": {
+      "mcnemar": {
+        "statistic": 0.0,
+        "p_value": 1.0,
+        "llm_only_correct": 0.0,
+        "regex_only_correct": 0.0
+      },
+      "wilcoxon_by_category": {
+        "statistic": 0.0,
+        "p_value": 0.25
+      },
+      "category_mean_f1": {
+        "clean": [
+          0.9090909090909091,
+          0.0
+        ],
+        "ambiguous": [
+          0.7272727272727272,
+          0.0
+        ],
+        "missing_fields": [
+          0.9090909090909091,
+          0.0
+        ]
+      }
+    }
+  }
+}

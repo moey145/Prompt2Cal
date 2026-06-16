@@ -21,6 +21,11 @@ _cache = {}
 MAX_CACHE_SIZE = 100
 CACHE_VERSION = "v29"  # Increment when cache format changes (v29: add post-processing to extract time from title if missing from start_time)
 
+# GPT-5 rejects non-default temperature values; omit the parameter and rely on
+# repeated-run consistency measurement instead.
+DEFAULT_MODEL = "gpt-5"
+MODELS_WITHOUT_TEMPERATURE = frozenset({"gpt-5"})
+
 
 class IntelligentEventParser:
     """
@@ -65,7 +70,14 @@ class IntelligentEventParser:
             "required": ["events"]
         }
     
-    async def parse(self, text: str, timezone: str = "UTC") -> List[ParsedEvent]:
+    async def parse(
+        self,
+        text: str,
+        timezone: str = "UTC",
+        *,
+        use_cache: bool = True,
+        temperature: float = 0.0,
+    ) -> List[ParsedEvent]:
         """
         Parse natural language event description into structured events with reliability features.
         
@@ -84,7 +96,7 @@ class IntelligentEventParser:
             # Check cache
             cache_key = self._get_cache_key(sanitized)
             logger.debug(f"Cache key: {cache_key} (version: {CACHE_VERSION})")
-            if cache_key in _cache:
+            if use_cache and cache_key in _cache:
                 logger.info(f"Cache hit for: {sanitized[:50]}... (key: {cache_key})")
                 cached_result = _cache[cache_key]
                 # Re-normalize cached results to ensure indefinite recurring events are handled correctly
@@ -102,16 +114,19 @@ class IntelligentEventParser:
             
             # Parse with LLM
             prompt = self._build_prompt(sanitized, timezone)
-            
-            response = self.client.chat.completions.create(
-                model="gpt-4.1",  # Highest quality for structured parsing
-                messages=[
+
+            request_kwargs: Dict[str, Any] = {
+                "model": DEFAULT_MODEL,
+                "messages": [
                     {"role": "system", "content": self._get_system_prompt()},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
-                response_format={"type": "json_object"},
-                temperature=0.3  # Lower temperature for more consistent parsing
-            )
+                "response_format": {"type": "json_object"},
+            }
+            if DEFAULT_MODEL not in MODELS_WITHOUT_TEMPERATURE:
+                request_kwargs["temperature"] = temperature
+
+            response = self.client.chat.completions.create(**request_kwargs)
             
             result = json.loads(response.choices[0].message.content)
             events = result.get("events", [])
@@ -190,9 +205,10 @@ class IntelligentEventParser:
                 return []
             
             # Cache successful results
-            if len(_cache) >= MAX_CACHE_SIZE:
+            if use_cache and len(_cache) >= MAX_CACHE_SIZE:
                 _cache.pop(next(iter(_cache)))
-            _cache[cache_key] = parsed_events
+            if use_cache:
+                _cache[cache_key] = parsed_events
             
             duration = time.time() - parse_start_time
             logger.info(f"Parse successful in {duration:.2f}s: {len(parsed_events)} events")
