@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_18",
+  "category": "voice_to_text",
+  "text": "focus block every day this week at two pee em",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "focus block",
+        "start_time": "2026-07-23T14:00:00+10:00",
+        "end_time": "2026-07-23T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "daily"
+      }
+    ],
+    [
+      {
+        "title": "focus block",
+        "start_time": "2026-07-23T14:00:00+10:00",
+        "end_time": "2026-07-23T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "daily"
+      }
+    ],
+    [
+      {
+        "title": "focus block",
+        "start_time": "2026-07-23T14:00:00+10:00",
+        "end_time": "2026-07-23T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "daily"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "focus block",
+      "start_time": "2026-07-23T11:33:04.218171+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "daily"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

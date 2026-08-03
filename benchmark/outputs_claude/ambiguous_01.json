@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_01",
+  "category": "ambiguous",
+  "text": "Dinner with Sarah next Thursday around 7ish",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "dinner with sarah",
+        "start_time": "2026-07-30T19:00:00+10:00",
+        "end_time": "2026-07-30T20:00:00+10:00",
+        "location": null,
+        "notes": "around 7ish",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "dinner with sarah",
+        "start_time": "2026-07-30T19:00:00+10:00",
+        "end_time": "2026-07-30T20:00:00+10:00",
+        "location": null,
+        "notes": "around 7ish",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "dinner with sarah",
+        "start_time": "2026-07-30T19:00:00+10:00",
+        "end_time": "2026-07-30T20:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "dinner with sarah",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

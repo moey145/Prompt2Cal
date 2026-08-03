@@ -23,6 +23,7 @@ class ParsedEvent(BaseModel):
     location: Optional[str] = Field(None, description="Event location")
     notes: Optional[str] = Field(None, description="Additional notes")
     duration_minutes: Optional[int] = Field(60, description="Event duration in minutes")
+    end_time_assumed: bool = Field(False, description="True when end_time was derived from a default duration rather than stated in the input")
     recurrence_type: RecurrenceType = Field(RecurrenceType.NONE, description="Recurrence pattern")
     recurrence_count: Optional[int] = Field(None, description="Number of occurrences")
     recurrence_interval: Optional[int] = Field(1, description="Interval between recurrences")

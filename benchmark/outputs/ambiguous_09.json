@@ -1,0 +1,64 @@
+{
+  "input_id": "ambiguous_09",
+  "category": "ambiguous",
+  "text": "Workout early morning tomorrow",
+  "regex_events": [
+    {
+      "title": "workout early morning",
+      "start_time": "2026-07-21T14:00:00+10:00",
+      "end_time": "2026-07-21T15:00:00+10:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "llm_runs": [
+    [
+      {
+        "title": "workout",
+        "start_time": "2026-07-21T14:00:00+10:00",
+        "end_time": "2026-07-21T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "early morning workout",
+        "start_time": "2026-07-21T14:00:00+10:00",
+        "end_time": "2026-07-21T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "workout",
+        "start_time": "2026-07-21T14:00:00+10:00",
+        "end_time": "2026-07-21T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "workout",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

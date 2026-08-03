@@ -1,0 +1,64 @@
+{
+  "input_id": "clean_12",
+  "category": "clean",
+  "text": "First Monday of each month board meeting at 9am",
+  "regex_events": [
+    {
+      "title": "board meeting",
+      "start_time": "2026-08-03T09:00:00+10:00",
+      "end_time": "2026-08-03T10:00:00+10:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "monthly"
+    }
+  ],
+  "llm_runs": [
+    [
+      {
+        "title": "board meeting",
+        "start_time": "2026-08-03T09:00:00+10:00",
+        "end_time": "2026-08-03T10:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "monthly"
+      }
+    ],
+    [
+      {
+        "title": "board meeting",
+        "start_time": "2026-08-03T14:00:00+10:00",
+        "end_time": "2026-08-03T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "monthly"
+      }
+    ],
+    [
+      {
+        "title": "board meeting",
+        "start_time": "2026-08-03T09:00:00+10:00",
+        "end_time": "2026-08-03T10:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "monthly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "board meeting",
+      "start_time": "2026-08-03T09:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "monthly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.9090909090909091,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

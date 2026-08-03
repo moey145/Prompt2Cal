@@ -61,6 +61,9 @@ class EventParser:
         ):
             start_dt = datetime.fromisoformat(event.start_time)
             event.end_time = (start_dt + timedelta(minutes=event.duration_minutes)).isoformat()
+            # End time was not stated in the input; surface that to the UI
+            # instead of presenting the default duration as extracted fact.
+            event.end_time_assumed = True
     
     async def is_multiple_events(self, text: str) -> bool:
         """Determine if the input text describes multiple events."""
@@ -387,6 +390,7 @@ class EventParser:
                             end_datetime = self.date_parser.parse_start_time(end_time_str, local_tz)
                             if not end_datetime:
                                 end_datetime = self.date_parser.parse_end_date(end_time_str, local_tz)
+                        end_assumed = end_datetime is None
                         if not end_datetime:
                             end_datetime = start_datetime + timedelta(minutes=duration_minutes)
 
@@ -394,6 +398,7 @@ class EventParser:
                             title=title,
                             start_time=start_datetime.isoformat(),
                             end_time=end_datetime.isoformat(),
+                            end_time_assumed=end_assumed,
                             duration_minutes=duration_minutes,
                             location=location,
                             notes=notes,
@@ -434,6 +439,7 @@ class EventParser:
                 title=fallback_title,
                 start_time=now.isoformat(),
                 end_time=(now + timedelta(hours=1)).isoformat(),
+                end_time_assumed=True,
                 duration_minutes=60,
                 location=None,
                 notes=None,
@@ -464,6 +470,7 @@ class EventParser:
                 title=fallback_title,
                 start_time=now.isoformat(),
                 end_time=(now + timedelta(hours=1)).isoformat(),
+                end_time_assumed=True,
                 duration_minutes=60,
                 location=None,
                 notes=None,

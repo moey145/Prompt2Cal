@@ -1,7 +1,32 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Home.css";
 
 function Home() {
+  useEffect(() => {
+    const elements = document.querySelectorAll(".reveal-on-scroll");
+    if (!elements.length) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -10% 0px",
+      }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -99,11 +124,11 @@ function Home() {
       {/* Main Content */}
       <div className="container">
         <main className="content">
-          <section className="section" id="features">
-            <h2 className="features-title">Powerful Features</h2>
-            <p className="features-subtitle">Everything you need to manage your calendar effortlessly with the power of AI</p>
+          <section className="section reveal-on-scroll" id="features">
+            <h2 className="features-title reveal-on-scroll" style={{ transitionDelay: "0ms" }}>Powerful Features</h2>
+            <p className="features-subtitle reveal-on-scroll" style={{ transitionDelay: "100ms" }}>Everything you need to manage your calendar effortlessly with the power of AI</p>
             <div className="features">
-              <div className="feature">
+              <div className="feature reveal-on-scroll" style={{ transitionDelay: "0ms" }}>
                 <div className="feature-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -117,7 +142,7 @@ function Home() {
                   <p>Speak your events naturally using voice recognition. Just talk, and we'll capture every detail.</p>
                 </div>
               </div>
-              <div className="feature">
+              <div className="feature reveal-on-scroll" style={{ transitionDelay: "120ms" }}>
                 <div className="feature-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.4V11h3a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-1v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-3H6a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h3V9.4A4 4 0 0 1 12 2z"/>
@@ -129,7 +154,7 @@ function Home() {
                   <p>Advanced AI understands complex natural language. Dates, times, locations—it gets it all.</p>
                 </div>
               </div>
-              <div className="feature">
+              <div className="feature reveal-on-scroll" style={{ transitionDelay: "240ms" }}>
                 <div className="feature-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -142,7 +167,7 @@ function Home() {
                   <p>Automatically checks for scheduling conflicts before creating events. Never double-book again.</p>
                 </div>
               </div>
-              <div className="feature">
+              <div className="feature reveal-on-scroll" style={{ transitionDelay: "360ms" }}>
                 <div className="feature-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -161,10 +186,10 @@ function Home() {
             </div>
           </section>
 
-          <section className="section" id="how-it-works">
-            <h2 className="how-it-works-title">How It Works</h2>
+          <section className="section reveal-on-scroll" id="how-it-works">
+            <h2 className="how-it-works-title reveal-on-scroll" style={{ transitionDelay: "0ms" }}>How It Works</h2>
             <div className="steps-container">
-              <div className="step">
+              <div className="step reveal-on-scroll" style={{ transitionDelay: "80ms" }}>
                 <div className="step-icon-wrapper">
                   <div className="step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -179,7 +204,7 @@ function Home() {
 
               <div className="step-divider"></div>
 
-              <div className="step">
+              <div className="step reveal-on-scroll" style={{ transitionDelay: "180ms" }}>
                 <div className="step-icon-wrapper">
                   <div className="step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -194,7 +219,7 @@ function Home() {
 
               <div className="step-divider"></div>
 
-              <div className="step">
+              <div className="step reveal-on-scroll" style={{ transitionDelay: "280ms" }}>
                 <div className="step-icon-wrapper">
                   <div className="step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -210,7 +235,7 @@ function Home() {
 
               <div className="step-divider"></div>
 
-              <div className="step">
+              <div className="step reveal-on-scroll" style={{ transitionDelay: "380ms" }}>
                 <div className="step-icon-wrapper">
                   <div className="step-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -226,7 +251,7 @@ function Home() {
             </div>
           </section>
 
-          <div className="cta">
+          <div className="cta reveal-on-scroll" style={{ transitionDelay: "120ms" }}>
             <a
               href="https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm"
               className="cta-button"
@@ -240,16 +265,21 @@ function Home() {
       </div>
 
       <footer className="footer">
-        <p>&copy; 2025 Prompt2Cal. All rights reserved.</p>
-        <div className="footer-links">
-          <Link to="/privacy-policy">Privacy Policy</Link>
-          <a
-            href="https://github.com/moey145/Prompt2Cal"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
+        <div className="footer-inner">
+          <div className="footer-left">
+            <p>&copy; 2025 Prompt2Cal. All rights reserved.</p>
+            <p className="footer-subtle">Built for fast, reliable calendar event creation.</p>
+          </div>
+          <div className="footer-links">
+            <Link to="/privacy-policy">Privacy Policy</Link>
+            <a
+              href="https://github.com/moey145/Prompt2Cal"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub repo
+            </a>
+          </div>
         </div>
       </footer>
     </div>

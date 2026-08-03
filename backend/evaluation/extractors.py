@@ -5,6 +5,7 @@ from typing import List
 
 from dotenv import load_dotenv
 
+from backend.services.claude_parser import ClaudeEventParser
 from backend.services.intelligent_parser import IntelligentEventParser
 from backend.services.rules_parser import parse_with_rules
 
@@ -25,13 +26,39 @@ class RegexExtractor:
 
 
 class LLMExtractor:
-    """LLM-based extractor for benchmark evaluation."""
+    """LLM-based extractor for benchmark evaluation.
 
-    def __init__(self, api_key: str | None = None):
-        key = api_key or os.getenv("OPENAI_API_KEY")
-        if not key:
-            raise RuntimeError("OPENAI_API_KEY is required for LLM extraction runs.")
-        self.parser = IntelligentEventParser(key)
+    ``provider`` selects the backing model:
+      - ``"openai"`` (default): GPT via :class:`IntelligentEventParser`
+      - ``"claude"``: Claude via :class:`ClaudeEventParser`
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        provider: str = "openai",
+        model: str | None = None,
+    ):
+        self.provider = provider
+
+        if provider == "claude":
+            key = api_key or os.getenv("ANTHROPIC_API_KEY")
+            if not key:
+                raise RuntimeError(
+                    "ANTHROPIC_API_KEY is required for Claude extraction runs."
+                )
+            self.parser = (
+                ClaudeEventParser(key, model=model)
+                if model
+                else ClaudeEventParser(key)
+            )
+        else:
+            key = api_key or os.getenv("OPENAI_API_KEY")
+            if not key:
+                raise RuntimeError("OPENAI_API_KEY is required for LLM extraction runs.")
+            self.parser = IntelligentEventParser(key)
+            if model:
+                self.parser.model = model
 
     async def extract(
         self,

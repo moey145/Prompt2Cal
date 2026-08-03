@@ -52,6 +52,18 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Run only the Regex extractor (no OpenAI API calls).",
     )
+    parser.add_argument(
+        "--provider",
+        choices=["openai", "claude"],
+        default="openai",
+        help="LLM provider for the LLM extractor.",
+    )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Override the model name for the chosen provider "
+        "(e.g. claude-sonnet-4-6, gpt-5).",
+    )
     return parser.parse_args()
 
 
@@ -64,6 +76,8 @@ async def main() -> int:
         llm_runs=args.llm_runs,
         llm_temperature=args.temperature,
         regex_only=args.regex_only,
+        provider=args.provider,
+        model=args.model,
     )
     payload = await runner.run(input_ids=args.input_ids)
     print(json.dumps(payload["summary"], indent=2))

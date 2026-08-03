@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_11",
+  "category": "missing_fields",
+  "text": "Conference call (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "conference call",
+        "start_time": "2026-07-23T11:38:12.208830+10:00",
+        "end_time": "2026-07-23T12:38:12.205823+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "conference call",
+        "start_time": "2026-07-23T11:38:14.860361+10:00",
+        "end_time": "2026-07-23T12:38:14.856385+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "conference call",
+        "start_time": "2026-07-23T11:38:17.438413+10:00",
+        "end_time": "2026-07-23T12:38:17.434416+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "conference call",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.5
+  }
+}

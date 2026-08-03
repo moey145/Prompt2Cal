@@ -1,0 +1,24 @@
+{
+  "gpt-5": {
+    "missed_event": 11,
+    "spurious_event": 11,
+    "fabricated_field": 113,
+    "wrong_other": 24,
+    "empty_output": 5,
+    "wrong_time": 18
+  },
+  "claude-sonnet-4-6": {
+    "missed_event": 3,
+    "spurious_event": 3,
+    "fabricated_field": 161,
+    "wrong_other": 22,
+    "wrong_time": 15
+  },
+  "regex": {
+    "empty_output": 96,
+    "missed_event": 1,
+    "spurious_event": 1,
+    "wrong_other": 1,
+    "fabricated_field": 3
+  }
+}

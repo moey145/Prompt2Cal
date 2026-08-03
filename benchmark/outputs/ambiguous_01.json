@@ -7,8 +7,8 @@
     [
       {
         "title": "dinner with sarah",
-        "start_time": "2026-06-25T19:00:00+10:00",
-        "end_time": "2026-06-25T20:00:00+10:00",
+        "start_time": "2026-07-30T14:00:00+10:00",
+        "end_time": "2026-07-30T15:00:00+10:00",
         "location": null,
         "notes": null,
         "recurrence_type": "none"
@@ -17,20 +17,20 @@
     [
       {
         "title": "dinner with sarah",
-        "start_time": "2026-06-25T19:00:00+10:00",
-        "end_time": "2026-06-25T20:00:00+10:00",
-        "location": null,
-        "notes": null,
-        "recurrence_type": "none"
-      }
-    ],
-    [
-      {
-        "title": "dinner with sarah",
-        "start_time": "2026-06-25T19:00:00+10:00",
-        "end_time": "2026-06-25T20:00:00+10:00",
+        "start_time": "2026-07-30T19:00:00+10:00",
+        "end_time": "2026-07-30T20:00:00+10:00",
         "location": null,
         "notes": "approximate time: around 7ish",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "dinner with sarah",
+        "start_time": "2026-07-30T19:00:00+10:00",
+        "end_time": "2026-07-30T20:00:00+10:00",
+        "location": null,
+        "notes": null,
         "recurrence_type": "none"
       }
     ]
@@ -38,7 +38,7 @@
   "ground_truth": [
     {
       "title": "dinner with sarah",
-      "start_time": "2026-06-25T14:00:00+10:00",
+      "start_time": null,
       "end_time": null,
       "location": null,
       "notes": null,
@@ -48,8 +48,8 @@
   "metrics": {
     "regex_f1": 0.0,
     "regex_fully_correct": false,
-    "llm_f1": 0.7272727272727272,
+    "llm_f1": 0.8,
     "llm_fully_correct": false,
-    "llm_pairwise_consistency": 0.3333333333333333
+    "llm_pairwise_consistency": 0.0
   }
 }

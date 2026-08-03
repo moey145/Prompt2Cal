@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_13",
+  "category": "voice_to_text",
+  "text": "weekly one on one every wednesday at three pee em",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "one on one",
+        "start_time": "2026-07-29T15:00:00+10:00",
+        "end_time": "2026-07-29T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "one on one",
+        "start_time": "2026-07-29T15:00:00+10:00",
+        "end_time": "2026-07-29T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "one on one",
+        "start_time": "2026-07-29T15:00:00+10:00",
+        "end_time": "2026-07-29T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "weekly 1:1",
+      "start_time": "2026-07-21T15:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "weekly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

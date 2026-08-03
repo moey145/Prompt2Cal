@@ -1,0 +1,37 @@
+{
+  "input_id": "ambiguous_16",
+  "category": "ambiguous",
+  "text": "Gym session later this week",
+  "regex_events": [],
+  "llm_runs": [
+    [],
+    [],
+    [
+      {
+        "title": "gym session",
+        "start_time": "2026-07-20T20:21:56.718882+10:00",
+        "end_time": "2026-07-20T21:21:56.663881+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "gym session",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

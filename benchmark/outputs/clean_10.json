@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_10",
+  "category": "clean",
+  "text": "Annual review on December 15th at 2pm",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "annual review",
+        "start_time": "2026-12-15T14:00:00+11:00",
+        "end_time": "2026-12-15T15:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "yearly"
+      }
+    ],
+    [
+      {
+        "title": "annual review",
+        "start_time": "2026-12-15T14:00:00+11:00",
+        "end_time": "2026-12-15T15:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "annual review",
+        "start_time": "2026-12-15T14:00:00+11:00",
+        "end_time": "2026-12-15T15:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "annual review",
+      "start_time": "2026-12-15T14:00:00+11:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

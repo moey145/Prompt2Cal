@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-16T03:52:02.144472+00:00",
+  "generated_at": "2026-07-20T10:45:25.858509+00:00",
   "dataset_version": "1.0",
   "timezone": "Australia/Sydney",
   "llm_runs": 3,
@@ -15,8 +15,8 @@
         [
           {
             "title": "team meeting",
-            "start_time": "2026-06-23T15:00:00+10:00",
-            "end_time": "2026-06-23T16:00:00+10:00",
+            "start_time": "2026-07-28T15:00:00+10:00",
+            "end_time": "2026-07-28T16:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -25,8 +25,8 @@
         [
           {
             "title": "team meeting",
-            "start_time": "2026-06-23T15:00:00+10:00",
-            "end_time": "2026-06-23T16:00:00+10:00",
+            "start_time": "2026-07-28T15:00:00+10:00",
+            "end_time": "2026-07-28T16:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -35,8 +35,8 @@
         [
           {
             "title": "team meeting",
-            "start_time": "2026-06-23T15:00:00+10:00",
-            "end_time": "2026-06-23T16:00:00+10:00",
+            "start_time": "2026-07-28T15:00:00+10:00",
+            "end_time": "2026-07-28T16:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -46,7 +46,7 @@
       "ground_truth": [
         {
           "title": "team meeting",
-          "start_time": "2026-06-23T15:00:00+10:00",
+          "start_time": "2026-07-28T15:00:00+10:00",
           "end_time": null,
           "location": null,
           "notes": null,
@@ -62,16 +62,24 @@
       }
     },
     {
-      "input_id": "ambiguous_01",
-      "category": "ambiguous",
-      "text": "Dinner with Sarah next Thursday around 7ish",
+      "input_id": "clean_02",
+      "category": "clean",
+      "text": "Coffee at 10am and code review at 2pm",
       "regex_events": [],
       "llm_runs": [
         [
           {
-            "title": "dinner with sarah",
-            "start_time": "2026-06-25T19:00:00+10:00",
-            "end_time": "2026-06-25T20:00:00+10:00",
+            "title": "coffee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -79,9 +87,17 @@
         ],
         [
           {
-            "title": "dinner with sarah",
-            "start_time": "2026-06-25T19:00:00+10:00",
-            "end_time": "2026-06-25T20:00:00+10:00",
+            "title": "coffee",
+            "start_time": "2026-07-21T10:00:00+10:00",
+            "end_time": "2026-07-21T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -89,19 +105,35 @@
         ],
         [
           {
-            "title": "dinner with sarah",
-            "start_time": "2026-06-25T19:00:00+10:00",
-            "end_time": "2026-06-25T20:00:00+10:00",
+            "title": "coffee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
             "location": null,
-            "notes": "approximate time: around 7ish",
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
             "recurrence_type": "none"
           }
         ]
       ],
       "ground_truth": [
         {
-          "title": "dinner with sarah",
-          "start_time": "2026-06-25T14:00:00+10:00",
+          "title": "coffee",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "code review",
+          "start_time": "2026-07-21T14:00:00+10:00",
           "end_time": null,
           "location": null,
           "notes": null,
@@ -117,6 +149,4448 @@
       }
     },
     {
+      "input_id": "clean_03",
+      "category": "clean",
+      "text": "Yoga class Saturday 8am at Bondi Gym",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "yoga class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yoga class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yoga class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "yoga class",
+          "start_time": "2026-07-25T08:00:00+10:00",
+          "end_time": null,
+          "location": "bondi gym",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_04",
+      "category": "clean",
+      "text": "Dentist appointment tomorrow at 2:30pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dentist appointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentist appointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentist appointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dentist appointment",
+          "start_time": "2026-07-21T14:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_05",
+      "category": "clean",
+      "text": "Meet John at Central Park this Saturday at 3pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meet john",
+            "start_time": "2026-07-25T15:00:00+10:00",
+            "end_time": "2026-07-25T16:00:00+10:00",
+            "location": "central park",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meet john",
+            "start_time": "2026-07-25T15:00:00+10:00",
+            "end_time": "2026-07-25T16:00:00+10:00",
+            "location": "central park",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meet john",
+            "start_time": "2026-07-25T15:00:00+10:00",
+            "end_time": "2026-07-25T16:00:00+10:00",
+            "location": "central park",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meet john",
+          "start_time": "2026-07-25T15:00:00+10:00",
+          "end_time": null,
+          "location": "central park",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_06",
+      "category": "clean",
+      "text": "Team standup tomorrow morning at 9am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "team standup",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team standup",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team standup",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team standup",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_07",
+      "category": "clean",
+      "text": "Lunch with Sarah on Nov 12 at 1:15pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-11-12T13:15:00+11:00",
+            "end_time": "2026-11-12T14:15:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-11-12T13:15:00+11:00",
+            "end_time": "2026-11-12T14:15:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-11-12T13:15:00+11:00",
+            "end_time": "2026-11-12T14:15:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch with sarah",
+          "start_time": "2026-11-12T13:15:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_08",
+      "category": "clean",
+      "text": "Project kickoff next week at 10am",
+      "regex_events": [],
+      "llm_runs": [
+        [],
+        [
+          {
+            "title": "project kickoff",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        []
+      ],
+      "ground_truth": [
+        {
+          "title": "project kickoff",
+          "start_time": "2026-07-27T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "clean_09",
+      "category": "clean",
+      "text": "Work session at 9:00am - 11:30am tomorrow",
+      "regex_events": [
+        {
+          "title": "work session",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": "2026-07-21T11:30:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "llm_runs": [
+        [
+          {
+            "title": "work session",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T11:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "work session",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T11:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "work session",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T11:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "work session",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": "2026-07-21T11:30:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 1.0,
+        "regex_fully_correct": true,
+        "llm_f1": 1.0,
+        "llm_fully_correct": true,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_10",
+      "category": "clean",
+      "text": "Annual review on December 15th at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "annual review",
+            "start_time": "2026-12-15T14:00:00+11:00",
+            "end_time": "2026-12-15T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "yearly"
+          }
+        ],
+        [
+          {
+            "title": "annual review",
+            "start_time": "2026-12-15T14:00:00+11:00",
+            "end_time": "2026-12-15T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "annual review",
+            "start_time": "2026-12-15T14:00:00+11:00",
+            "end_time": "2026-12-15T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "annual review",
+          "start_time": "2026-12-15T14:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "clean_11",
+      "category": "clean",
+      "text": "Every Monday team meeting at 10am for 1 hour",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team meeting",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_12",
+      "category": "clean",
+      "text": "First Monday of each month board meeting at 9am",
+      "regex_events": [
+        {
+          "title": "board meeting",
+          "start_time": "2026-08-03T09:00:00+10:00",
+          "end_time": "2026-08-03T10:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "llm_runs": [
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-08-03T09:00:00+10:00",
+            "end_time": "2026-08-03T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ],
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-08-03T14:00:00+10:00",
+            "end_time": "2026-08-03T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ],
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-08-03T09:00:00+10:00",
+            "end_time": "2026-08-03T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "board meeting",
+          "start_time": "2026-08-03T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.9090909090909091,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "clean_13",
+      "category": "clean",
+      "text": "Parent-teacher meeting next Thursday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "parent-teacher meeting",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "parent-teacher meeting",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "parent-teacher meeting",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "parent-teacher meeting",
+          "start_time": "2026-07-30T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_14",
+      "category": "clean",
+      "text": "Flight to New York next Monday at 6:30am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "flight to new york",
+            "start_time": "2026-07-27T06:30:00+10:00",
+            "end_time": "2026-07-27T07:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "flight to new york",
+            "start_time": "2026-07-27T06:30:00+10:00",
+            "end_time": "2026-07-27T07:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "flight to new york",
+            "start_time": "2026-07-27T06:30:00+10:00",
+            "end_time": "2026-07-27T07:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "flight to new york",
+          "start_time": "2026-07-27T06:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_15",
+      "category": "clean",
+      "text": "Birthday party on November 10th at 6pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "birthday party",
+          "start_time": "2026-11-10T18:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_16",
+      "category": "clean",
+      "text": "Coffee at 10am and lunch at 12pm and gym at 6pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "lunch",
+            "start_time": "2026-07-20T12:00:00+10:00",
+            "end_time": "2026-07-20T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "gym",
+            "start_time": "2026-07-20T18:00:00+10:00",
+            "end_time": "2026-07-20T19:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "lunch",
+            "start_time": "2026-07-20T12:00:00+10:00",
+            "end_time": "2026-07-20T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "gym",
+            "start_time": "2026-07-20T18:00:00+10:00",
+            "end_time": "2026-07-20T19:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "lunch",
+            "start_time": "2026-07-20T12:00:00+10:00",
+            "end_time": "2026-07-20T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "gym",
+            "start_time": "2026-07-20T18:00:00+10:00",
+            "end_time": "2026-07-20T19:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "lunch",
+          "start_time": "2026-07-21T12:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "gym",
+          "start_time": "2026-07-21T18:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_17",
+      "category": "clean",
+      "text": "Weekly 1:1 every Wednesday at 3pm for the next 4 weeks",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "1:1",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "1:1",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "1:1",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "weekly 1:1",
+          "start_time": "2026-07-21T15:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_18",
+      "category": "clean",
+      "text": "Workshop at 1pm-5pm Friday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "workshop",
+          "start_time": "2026-07-24T13:00:00+10:00",
+          "end_time": "2026-07-24T17:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 1.0,
+        "llm_fully_correct": true,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_19",
+      "category": "clean",
+      "text": "Meeting every weekday at 9am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meeting",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "meeting",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "meeting",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_20",
+      "category": "clean",
+      "text": "Vacation from December 20th to January 5th",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "vacation",
+            "start_time": "2026-12-20T09:00:00+11:00",
+            "end_time": "2027-01-05T17:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "vacation",
+            "start_time": "2026-12-20T09:00:00+11:00",
+            "end_time": "2027-01-05T17:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "vacation from december 20th to january 5th",
+            "start_time": "2026-12-20T09:00:00+11:00",
+            "end_time": "2027-01-05T17:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "vacation",
+          "start_time": "2026-12-20T14:00:00+11:00",
+          "end_time": "2027-01-05T14:00:00+11:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6666666666666666,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "typos_01",
+      "category": "typos",
+      "text": "Lunch meeting Wednesdya at 1pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch meeting",
+            "start_time": "2026-07-22T13:00:00+10:00",
+            "end_time": "2026-07-22T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch meeting",
+            "start_time": "2026-07-22T13:00:00+10:00",
+            "end_time": "2026-07-22T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch meeting",
+            "start_time": "2026-07-22T13:00:00+10:00",
+            "end_time": "2026-07-22T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch meeting",
+          "start_time": "2026-07-22T13:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_02",
+      "category": "typos",
+      "text": "Lnuch Friday at 12pm and dctor Tuesday at 9am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "doctor's appointment",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "doctor's appointment",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lnuch",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "dctor",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch",
+          "start_time": "2026-07-24T12:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "doctor",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.43478260869565216,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "typos_03",
+      "category": "typos",
+      "text": "Teem standup tomorow at 9am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "teem standup",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "teem standup",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "teem standup",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team standup",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_04",
+      "category": "typos",
+      "text": "Dentst apointment tomorow at 2:30pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dentst apointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentst apointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentst apointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dentist appointment",
+          "start_time": "2026-07-21T14:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_05",
+      "category": "typos",
+      "text": "Meting with Sarah next Tuesady at 1pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meting with sarah",
+            "start_time": "2026-07-28T13:00:00+10:00",
+            "end_time": "2026-07-28T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meting with sarah",
+            "start_time": "2026-07-28T13:00:00+10:00",
+            "end_time": "2026-07-28T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meting with sarah",
+            "start_time": "2026-07-28T13:00:00+10:00",
+            "end_time": "2026-07-28T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting with sarah",
+          "start_time": "2026-07-28T13:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_06",
+      "category": "typos",
+      "text": "Coffe at 10am and code reveiw at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffe",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code reveiw",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffe",
+            "start_time": "2026-07-21T10:00:00+10:00",
+            "end_time": "2026-07-21T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code reveiw",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffe",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code reveiw",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "code review",
+          "start_time": "2026-07-21T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5454545454545454,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "typos_07",
+      "category": "typos",
+      "text": "Gm session tonigt at 7pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "gm session",
+            "start_time": "2026-07-20T19:00:00+10:00",
+            "end_time": "2026-07-20T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gm session",
+            "start_time": "2026-07-20T19:00:00+10:00",
+            "end_time": "2026-07-20T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gm session",
+            "start_time": "2026-07-20T19:00:00+10:00",
+            "end_time": "2026-07-20T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "gym session",
+          "start_time": "2026-07-20T19:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_08",
+      "category": "typos",
+      "text": "Confrence on Januery 5th at 9am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "confrence",
+            "start_time": "2027-01-05T09:00:00+11:00",
+            "end_time": "2027-01-05T10:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "confrence",
+            "start_time": "2027-01-05T09:00:00+11:00",
+            "end_time": "2027-01-05T10:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "confrence",
+            "start_time": "2027-01-05T09:00:00+11:00",
+            "end_time": "2027-01-05T10:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "conference",
+          "start_time": "2027-01-05T09:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_09",
+      "category": "typos",
+      "text": "Lunch with Jhon on Frday at 12pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch with jhon",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with jhon",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with jhon",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch with john",
+          "start_time": "2026-07-24T12:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_10",
+      "category": "typos",
+      "text": "Wrokshop at 1pm-5pm Frdiay",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "wrokshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "wrokshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "wrokshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "workshop",
+          "start_time": "2026-07-24T13:00:00+10:00",
+          "end_time": "2026-07-24T17:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8333333333333334,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_11",
+      "category": "typos",
+      "text": "Evry Monday team meting at 10am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "team meting",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "team meting",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "team meting",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team meeting",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5454545454545454,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_12",
+      "category": "typos",
+      "text": "Birthady party on Novembr 10th at 6pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "birthady party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthady party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthady party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "birthday party",
+          "start_time": "2026-11-10T18:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_13",
+      "category": "typos",
+      "text": "Phne call with client next Wed at 3pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "phne call with client",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "phne call with client",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "phne call with client",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "phone call with client",
+          "start_time": "2026-07-29T15:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_14",
+      "category": "typos",
+      "text": "Parent-techer meeting next Thrusday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "parent-techer meeting",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "parent-techer meeting",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "parent-techer meeting",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "parent-teacher meeting",
+          "start_time": "2026-07-30T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_15",
+      "category": "typos",
+      "text": "Gym at half past 7 tonigt",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "gym",
+            "start_time": "2026-07-20T19:30:00+10:00",
+            "end_time": "2026-07-20T20:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gym",
+            "start_time": "2026-07-20T19:30:00+10:00",
+            "end_time": "2026-07-20T20:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gym",
+            "start_time": "2026-07-20T19:30:00+10:00",
+            "end_time": "2026-07-20T20:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "gym",
+          "start_time": "2026-07-20T19:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_16",
+      "category": "typos",
+      "text": "Anual review on Decembr 15th at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "anual review",
+            "start_time": "2026-12-15T14:00:00+11:00",
+            "end_time": "2026-12-15T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "anual review",
+            "start_time": "2026-12-15T14:00:00+11:00",
+            "end_time": "2026-12-15T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "anual review",
+            "start_time": "2026-12-15T14:00:00+11:00",
+            "end_time": "2026-12-15T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "annual review",
+          "start_time": "2026-12-15T14:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_17",
+      "category": "typos",
+      "text": "Cofee at 10am and luch at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "cofee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "luch",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "cofee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "luch",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "cofee",
+            "start_time": "2026-07-21T10:00:00+10:00",
+            "end_time": "2026-07-21T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "luch",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "lunch",
+          "start_time": "2026-07-21T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5454545454545454,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "typos_18",
+      "category": "typos",
+      "text": "Doktor appointment next Moday at 9am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "doktor appointment",
+            "start_time": "2026-07-27T09:00:00+10:00",
+            "end_time": "2026-07-27T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "doktor appointment",
+            "start_time": "2026-07-27T09:00:00+10:00",
+            "end_time": "2026-07-27T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "doktor appointment",
+            "start_time": "2026-07-27T09:00:00+10:00",
+            "end_time": "2026-07-27T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "doctor appointment",
+          "start_time": "2026-07-27T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_19",
+      "category": "typos",
+      "text": "Yogo class Satuday 8am at Bondi Gym",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "yogo class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yogo class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yogo class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "yoga class",
+          "start_time": "2026-07-25T08:00:00+10:00",
+          "end_time": null,
+          "location": "bondi gym",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_20",
+      "category": "typos",
+      "text": "Projet kickoff nex week at 10am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "projet kickoff",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [],
+        [
+          {
+            "title": "projet kickoff",
+            "start_time": "2026-07-27T10:00:00+10:00",
+            "end_time": "2026-07-27T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "project kickoff",
+          "start_time": "2026-07-27T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "voice_01",
+      "category": "voice_to_text",
+      "text": "meeting four next Tuesday at to PM",
+      "regex_events": [],
+      "llm_runs": [
+        [],
+        [],
+        []
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting",
+          "start_time": "2026-07-28T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_02",
+      "category": "voice_to_text",
+      "text": "call mom Sunday eight thirty aye em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "call mom",
+            "start_time": "2026-07-26T08:30:00+10:00",
+            "end_time": "2026-07-26T09:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call mom",
+            "start_time": "2026-07-26T08:30:00+10:00",
+            "end_time": "2026-07-26T09:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call mom",
+            "start_time": "2026-07-26T08:30:00+10:00",
+            "end_time": "2026-07-26T09:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "call mom",
+          "start_time": "2026-07-26T08:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_03",
+      "category": "voice_to_text",
+      "text": "lunch with sarah next too sday at won pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-07-28T13:00:00+10:00",
+            "end_time": "2026-07-28T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-07-28T13:00:00+10:00",
+            "end_time": "2026-07-28T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-07-28T13:00:00+10:00",
+            "end_time": "2026-07-28T14:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch with sarah",
+          "start_time": "2026-07-28T13:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_04",
+      "category": "voice_to_text",
+      "text": "gym session tonight at seven pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "gym session",
+            "start_time": "2026-07-20T19:00:00+10:00",
+            "end_time": "2026-07-20T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gym session",
+            "start_time": "2026-07-20T19:00:00+10:00",
+            "end_time": "2026-07-20T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gym session",
+            "start_time": "2026-07-20T19:00:00+10:00",
+            "end_time": "2026-07-20T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "gym session",
+          "start_time": "2026-07-20T19:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_05",
+      "category": "voice_to_text",
+      "text": "dentist appointment tomorrow at two thirty pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dentist appointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentist appointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentist appointment",
+            "start_time": "2026-07-21T14:30:00+10:00",
+            "end_time": "2026-07-21T15:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dentist appointment",
+          "start_time": "2026-07-21T14:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_06",
+      "category": "voice_to_text",
+      "text": "team stand up tomorrow morning at nine ay em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "team stand up",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team stand up",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team stand up",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team standup",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_07",
+      "category": "voice_to_text",
+      "text": "coffee at ten am and code review at two pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-07-21T10:00:00+10:00",
+            "end_time": "2026-07-21T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-07-21T10:00:00+10:00",
+            "end_time": "2026-07-21T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-07-20T10:00:00+10:00",
+            "end_time": "2026-07-20T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-07-21T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "code review",
+          "start_time": "2026-07-21T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "voice_08",
+      "category": "voice_to_text",
+      "text": "board meeting first monday of each month at nine ay em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ],
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ],
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-08-03T09:00:00+10:00",
+            "end_time": "2026-08-03T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "board meeting",
+          "start_time": "2026-08-03T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "voice_09",
+      "category": "voice_to_text",
+      "text": "yoga class saturday at ate ay em at bondi gym",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "yoga class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yoga class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yoga class",
+            "start_time": "2026-07-25T08:00:00+10:00",
+            "end_time": "2026-07-25T09:00:00+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "yoga class",
+          "start_time": "2026-07-25T08:00:00+10:00",
+          "end_time": null,
+          "location": "bondi gym",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_10",
+      "category": "voice_to_text",
+      "text": "flight to new york next monday at six thirty ay em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "flight to new york",
+            "start_time": "2026-07-27T06:30:00+10:00",
+            "end_time": "2026-07-27T07:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "flight to new york",
+            "start_time": "2026-07-27T06:30:00+10:00",
+            "end_time": "2026-07-27T07:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "flight to new york",
+            "start_time": "2026-07-27T06:30:00+10:00",
+            "end_time": "2026-07-27T07:30:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "flight to new york",
+          "start_time": "2026-07-27T06:30:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_11",
+      "category": "voice_to_text",
+      "text": "birthday party november tenth at six pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-11-10T18:00:00+11:00",
+            "end_time": "2026-11-10T19:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "birthday party",
+          "start_time": "2026-11-10T18:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_12",
+      "category": "voice_to_text",
+      "text": "workshop at one pee em to five pee em friday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-24T13:00:00+10:00",
+            "end_time": "2026-07-24T17:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "workshop",
+          "start_time": "2026-07-24T13:00:00+10:00",
+          "end_time": "2026-07-24T17:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 1.0,
+        "llm_fully_correct": true,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_13",
+      "category": "voice_to_text",
+      "text": "weekly one on one every wednesday at three pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "one on one",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "one on one",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "one on one",
+            "start_time": "2026-07-29T15:00:00+10:00",
+            "end_time": "2026-07-29T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "weekly 1:1",
+          "start_time": "2026-07-21T15:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_14",
+      "category": "voice_to_text",
+      "text": "vacation from december twentieth two january fifth",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "vacation from december twentieth two january fifth",
+            "start_time": "2026-07-20T19:51:37.003268+10:00",
+            "end_time": "2026-07-20T19:51:37.068277+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "vacation",
+            "start_time": "2026-12-20T09:00:00+11:00",
+            "end_time": "2027-01-05T17:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "vacation",
+            "start_time": "2026-12-20T09:00:00+11:00",
+            "end_time": "2027-01-05T17:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "vacation",
+          "start_time": "2026-12-20T14:00:00+11:00",
+          "end_time": "2027-01-05T14:00:00+11:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "voice_15",
+      "category": "voice_to_text",
+      "text": "lunch friday at twelve pee em doctor tuesday at nine ay em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "doctor",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "doctor",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T12:00:00+10:00",
+            "end_time": "2026-07-24T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "doctor",
+            "start_time": "2026-07-21T09:00:00+10:00",
+            "end_time": "2026-07-21T10:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch",
+          "start_time": "2026-07-24T12:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "doctor",
+          "start_time": "2026-07-21T09:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_16",
+      "category": "voice_to_text",
+      "text": "mentoring every other tuesday at five pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "mentoring",
+            "start_time": "2026-07-28T17:00:00+10:00",
+            "end_time": "2026-07-28T18:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "mentoring",
+            "start_time": "2026-07-28T17:00:00+10:00",
+            "end_time": "2026-07-28T18:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "mentoring",
+            "start_time": "2026-07-28T17:00:00+10:00",
+            "end_time": "2026-07-28T18:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "mentoring",
+          "start_time": "2026-07-21T17:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_17",
+      "category": "voice_to_text",
+      "text": "town hall last friday of each month at three pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "town hall",
+            "start_time": "2026-07-31T14:00:00+10:00",
+            "end_time": "2026-07-31T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ],
+        [
+          {
+            "title": "town hall",
+            "start_time": "2026-07-31T15:00:00+10:00",
+            "end_time": "2026-07-31T16:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ],
+        [
+          {
+            "title": "town hall",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "monthly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "town hall",
+          "start_time": "2026-07-31T15:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0
+      }
+    },
+    {
+      "input_id": "voice_18",
+      "category": "voice_to_text",
+      "text": "focus block every day this week at two pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "focus block",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ],
+        [
+          {
+            "title": "focus block",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ],
+        [
+          {
+            "title": "focus block",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "focus block",
+          "start_time": "2026-07-20T19:58:53.292873+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "daily"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_19",
+      "category": "voice_to_text",
+      "text": "call with client in won hour",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "call with client",
+            "start_time": "2026-07-20T21:02:10.423383+10:00",
+            "end_time": "2026-07-20T22:02:10.418516+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call with client",
+            "start_time": "2026-07-20T21:02:38.924829+10:00",
+            "end_time": "2026-07-20T22:02:38.918830+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call with client",
+            "start_time": "2026-07-20T21:02:59.241736+10:00",
+            "end_time": "2026-07-20T22:02:59.237741+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "call with client",
+          "start_time": "2026-07-20T21:01:41.117247+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0
+      }
+    },
+    {
+      "input_id": "voice_20",
+      "category": "voice_to_text",
+      "text": "parent teacher meeting next thursday at ate pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "parent teacher meeting",
+            "start_time": "2026-07-30T20:00:00+10:00",
+            "end_time": "2026-07-30T21:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "parent teacher meeting",
+            "start_time": "2026-07-30T20:00:00+10:00",
+            "end_time": "2026-07-30T21:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "parent teacher meeting",
+            "start_time": "2026-07-30T20:00:00+10:00",
+            "end_time": "2026-07-30T21:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "parent-teacher meeting",
+          "start_time": "2026-07-30T20:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_01",
+      "category": "ambiguous",
+      "text": "Dinner with Sarah next Thursday around 7ish",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-07-30T19:00:00+10:00",
+            "end_time": "2026-07-30T20:00:00+10:00",
+            "location": null,
+            "notes": "approximate time: around 7ish",
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-07-30T19:00:00+10:00",
+            "end_time": "2026-07-30T20:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dinner with sarah",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0
+      }
+    },
+    {
+      "input_id": "ambiguous_02",
+      "category": "ambiguous",
+      "text": "Catch up with the boys sometime this weekend",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "catch up with the boys",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ],
+        [
+          {
+            "title": "catch up with the boys",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ],
+        [
+          {
+            "title": "catch up with the boys",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "catch up with the boys",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_03",
+      "category": "ambiguous",
+      "text": "Lunch with Alex sometime next week",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch with alex",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with alex",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with alex",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch with alex",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_04",
+      "category": "ambiguous",
+      "text": "Meeting with the team later today",
+      "regex_events": [
+        {
+          "title": "meeting with the team later",
+          "start_time": "2026-07-20T14:00:00+10:00",
+          "end_time": "2026-07-20T15:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "llm_runs": [
+        [
+          {
+            "title": "meeting with the team",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting with the team",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting with the team",
+            "start_time": "2026-07-20T14:00:00+10:00",
+            "end_time": "2026-07-20T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting with the team",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.6,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_05",
+      "category": "ambiguous",
+      "text": "Coffee soon with Jamie",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee soon with jamie",
+            "start_time": "2026-07-20T20:08:53.010069+10:00",
+            "end_time": "2026-07-20T21:08:53.006489+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee soon with jamie",
+            "start_time": "2026-07-20T20:09:01.533641+10:00",
+            "end_time": "2026-07-20T21:09:01.530301+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee soon with jamie",
+            "start_time": "2026-07-20T20:09:24.270161+10:00",
+            "end_time": "2026-07-20T21:09:24.266141+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee with jamie",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0
+      }
+    },
+    {
+      "input_id": "ambiguous_06",
+      "category": "ambiguous",
+      "text": "Dinner around eight tonight",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dinner",
+            "start_time": "2026-07-20T20:00:00+10:00",
+            "end_time": "2026-07-20T21:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner",
+            "start_time": "2026-07-20T20:00:00+10:00",
+            "end_time": "2026-07-20T21:00:00+10:00",
+            "location": null,
+            "notes": "approximate time: around eight",
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner",
+            "start_time": "2026-07-20T20:00:00+10:00",
+            "end_time": "2026-07-20T21:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dinner",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "ambiguous_07",
+      "category": "ambiguous",
+      "text": "Catch up with Sam when we can",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "catch up with sam",
+            "start_time": "2026-07-20T20:11:04.129444+10:00",
+            "end_time": "2026-07-20T21:11:04.125446+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "catch up with sam when we can",
+            "start_time": "2026-07-20T20:11:18.022622+10:00",
+            "end_time": "2026-07-20T21:11:18.017204+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "catch up with sam",
+            "start_time": "2026-07-20T20:11:39.754736+10:00",
+            "end_time": "2026-07-20T21:11:39.749285+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "catch up with sam",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0
+      }
+    },
+    {
+      "input_id": "ambiguous_08",
+      "category": "ambiguous",
+      "text": "Party this weekend sometime",
+      "regex_events": [],
+      "llm_runs": [
+        [],
+        [
+          {
+            "title": "party",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ],
+        [
+          {
+            "title": "party",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "daily"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "party",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "ambiguous_09",
+      "category": "ambiguous",
+      "text": "Workout early morning tomorrow",
+      "regex_events": [
+        {
+          "title": "workout early morning",
+          "start_time": "2026-07-21T14:00:00+10:00",
+          "end_time": "2026-07-21T15:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "llm_runs": [
+        [
+          {
+            "title": "workout",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "early morning workout",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workout",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "workout",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "ambiguous_10",
+      "category": "ambiguous",
+      "text": "Call mom in the evening Sunday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "call mom",
+            "start_time": "2026-07-26T14:00:00+10:00",
+            "end_time": "2026-07-26T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call mom",
+            "start_time": "2026-07-26T14:00:00+10:00",
+            "end_time": "2026-07-26T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call mom",
+            "start_time": "2026-07-26T14:00:00+10:00",
+            "end_time": "2026-07-26T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "call mom",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_11",
+      "category": "ambiguous",
+      "text": "Study session this week sometime",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "study session",
+            "start_time": "2026-07-20T20:15:41.969822+10:00",
+            "end_time": "2026-07-20T21:15:41.965148+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "study session",
+            "start_time": "2026-07-20T20:16:07.439648+10:00",
+            "end_time": "2026-07-20T21:16:07.433269+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        []
+      ],
+      "ground_truth": [
+        {
+          "title": "study session",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0
+      }
+    },
+    {
+      "input_id": "ambiguous_12",
+      "category": "ambiguous",
+      "text": "Brunch with friends mid-morning Saturday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "brunch with friends",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "brunch with friends",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "brunch with friends",
+            "start_time": "2026-07-25T14:00:00+10:00",
+            "end_time": "2026-07-25T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "brunch with friends",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_13",
+      "category": "ambiguous",
+      "text": "Team sync when everyone's free next week",
+      "regex_events": [],
+      "llm_runs": [
+        [],
+        [],
+        [
+          {
+            "title": "team sync",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": "when everyone's free",
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team sync",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "ambiguous_14",
+      "category": "ambiguous",
+      "text": "Dinner with parents around dinnertime Friday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dinner with parents",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with parents",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with parents",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dinner with parents",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_15",
+      "category": "ambiguous",
+      "text": "Meeting after lunch next Tuesday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meeting",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_16",
+      "category": "ambiguous",
+      "text": "Gym session later this week",
+      "regex_events": [],
+      "llm_runs": [
+        [],
+        [],
+        [
+          {
+            "title": "gym session",
+            "start_time": "2026-07-20T20:21:56.718882+10:00",
+            "end_time": "2026-07-20T21:21:56.663881+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "gym session",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "ambiguous_17",
+      "category": "ambiguous",
+      "text": "Coffee with mentor sometime Thursday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee with mentor",
+            "start_time": "2026-07-23T14:00:00+10:00",
+            "end_time": "2026-07-23T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee with mentor",
+            "start_time": "2026-07-23T14:00:00+10:00",
+            "end_time": "2026-07-23T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee with mentor",
+            "start_time": "2026-07-23T14:00:00+10:00",
+            "end_time": "2026-07-23T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee with mentor",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_18",
+      "category": "ambiguous",
+      "text": "Presentation afternoon next Wednesday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "presentation afternoon",
+            "start_time": "2026-07-29T14:00:00+10:00",
+            "end_time": "2026-07-29T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "presentation afternoon",
+            "start_time": "2026-07-29T14:00:00+10:00",
+            "end_time": "2026-07-29T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "presentation afternoon",
+            "start_time": "2026-07-29T14:00:00+10:00",
+            "end_time": "2026-07-29T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "presentation",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_19",
+      "category": "ambiguous",
+      "text": "Happy hour end of day Friday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "happy hour",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "happy hour",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "happy hour",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "happy hour",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_20",
+      "category": "ambiguous",
+      "text": "Lunch downtown around noonish",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch downtown",
+            "start_time": "2026-07-20T12:00:00+10:00",
+            "end_time": "2026-07-20T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch downtown",
+            "start_time": "2026-07-20T12:00:00+10:00",
+            "end_time": "2026-07-20T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch downtown",
+            "start_time": "2026-07-20T12:00:00+10:00",
+            "end_time": "2026-07-20T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
       "input_id": "missing_01",
       "category": "missing_fields",
       "text": "Meeting with John next Tuesday (no time)",
@@ -125,8 +4599,8 @@
         [
           {
             "title": "meeting with john",
-            "start_time": "2026-06-23T14:00:00+10:00",
-            "end_time": "2026-06-23T15:00:00+10:00",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -135,8 +4609,8 @@
         [
           {
             "title": "meeting with john",
-            "start_time": "2026-06-23T14:00:00+10:00",
-            "end_time": "2026-06-23T15:00:00+10:00",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -145,8 +4619,8 @@
         [
           {
             "title": "meeting with john",
-            "start_time": "2026-06-23T14:00:00+10:00",
-            "end_time": "2026-06-23T15:00:00+10:00",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
             "location": null,
             "notes": null,
             "recurrence_type": "none"
@@ -156,7 +4630,1071 @@
       "ground_truth": [
         {
           "title": "meeting with john",
-          "start_time": "2026-06-23T14:00:00+10:00",
+          "start_time": "2026-07-28T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "missing_02",
+      "category": "missing_fields",
+      "text": "Lunch on Friday (no time, no location)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch",
+          "start_time": "2026-07-24T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "missing_03",
+      "category": "missing_fields",
+      "text": "Dinner with Sarah (no date or time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-07-20T20:28:11.608847+10:00",
+            "end_time": "2026-07-20T21:28:11.604565+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-07-20T20:28:25.631773+10:00",
+            "end_time": "2026-07-20T21:28:25.629779+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-07-20T20:28:40.133666+10:00",
+            "end_time": "2026-07-20T21:28:40.131664+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dinner with sarah",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.5
+      }
+    },
+    {
+      "input_id": "missing_04",
+      "category": "missing_fields",
+      "text": "Gym session (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "gym session (no time)",
+            "start_time": "2026-07-20T20:28:49.025465+10:00",
+            "end_time": "2026-07-20T21:28:49.023531+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gym session (no time)",
+            "start_time": "2026-07-20T20:28:57.704133+10:00",
+            "end_time": "2026-07-20T21:28:57.702191+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "gym session (no time)",
+            "start_time": "2026-07-20T20:29:05.647446+10:00",
+            "end_time": "2026-07-20T21:29:05.643435+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "gym session",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_05",
+      "category": "missing_fields",
+      "text": "Call mom (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "call mom (no time)",
+            "start_time": "2026-07-20T20:29:14.646323+10:00",
+            "end_time": "2026-07-20T21:29:14.642313+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call mom (no time)",
+            "start_time": "2026-07-20T20:29:24.194056+10:00",
+            "end_time": "2026-07-20T21:29:24.191061+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "call mom (no time)",
+            "start_time": "2026-07-20T20:29:34.922386+10:00",
+            "end_time": "2026-07-20T21:29:34.919388+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "call mom",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_06",
+      "category": "missing_fields",
+      "text": "Team meeting next week (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "team meeting",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "team meeting",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.5
+      }
+    },
+    {
+      "input_id": "missing_07",
+      "category": "missing_fields",
+      "text": "Doctor appointment (no date or time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "doctor appointment",
+            "start_time": "2026-07-20T20:31:24.051546+10:00",
+            "end_time": "2026-07-20T21:31:24.049549+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "doctor appointment (no date or time)",
+            "start_time": "2026-07-20T20:31:44.004486+10:00",
+            "end_time": "2026-07-20T21:31:44.001490+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "doctor appointment (no date or time)",
+            "start_time": "2026-07-20T20:32:03.839923+10:00",
+            "end_time": "2026-07-20T21:32:03.836928+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "doctor appointment",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.5
+      }
+    },
+    {
+      "input_id": "missing_08",
+      "category": "missing_fields",
+      "text": "Coffee with Alex tomorrow (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee with alex",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee with alex",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "coffee with alex",
+            "start_time": "2026-07-21T14:00:00+10:00",
+            "end_time": "2026-07-21T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee with alex",
+          "start_time": "2026-07-21T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "missing_09",
+      "category": "missing_fields",
+      "text": "Workshop at the office (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-20T20:33:31.233729+10:00",
+            "end_time": "2026-07-20T21:33:31.230725+10:00",
+            "location": "the office",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-20T20:33:53.699130+10:00",
+            "end_time": "2026-07-20T21:33:53.696116+10:00",
+            "location": "the office",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "workshop",
+            "start_time": "2026-07-20T20:34:20.267796+10:00",
+            "end_time": "2026-07-20T21:34:20.265796+10:00",
+            "location": "the office",
+            "notes": "(no time)",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "workshop",
+          "start_time": null,
+          "end_time": null,
+          "location": "the office",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_10",
+      "category": "missing_fields",
+      "text": "Birthday party (no date or time or location)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-07-20T20:34:39.137968+10:00",
+            "end_time": "2026-07-20T21:34:39.134957+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-07-20T20:35:02.877152+10:00",
+            "end_time": "2026-07-20T21:35:02.873636+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "birthday party",
+            "start_time": "2026-07-20T20:35:28.108360+10:00",
+            "end_time": "2026-07-20T21:35:28.104362+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "birthday party",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.5
+      }
+    },
+    {
+      "input_id": "missing_11",
+      "category": "missing_fields",
+      "text": "Conference call (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "conference call (no time)",
+            "start_time": "2026-07-20T20:35:39.073689+10:00",
+            "end_time": "2026-07-20T21:35:39.070689+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "conference call (no time)",
+            "start_time": "2026-07-20T20:36:04.101021+10:00",
+            "end_time": "2026-07-20T21:36:04.098027+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "conference call (no time)",
+            "start_time": "2026-07-20T20:36:19.826783+10:00",
+            "end_time": "2026-07-20T21:36:19.824429+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "conference call",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.5
+      }
+    },
+    {
+      "input_id": "missing_12",
+      "category": "missing_fields",
+      "text": "Lunch with Sarah (no time, no date)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "lunch with sarah (no time, no date)",
+            "start_time": "2026-07-20T20:36:32.580198+10:00",
+            "end_time": "2026-07-20T21:36:32.577887+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with sarah",
+            "start_time": "2026-07-20T20:36:55.983498+10:00",
+            "end_time": "2026-07-20T21:36:55.981498+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "lunch with sarah (no time, no date)",
+            "start_time": "2026-07-20T20:37:10.197322+10:00",
+            "end_time": "2026-07-20T21:37:10.195305+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "lunch with sarah",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_13",
+      "category": "missing_fields",
+      "text": "Dentist (no details)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dentist (no details)",
+            "start_time": "2026-07-20T20:37:21.744433+10:00",
+            "end_time": "2026-07-20T21:37:21.742420+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentist (no details)",
+            "start_time": "2026-07-20T20:37:27.883240+10:00",
+            "end_time": "2026-07-20T21:37:27.881236+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "dentist (no details)",
+            "start_time": "2026-07-20T20:37:38.759106+10:00",
+            "end_time": "2026-07-20T21:37:38.757146+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dentist",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_14",
+      "category": "missing_fields",
+      "text": "Meeting with John and Sarah next Tuesday (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meeting with john and sarah",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting with john and sarah",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "meeting with john and sarah",
+            "start_time": "2026-07-28T14:00:00+10:00",
+            "end_time": "2026-07-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting with john and sarah",
+          "start_time": "2026-07-28T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "missing_15",
+      "category": "missing_fields",
+      "text": "Yoga at Bondi Gym (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "yoga",
+            "start_time": "2026-07-20T20:39:12.918889+10:00",
+            "end_time": "2026-07-20T21:39:12.916888+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yoga",
+            "start_time": "2026-07-20T20:39:36.134370+10:00",
+            "end_time": "2026-07-20T21:39:36.132382+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "yoga",
+            "start_time": "2026-07-20T20:39:59.542100+10:00",
+            "end_time": "2026-07-20T21:39:59.538022+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "yoga",
+          "start_time": null,
+          "end_time": null,
+          "location": "bondi gym",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_16",
+      "category": "missing_fields",
+      "text": "Flight to Melbourne (no date or time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "flight to melbourne (no date or time)",
+            "start_time": "2026-07-20T20:40:21.373069+10:00",
+            "end_time": "2026-07-20T21:40:21.369072+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "flight to melbourne",
+            "start_time": "2026-07-20T20:40:36.737258+10:00",
+            "end_time": "2026-07-20T21:40:36.735262+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "flight to melbourne",
+            "start_time": "2026-07-20T20:41:05.077562+10:00",
+            "end_time": "2026-07-20T21:41:05.075528+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "flight to melbourne",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_17",
+      "category": "missing_fields",
+      "text": "Code review (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "code review (no time)",
+            "start_time": "2026-07-20T20:41:17.761278+10:00",
+            "end_time": "2026-07-20T21:41:17.758060+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "code review (no time)",
+            "start_time": "2026-07-20T20:41:36.032746+10:00",
+            "end_time": "2026-07-20T21:41:36.029749+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "code review (no time)",
+            "start_time": "2026-07-20T20:41:43.518156+10:00",
+            "end_time": "2026-07-20T21:41:43.515155+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "code review",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 0.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_18",
+      "category": "missing_fields",
+      "text": "Standup every Monday (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "standup",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "standup",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ],
+        [
+          {
+            "title": "standup",
+            "start_time": "2026-07-27T14:00:00+10:00",
+            "end_time": "2026-07-27T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "standup",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.5
+      }
+    },
+    {
+      "input_id": "missing_19",
+      "category": "missing_fields",
+      "text": "Interview next Thursday (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "interview",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "interview",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "interview",
+            "start_time": "2026-07-30T14:00:00+10:00",
+            "end_time": "2026-07-30T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "interview",
+          "start_time": "2026-07-30T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.3333333333333333
+      }
+    },
+    {
+      "input_id": "missing_20",
+      "category": "missing_fields",
+      "text": "Pick up kids from school Friday (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "pick up kids from school",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "pick up kids from school",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ],
+        [
+          {
+            "title": "pick up kids from school",
+            "start_time": "2026-07-24T14:00:00+10:00",
+            "end_time": "2026-07-24T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "pick up kids from school",
+          "start_time": "2026-07-24T14:00:00+10:00",
           "end_time": null,
           "location": null,
           "notes": null,
@@ -175,47 +5713,55 @@
   ],
   "summary": {
     "accuracy": {
-      "llm_mean_f1": 0.8484848484848485,
-      "llm_std_f1": 0.10497277621629562,
-      "regex_mean_f1": 0.0,
-      "regex_std_f1": 0.0
+      "llm_mean_f1": 0.6788023715415011,
+      "llm_std_f1": 0.3051400005221825,
+      "regex_mean_f1": 0.025090909090909094,
+      "regex_std_f1": 0.14645614743714383
     },
     "robustness": {
-      "llm_drop": 1.0,
-      "regex_drop": 0.0
+      "llm_drop": 0.08672390458467256,
+      "regex_drop": 1.0
     },
     "consistency": {
-      "llm_pairwise_agreement_mean": 0.7777777777777777,
-      "llm_pairwise_agreement_std": 0.3849001794597505
+      "llm_pairwise_agreement_mean": 0.7066666666666669,
+      "llm_pairwise_agreement_std": 0.4137914263933918
     },
     "hallucination": {
-      "llm_rate_mean": 0.3333333333333333,
-      "llm_rate_std": 0.0,
+      "llm_rate_mean": 0.5166666666666667,
+      "llm_rate_std": 0.14204027103779837,
       "regex_rate_mean": 0.0,
       "regex_rate_std": 0.0
     },
     "statistics": {
       "mcnemar": {
-        "statistic": 0.0,
-        "p_value": 1.0,
-        "llm_only_correct": 0.0,
+        "statistic": 0.5,
+        "p_value": 0.47950012218695337,
+        "llm_only_correct": 2.0,
         "regex_only_correct": 0.0
       },
       "wilcoxon_by_category": {
         "statistic": 0.0,
-        "p_value": 0.25
+        "p_value": 0.0625
       },
       "category_mean_f1": {
         "clean": [
-          0.9090909090909091,
+          0.7787878787878786,
+          0.09545454545454546
+        ],
+        "typos": [
+          0.7088603425559945,
+          0.0
+        ],
+        "voice_to_text": [
+          0.7136363636363634,
           0.0
         ],
         "ambiguous": [
-          0.7272727272727272,
-          0.0
+          0.6100000000000001,
+          0.03
         ],
         "missing_fields": [
-          0.9090909090909091,
+          0.5827272727272726,
           0.0
         ]
       }

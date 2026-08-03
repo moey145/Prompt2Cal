@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_05",
+  "category": "missing_fields",
+  "text": "Call mom (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "call mom (no time)",
+        "start_time": "2026-07-20T20:29:14.646323+10:00",
+        "end_time": "2026-07-20T21:29:14.642313+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "call mom (no time)",
+        "start_time": "2026-07-20T20:29:24.194056+10:00",
+        "end_time": "2026-07-20T21:29:24.191061+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "call mom (no time)",
+        "start_time": "2026-07-20T20:29:34.922386+10:00",
+        "end_time": "2026-07-20T21:29:34.919388+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "call mom",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.6666666666666666
+  }
+}

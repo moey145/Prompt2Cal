@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_17",
+  "category": "voice_to_text",
+  "text": "town hall last friday of each month at three pee em",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "town hall",
+        "start_time": "2026-07-31T15:00:00+10:00",
+        "end_time": "2026-07-31T16:00:00+10:00",
+        "location": null,
+        "notes": "occurs on the last friday of each month",
+        "recurrence_type": "monthly"
+      }
+    ],
+    [
+      {
+        "title": "town hall",
+        "start_time": "2026-07-31T15:00:00+10:00",
+        "end_time": "2026-07-31T16:00:00+10:00",
+        "location": null,
+        "notes": "occurs on the last friday of each month",
+        "recurrence_type": "monthly"
+      }
+    ],
+    [
+      {
+        "title": "town hall",
+        "start_time": "2026-07-31T15:00:00+10:00",
+        "end_time": "2026-07-31T16:00:00+10:00",
+        "location": null,
+        "notes": "occurs on the last friday of each month",
+        "recurrence_type": "monthly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "town hall",
+      "start_time": "2026-07-31T15:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "monthly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

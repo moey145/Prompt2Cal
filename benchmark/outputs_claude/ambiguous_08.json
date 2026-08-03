@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_08",
+  "category": "ambiguous",
+  "text": "Party this weekend sometime",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "party",
+        "start_time": "2026-07-25T19:00:00+10:00",
+        "end_time": "2026-07-25T21:00:00+10:00",
+        "location": null,
+        "notes": "time not specified - defaulted to 7pm",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "party",
+        "start_time": "2026-07-25T19:00:00+10:00",
+        "end_time": "2026-07-25T21:00:00+10:00",
+        "location": null,
+        "notes": "time not specified - defaulted to 7pm",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "party",
+        "start_time": "2026-07-25T19:00:00+10:00",
+        "end_time": "2026-07-25T21:00:00+10:00",
+        "location": null,
+        "notes": "time not specified - defaulted to 7pm",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "party",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

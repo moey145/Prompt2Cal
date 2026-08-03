@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_07",
+  "category": "missing_fields",
+  "text": "Doctor appointment (no date or time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "doctor appointment",
+        "start_time": "2026-07-23T11:37:33.825025+10:00",
+        "end_time": "2026-07-23T12:37:33.821025+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "doctor appointment",
+        "start_time": "2026-07-23T11:37:36.566624+10:00",
+        "end_time": "2026-07-23T12:37:36.561729+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "doctor appointment",
+        "start_time": "2026-07-23T11:37:39.240955+10:00",
+        "end_time": "2026-07-23T12:37:39.238956+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "doctor appointment",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.5
+  }
+}

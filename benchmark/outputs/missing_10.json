@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_10",
+  "category": "missing_fields",
+  "text": "Birthday party (no date or time or location)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "birthday party",
+        "start_time": "2026-07-20T20:34:39.137968+10:00",
+        "end_time": "2026-07-20T21:34:39.134957+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "birthday party",
+        "start_time": "2026-07-20T20:35:02.877152+10:00",
+        "end_time": "2026-07-20T21:35:02.873636+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "birthday party",
+        "start_time": "2026-07-20T20:35:28.108360+10:00",
+        "end_time": "2026-07-20T21:35:28.104362+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "birthday party",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.5
+  }
+}

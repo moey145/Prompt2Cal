@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_12",
+  "category": "missing_fields",
+  "text": "Lunch with Sarah (no time, no date)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "lunch with sarah",
+        "start_time": "2026-07-23T11:38:20.014052+10:00",
+        "end_time": "2026-07-23T12:38:20.009059+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch with sarah",
+        "start_time": "2026-07-23T11:38:26.364243+10:00",
+        "end_time": "2026-07-23T12:38:26.359313+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch with sarah",
+        "start_time": "2026-07-23T11:38:28.843969+10:00",
+        "end_time": "2026-07-23T12:38:28.838971+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "lunch with sarah",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.5
+  }
+}

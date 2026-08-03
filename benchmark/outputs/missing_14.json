@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_14",
+  "category": "missing_fields",
+  "text": "Meeting with John and Sarah next Tuesday (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "meeting with john and sarah",
+        "start_time": "2026-07-28T14:00:00+10:00",
+        "end_time": "2026-07-28T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting with john and sarah",
+        "start_time": "2026-07-28T14:00:00+10:00",
+        "end_time": "2026-07-28T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting with john and sarah",
+        "start_time": "2026-07-28T14:00:00+10:00",
+        "end_time": "2026-07-28T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "meeting with john and sarah",
+      "start_time": "2026-07-28T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0,
+    "llm_hallucination_rate": 0.3333333333333333
+  }
+}

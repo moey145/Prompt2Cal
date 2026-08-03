@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_01",
+  "category": "missing_fields",
+  "text": "Meeting with John next Tuesday (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "meeting with john",
+        "start_time": "2026-08-04T14:00:00+10:00",
+        "end_time": "2026-08-04T15:00:00+10:00",
+        "location": null,
+        "notes": "no specific time set",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting with john",
+        "start_time": "2026-08-04T14:00:00+10:00",
+        "end_time": "2026-08-04T15:00:00+10:00",
+        "location": null,
+        "notes": "no specific time provided",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting with john",
+        "start_time": "2026-08-04T14:00:00+10:00",
+        "end_time": "2026-08-04T15:00:00+10:00",
+        "location": null,
+        "notes": "no specific time provided",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "meeting with john",
+      "start_time": "2026-08-04T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333,
+    "llm_hallucination_rate": 0.6666666666666666
+  }
+}

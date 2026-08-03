@@ -1,0 +1,55 @@
+{
+  "input_id": "typos_05",
+  "category": "typos",
+  "text": "Meting with Sarah next Tuesady at 1pm",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "meeting with sarah",
+        "start_time": "2026-08-04T13:00:00+10:00",
+        "end_time": "2026-08-04T14:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meting with sarah",
+        "start_time": "2026-08-04T13:00:00+10:00",
+        "end_time": "2026-08-04T14:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meting with sarah",
+        "start_time": "2026-08-04T13:00:00+10:00",
+        "end_time": "2026-08-04T14:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "meeting with sarah",
+      "start_time": "2026-08-04T13:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

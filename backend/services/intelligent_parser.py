@@ -35,6 +35,11 @@ class IntelligentEventParser:
     
     def __init__(self, api_key: str):
         self.client = openai.OpenAI(api_key=api_key)
+        self.model = DEFAULT_MODEL
+        self._setup_common()
+
+    def _setup_common(self):
+        """Provider-agnostic setup shared by all parser subclasses."""
         self.success_count = 0
         self.failure_count = 0
         self.json_schema = {
@@ -115,20 +120,9 @@ class IntelligentEventParser:
             # Parse with LLM
             prompt = self._build_prompt(sanitized, timezone)
 
-            request_kwargs: Dict[str, Any] = {
-                "model": DEFAULT_MODEL,
-                "messages": [
-                    {"role": "system", "content": self._get_system_prompt()},
-                    {"role": "user", "content": prompt},
-                ],
-                "response_format": {"type": "json_object"},
-            }
-            if DEFAULT_MODEL not in MODELS_WITHOUT_TEMPERATURE:
-                request_kwargs["temperature"] = temperature
+            raw_content = self._call_llm(self._get_system_prompt(), prompt, temperature)
 
-            response = self.client.chat.completions.create(**request_kwargs)
-            
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw_content)
             events = result.get("events", [])
             
             logger.info(f"Intelligent parser found {len(events)} events from: '{sanitized}'")
@@ -233,6 +227,26 @@ class IntelligentEventParser:
             self.failure_count += 1
             return []
     
+    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
+        """Call the LLM and return the raw JSON string content.
+
+        Override this in a subclass to target a different provider while
+        reusing the shared prompt building and post-processing pipeline.
+        """
+        request_kwargs: Dict[str, Any] = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "response_format": {"type": "json_object"},
+        }
+        if self.model not in MODELS_WITHOUT_TEMPERATURE:
+            request_kwargs["temperature"] = temperature
+
+        response = self.client.chat.completions.create(**request_kwargs)
+        return response.choices[0].message.content
+
     def _sanitize_input(self, text: str) -> str:
         """Clean input before parsing."""
         # Remove extra whitespace

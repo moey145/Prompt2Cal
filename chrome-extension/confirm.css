@@ -470,3 +470,77 @@
   }
 }
 
+
+/* Source-grounding confidence styles (verifier-backed preview) */
+
+.field-ungrounded-confirm {
+  background: rgba(245, 158, 11, 0.16);
+  border-bottom: 1px dashed #d97706;
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+.dark-mode .field-ungrounded-confirm {
+  background: rgba(245, 158, 11, 0.22);
+  border-bottom-color: #f59e0b;
+}
+
+.assumed-label-confirm {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+.dark-mode .assumed-label-confirm {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+}
+
+.field-empty-confirm {
+  opacity: 0.55;
+}
+
+.field-empty-confirm .event-location-info-confirm {
+  font-style: italic;
+}
+
+.confidence-hint-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 10px;
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.10);
+  color: #b45309;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.dark-mode .confidence-hint-confirm {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.confidence-hint-icon-confirm {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.confidence-flag-confirm {
+  margin-left: 6px;
+  color: #d97706;
+  vertical-align: middle;
+}
+
+.dark-mode .confidence-flag-confirm {
+  color: #fbbf24;
+}

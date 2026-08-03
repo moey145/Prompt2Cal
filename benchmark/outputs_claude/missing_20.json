@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_20",
+  "category": "missing_fields",
+  "text": "Pick up kids from school Friday (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "pick up kids from school",
+        "start_time": "2026-07-24T14:00:00+10:00",
+        "end_time": "2026-07-24T14:30:00+10:00",
+        "location": null,
+        "notes": "no specific time given",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "pick up kids from school",
+        "start_time": "2026-07-24T14:00:00+10:00",
+        "end_time": "2026-07-24T14:30:00+10:00",
+        "location": null,
+        "notes": "no specific time given",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "pick up kids from school",
+        "start_time": "2026-07-24T14:00:00+10:00",
+        "end_time": "2026-07-24T14:30:00+10:00",
+        "location": null,
+        "notes": "no specific time set",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "pick up kids from school",
+      "start_time": "2026-07-24T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333,
+    "llm_hallucination_rate": 0.6666666666666666
+  }
+}

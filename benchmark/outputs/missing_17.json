@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_17",
+  "category": "missing_fields",
+  "text": "Code review (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "code review (no time)",
+        "start_time": "2026-07-20T20:41:17.761278+10:00",
+        "end_time": "2026-07-20T21:41:17.758060+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "code review (no time)",
+        "start_time": "2026-07-20T20:41:36.032746+10:00",
+        "end_time": "2026-07-20T21:41:36.029749+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "code review (no time)",
+        "start_time": "2026-07-20T20:41:43.518156+10:00",
+        "end_time": "2026-07-20T21:41:43.515155+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "code review",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.6666666666666666
+  }
+}

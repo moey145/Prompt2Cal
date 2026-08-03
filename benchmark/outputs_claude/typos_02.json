@@ -1,0 +1,87 @@
+{
+  "input_id": "typos_02",
+  "category": "typos",
+  "text": "Lnuch Friday at 12pm and dctor Tuesday at 9am",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "lnuch",
+        "start_time": "2026-07-24T12:00:00+10:00",
+        "end_time": "2026-07-24T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "dctor",
+        "start_time": "2026-07-28T09:00:00+10:00",
+        "end_time": "2026-07-28T10:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lnuch",
+        "start_time": "2026-07-24T12:00:00+10:00",
+        "end_time": "2026-07-24T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "dctor",
+        "start_time": "2026-07-28T09:00:00+10:00",
+        "end_time": "2026-07-28T10:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lnuch",
+        "start_time": "2026-07-24T12:00:00+10:00",
+        "end_time": "2026-07-24T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "dctor",
+        "start_time": "2026-07-28T09:00:00+10:00",
+        "end_time": "2026-07-28T10:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "lunch",
+      "start_time": "2026-07-24T12:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    },
+    {
+      "title": "doctor",
+      "start_time": "2026-07-28T09:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

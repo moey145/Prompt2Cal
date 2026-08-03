@@ -1,0 +1,46 @@
+{
+  "input_id": "ambiguous_11",
+  "category": "ambiguous",
+  "text": "Study session this week sometime",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "study session",
+        "start_time": "2026-07-20T20:15:41.969822+10:00",
+        "end_time": "2026-07-20T21:15:41.965148+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "study session",
+        "start_time": "2026-07-20T20:16:07.439648+10:00",
+        "end_time": "2026-07-20T21:16:07.433269+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    []
+  ],
+  "ground_truth": [
+    {
+      "title": "study session",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

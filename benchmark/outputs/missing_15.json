@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_15",
+  "category": "missing_fields",
+  "text": "Yoga at Bondi Gym (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "yoga",
+        "start_time": "2026-07-20T20:39:12.918889+10:00",
+        "end_time": "2026-07-20T21:39:12.916888+10:00",
+        "location": "bondi gym",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "yoga",
+        "start_time": "2026-07-20T20:39:36.134370+10:00",
+        "end_time": "2026-07-20T21:39:36.132382+10:00",
+        "location": "bondi gym",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "yoga",
+        "start_time": "2026-07-20T20:39:59.542100+10:00",
+        "end_time": "2026-07-20T21:39:59.538022+10:00",
+        "location": "bondi gym",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "yoga",
+      "start_time": null,
+      "end_time": null,
+      "location": "bondi gym",
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.6666666666666666
+  }
+}

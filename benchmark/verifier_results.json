@@ -1,0 +1,156 @@
+{
+  "gpt-5": {
+    "inputs_scored": 100,
+    "scopes": {
+      "all": {
+        "tp": 97,
+        "fn": 49,
+        "fp": 8,
+        "tn": 174,
+        "fabricated_fields": 146,
+        "legitimate_fields": 182,
+        "detection_recall": 0.6643835616438356,
+        "detection_precision": 0.9238095238095239,
+        "detection_f1": 0.7729083665338645,
+        "false_flag_rate": 0.04395604395604396
+      },
+      "ambiguous": {
+        "tp": 20,
+        "fn": 15,
+        "fp": 1,
+        "tn": 16,
+        "fabricated_fields": 35,
+        "legitimate_fields": 17,
+        "detection_recall": 0.5714285714285714,
+        "detection_precision": 0.9523809523809523,
+        "detection_f1": 0.7142857142857142,
+        "false_flag_rate": 0.058823529411764705
+      },
+      "clean": {
+        "tp": 14,
+        "fn": 8,
+        "fp": 1,
+        "tn": 50,
+        "fabricated_fields": 22,
+        "legitimate_fields": 51,
+        "detection_recall": 0.6363636363636364,
+        "detection_precision": 0.9333333333333333,
+        "detection_f1": 0.7567567567567568,
+        "false_flag_rate": 0.0196078431372549
+      },
+      "missing_fields": {
+        "tp": 32,
+        "fn": 8,
+        "fp": 0,
+        "tn": 23,
+        "fabricated_fields": 40,
+        "legitimate_fields": 23,
+        "detection_recall": 0.8,
+        "detection_precision": 1.0,
+        "detection_f1": 0.888888888888889,
+        "false_flag_rate": 0.0
+      },
+      "typos": {
+        "tp": 17,
+        "fn": 7,
+        "fp": 4,
+        "tn": 43,
+        "fabricated_fields": 24,
+        "legitimate_fields": 47,
+        "detection_recall": 0.7083333333333334,
+        "detection_precision": 0.8095238095238095,
+        "detection_f1": 0.7555555555555556,
+        "false_flag_rate": 0.0851063829787234
+      },
+      "voice_to_text": {
+        "tp": 14,
+        "fn": 11,
+        "fp": 2,
+        "tn": 42,
+        "fabricated_fields": 25,
+        "legitimate_fields": 44,
+        "detection_recall": 0.56,
+        "detection_precision": 0.875,
+        "detection_f1": 0.6829268292682927,
+        "false_flag_rate": 0.045454545454545456
+      }
+    }
+  },
+  "claude-sonnet-4-6": {
+    "inputs_scored": 100,
+    "scopes": {
+      "all": {
+        "tp": 123,
+        "fn": 49,
+        "fp": 8,
+        "tn": 192,
+        "fabricated_fields": 172,
+        "legitimate_fields": 200,
+        "detection_recall": 0.7151162790697675,
+        "detection_precision": 0.9389312977099237,
+        "detection_f1": 0.8118811881188119,
+        "false_flag_rate": 0.04
+      },
+      "ambiguous": {
+        "tp": 31,
+        "fn": 23,
+        "fp": 2,
+        "tn": 19,
+        "fabricated_fields": 54,
+        "legitimate_fields": 21,
+        "detection_recall": 0.5740740740740741,
+        "detection_precision": 0.9393939393939394,
+        "detection_f1": 0.7126436781609197,
+        "false_flag_rate": 0.09523809523809523
+      },
+      "clean": {
+        "tp": 16,
+        "fn": 8,
+        "fp": 0,
+        "tn": 52,
+        "fabricated_fields": 24,
+        "legitimate_fields": 52,
+        "detection_recall": 0.6666666666666666,
+        "detection_precision": 1.0,
+        "detection_f1": 0.8,
+        "false_flag_rate": 0.0
+      },
+      "missing_fields": {
+        "tp": 44,
+        "fn": 2,
+        "fp": 0,
+        "tn": 29,
+        "fabricated_fields": 46,
+        "legitimate_fields": 29,
+        "detection_recall": 0.9565217391304348,
+        "detection_precision": 1.0,
+        "detection_f1": 0.9777777777777777,
+        "false_flag_rate": 0.0
+      },
+      "typos": {
+        "tp": 16,
+        "fn": 6,
+        "fp": 3,
+        "tn": 46,
+        "fabricated_fields": 22,
+        "legitimate_fields": 49,
+        "detection_recall": 0.7272727272727273,
+        "detection_precision": 0.8421052631578947,
+        "detection_f1": 0.7804878048780488,
+        "false_flag_rate": 0.061224489795918366
+      },
+      "voice_to_text": {
+        "tp": 16,
+        "fn": 10,
+        "fp": 3,
+        "tn": 46,
+        "fabricated_fields": 26,
+        "legitimate_fields": 49,
+        "detection_recall": 0.6153846153846154,
+        "detection_precision": 0.8421052631578947,
+        "detection_f1": 0.7111111111111111,
+        "false_flag_rate": 0.061224489795918366
+      }
+    }
+  }
+}

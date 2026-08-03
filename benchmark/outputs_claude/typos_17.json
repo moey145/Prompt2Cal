@@ -1,0 +1,87 @@
+{
+  "input_id": "typos_17",
+  "category": "typos",
+  "text": "Cofee at 10am and luch at 2pm",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "cofee",
+        "start_time": "2026-07-23T10:00:00+10:00",
+        "end_time": "2026-07-23T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "luch",
+        "start_time": "2026-07-23T14:00:00+10:00",
+        "end_time": "2026-07-23T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "cofee",
+        "start_time": "2026-07-23T10:00:00+10:00",
+        "end_time": "2026-07-23T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "luch",
+        "start_time": "2026-07-23T14:00:00+10:00",
+        "end_time": "2026-07-23T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "cofee",
+        "start_time": "2026-07-23T10:00:00+10:00",
+        "end_time": "2026-07-23T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "luch",
+        "start_time": "2026-07-23T14:00:00+10:00",
+        "end_time": "2026-07-23T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "coffee",
+      "start_time": "2026-07-24T10:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    },
+    {
+      "title": "lunch",
+      "start_time": "2026-07-23T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6363636363636365,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

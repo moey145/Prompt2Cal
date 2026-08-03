@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_19",
+  "category": "voice_to_text",
+  "text": "call with client in won hour",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "call with client",
+        "start_time": "2026-07-23T12:33:16.794311+10:00",
+        "end_time": "2026-07-23T13:33:16.790889+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "call with client",
+        "start_time": "2026-07-23T12:33:20.803720+10:00",
+        "end_time": "2026-07-23T13:33:20.799678+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "call with client",
+        "start_time": "2026-07-23T12:33:24.146892+10:00",
+        "end_time": "2026-07-23T13:33:24.143895+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "call with client",
+      "start_time": "2026-07-23T12:33:13.607023+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

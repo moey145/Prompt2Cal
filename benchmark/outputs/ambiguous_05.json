@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_05",
+  "category": "ambiguous",
+  "text": "Coffee soon with Jamie",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "coffee soon with jamie",
+        "start_time": "2026-07-20T20:08:53.010069+10:00",
+        "end_time": "2026-07-20T21:08:53.006489+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee soon with jamie",
+        "start_time": "2026-07-20T20:09:01.533641+10:00",
+        "end_time": "2026-07-20T21:09:01.530301+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee soon with jamie",
+        "start_time": "2026-07-20T20:09:24.270161+10:00",
+        "end_time": "2026-07-20T21:09:24.266141+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "coffee with jamie",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

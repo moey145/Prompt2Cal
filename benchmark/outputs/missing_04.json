@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_04",
+  "category": "missing_fields",
+  "text": "Gym session (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "gym session (no time)",
+        "start_time": "2026-07-20T20:28:49.025465+10:00",
+        "end_time": "2026-07-20T21:28:49.023531+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "gym session (no time)",
+        "start_time": "2026-07-20T20:28:57.704133+10:00",
+        "end_time": "2026-07-20T21:28:57.702191+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "gym session (no time)",
+        "start_time": "2026-07-20T20:29:05.647446+10:00",
+        "end_time": "2026-07-20T21:29:05.643435+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "gym session",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.6666666666666666
+  }
+}

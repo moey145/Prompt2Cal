@@ -11,6 +11,7 @@ import {
   SquarePen,
   Check,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
@@ -32,6 +33,14 @@ export const SingleEventCard = ({
     parsedEvent.recurrence_type &&
     parsedEvent.recurrence_type !== "none";
 
+  // Source-grounding confidence computed by the backend verifier:
+  // fields marked "ungrounded" were not found in the user's input text.
+  const confidence = parsedEvent.field_confidence || {};
+  const isUngrounded = (field) => confidence[field] === "ungrounded";
+  const fieldClass = (field) =>
+    isUngrounded(field) ? " field-ungrounded-confirm" : "";
+  const hasUngrounded = Object.values(confidence).includes("ungrounded");
+
   return (
     <div className="event-card-confirm">
       <div className="event-card-header-confirm">
@@ -50,7 +59,9 @@ export const SingleEventCard = ({
       </div>
       <div className="event-card-content-confirm">
         <div className="event-title-row-confirm">
-          <div className="event-title-confirm">{parsedEvent.title}</div>
+          <div className={"event-title-confirm" + fieldClass("title")}>
+            {parsedEvent.title}
+          </div>
           <button
             className="edit-button-confirm"
             onClick={onEdit}
@@ -64,14 +75,26 @@ export const SingleEventCard = ({
             <Clock className="event-time-icon-confirm" />
             <div className="event-time-info-confirm">
               <div className="event-start-label-confirm">Starting from</div>
-              <div className="event-date-confirm">
+              <div className={"event-date-confirm" + fieldClass("start_time")}>
                 {formatDateTimeShort(parsedEvent.start_time)}
               </div>
               <div className="event-time-range-confirm">
-                {formatTimeShort(parsedEvent.start_time)} -{" "}
-                {formatTimeShort(parsedEvent.end_time)}
+                <span className={fieldClass("start_time").trim()}>
+                  {formatTimeShort(parsedEvent.start_time)}
+                </span>{" "}
+                -{" "}
+                <span className={fieldClass("end_time").trim()}>
+                  {formatTimeShort(parsedEvent.end_time)}
+                </span>
+                {parsedEvent.end_time_assumed && (
+                  <span className="assumed-label-confirm">assumed</span>
+                )}
               </div>
-              <div className="recurrence-text-confirm">
+              <div
+                className={
+                  "recurrence-text-confirm" + fieldClass("recurrence_type")
+                }
+              >
                 {getRecurrenceDescription(parsedEvent) ||
                   parsedEvent.recurrence_type.charAt(0).toUpperCase() +
                     parsedEvent.recurrence_type.slice(1)}
@@ -82,28 +105,49 @@ export const SingleEventCard = ({
           <div className="event-time-row-confirm">
             <Clock className="event-time-icon-confirm" />
             <div className="event-time-info-confirm">
-              <div className="event-date-confirm">
+              <div className={"event-date-confirm" + fieldClass("start_time")}>
                 {formatDateTimeShort(parsedEvent.start_time)}
               </div>
               <div className="event-time-range-confirm">
-                {formatTimeShort(parsedEvent.start_time)} -{" "}
-                {formatTimeShort(parsedEvent.end_time)}
+                <span className={fieldClass("start_time").trim()}>
+                  {formatTimeShort(parsedEvent.start_time)}
+                </span>{" "}
+                -{" "}
+                <span className={fieldClass("end_time").trim()}>
+                  {formatTimeShort(parsedEvent.end_time)}
+                </span>
+                {parsedEvent.end_time_assumed && (
+                  <span className="assumed-label-confirm">assumed</span>
+                )}
               </div>
             </div>
           </div>
         )}
-        {parsedEvent.location && (
+        {parsedEvent.location ? (
           <div className="event-time-row-confirm">
             <MapPin className="event-time-icon-confirm" />
-            <div className="event-location-info-confirm">
+            <div
+              className={
+                "event-location-info-confirm" + fieldClass("location")
+              }
+            >
               {parsedEvent.location}
+            </div>
+          </div>
+        ) : (
+          <div className="event-time-row-confirm field-empty-confirm">
+            <MapPin className="event-time-icon-confirm" />
+            <div className="event-location-info-confirm">
+              No location specified
             </div>
           </div>
         )}
         {parsedEvent.notes && (
           <div className="event-time-row-confirm">
             <FileText className="event-time-icon-confirm" />
-            <div className="event-location-info-confirm">
+            <div
+              className={"event-location-info-confirm" + fieldClass("notes")}
+            >
               {parsedEvent.notes}
             </div>
           </div>
@@ -122,6 +166,15 @@ export const SingleEventCard = ({
             <div className="event-location-info-confirm">
               Google Meet link will be generated
             </div>
+          </div>
+        )}
+        {hasUngrounded && (
+          <div className="confidence-hint-confirm">
+            <AlertTriangle size={14} className="confidence-hint-icon-confirm" />
+            <span>
+              Highlighted details were not found in your text. Please check
+              them before creating the event.
+            </span>
           </div>
         )}
         {!checkingConflicts && conflicts && conflicts.length > 0 && (

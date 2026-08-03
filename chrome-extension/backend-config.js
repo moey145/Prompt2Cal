@@ -3,7 +3,8 @@
 
 const BACKEND_CONFIG = {
   // Default backend URL - change this if your backend runs on a different port/host
-  API_BASE: "https://prompt2cal-backend-139801429107.us-central1.run.app",
+  // API_BASE: "https://prompt2cal-backend-139801429107.us-central1.run.app",
+  API_BASE: "http://localhost:8000",
 
   // API endpoints
   ENDPOINTS: {

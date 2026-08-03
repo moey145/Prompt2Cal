@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_11",
+  "category": "clean",
+  "text": "Every Monday team meeting at 10am for 1 hour",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "team meeting",
+        "start_time": "2026-07-27T10:00:00+10:00",
+        "end_time": "2026-07-27T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "team meeting",
+        "start_time": "2026-07-27T10:00:00+10:00",
+        "end_time": "2026-07-27T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "team meeting",
+        "start_time": "2026-07-27T10:00:00+10:00",
+        "end_time": "2026-07-27T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "team meeting",
+      "start_time": "2026-07-21T10:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "weekly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

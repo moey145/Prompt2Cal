@@ -1,0 +1,64 @@
+{
+  "input_id": "clean_09",
+  "category": "clean",
+  "text": "Work session at 9:00am - 11:30am tomorrow",
+  "regex_events": [
+    {
+      "title": "work session",
+      "start_time": "2026-07-24T09:00:00+10:00",
+      "end_time": "2026-07-24T11:30:00+10:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "llm_runs": [
+    [
+      {
+        "title": "work session",
+        "start_time": "2026-07-24T09:00:00+10:00",
+        "end_time": "2026-07-24T11:30:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "work session",
+        "start_time": "2026-07-24T09:00:00+10:00",
+        "end_time": "2026-07-24T11:30:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "work session",
+        "start_time": "2026-07-24T09:00:00+10:00",
+        "end_time": "2026-07-24T11:30:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "work session",
+      "start_time": "2026-07-24T09:00:00+10:00",
+      "end_time": "2026-07-24T11:30:00+10:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 1.0,
+    "regex_fully_correct": true,
+    "llm_f1": 1.0,
+    "llm_fully_correct": true,
+    "llm_pairwise_consistency": 1.0
+  }
+}

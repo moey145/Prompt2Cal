@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_16",
+  "category": "missing_fields",
+  "text": "Flight to Melbourne (no date or time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "flight to melbourne",
+        "start_time": "2026-07-23T11:38:59.474036+10:00",
+        "end_time": "2026-07-23T12:38:59.470019+10:00",
+        "location": null,
+        "notes": "no date or time specified",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "flight to melbourne",
+        "start_time": "2026-07-23T11:39:02.233374+10:00",
+        "end_time": "2026-07-23T12:39:02.228477+10:00",
+        "location": null,
+        "notes": "no date or time specified",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "flight to melbourne",
+        "start_time": "2026-07-23T11:39:05.182367+10:00",
+        "end_time": "2026-07-23T12:39:05.177844+10:00",
+        "location": null,
+        "notes": "no date or time specified",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "flight to melbourne",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.75
+  }
+}

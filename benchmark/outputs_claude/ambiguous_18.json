@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_18",
+  "category": "ambiguous",
+  "text": "Presentation afternoon next Wednesday",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "presentation afternoon",
+        "start_time": "2026-08-05T12:00:00+10:00",
+        "end_time": "2026-08-05T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "presentation afternoon",
+        "start_time": "2026-08-05T12:00:00+10:00",
+        "end_time": "2026-08-05T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "presentation afternoon",
+        "start_time": "2026-08-05T12:00:00+10:00",
+        "end_time": "2026-08-05T17:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "presentation",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

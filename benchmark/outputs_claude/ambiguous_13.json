@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_13",
+  "category": "ambiguous",
+  "text": "Team sync when everyone's free next week",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "team sync",
+        "start_time": "2026-07-30T14:00:00+10:00",
+        "end_time": "2026-07-30T15:00:00+10:00",
+        "location": null,
+        "notes": "schedule when everyone is free next week",
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "team sync",
+        "start_time": "2026-07-30T14:00:00+10:00",
+        "end_time": "2026-07-30T15:00:00+10:00",
+        "location": null,
+        "notes": "schedule when everyone is free next week",
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "team sync",
+        "start_time": "2026-07-30T14:00:00+10:00",
+        "end_time": "2026-07-30T15:00:00+10:00",
+        "location": null,
+        "notes": "schedule when everyone is free next week",
+        "recurrence_type": "weekly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "team sync",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.4444444444444444,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

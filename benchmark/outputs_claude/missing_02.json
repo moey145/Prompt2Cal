@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_02",
+  "category": "missing_fields",
+  "text": "Lunch on Friday (no time, no location)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "lunch",
+        "start_time": "2026-07-24T14:00:00+10:00",
+        "end_time": "2026-07-24T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch",
+        "start_time": "2026-07-24T14:00:00+10:00",
+        "end_time": "2026-07-24T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch",
+        "start_time": "2026-07-24T14:00:00+10:00",
+        "end_time": "2026-07-24T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "lunch",
+      "start_time": "2026-07-24T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0,
+    "llm_hallucination_rate": 0.3333333333333333
+  }
+}

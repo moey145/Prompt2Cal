@@ -1,0 +1,119 @@
+{
+  "input_id": "clean_16",
+  "category": "clean",
+  "text": "Coffee at 10am and lunch at 12pm and gym at 6pm",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "coffee",
+        "start_time": "2026-07-23T10:00:00+10:00",
+        "end_time": "2026-07-23T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "lunch",
+        "start_time": "2026-07-23T12:00:00+10:00",
+        "end_time": "2026-07-23T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "gym",
+        "start_time": "2026-07-23T18:00:00+10:00",
+        "end_time": "2026-07-23T19:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee",
+        "start_time": "2026-07-23T10:00:00+10:00",
+        "end_time": "2026-07-23T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "lunch",
+        "start_time": "2026-07-23T12:00:00+10:00",
+        "end_time": "2026-07-23T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "gym",
+        "start_time": "2026-07-23T18:00:00+10:00",
+        "end_time": "2026-07-23T19:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee",
+        "start_time": "2026-07-23T10:00:00+10:00",
+        "end_time": "2026-07-23T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "lunch",
+        "start_time": "2026-07-23T12:00:00+10:00",
+        "end_time": "2026-07-23T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "gym",
+        "start_time": "2026-07-23T18:00:00+10:00",
+        "end_time": "2026-07-23T19:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "coffee",
+      "start_time": "2026-07-24T10:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    },
+    {
+      "title": "lunch",
+      "start_time": "2026-07-23T12:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    },
+    {
+      "title": "gym",
+      "start_time": "2026-07-23T18:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8484848484848485,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

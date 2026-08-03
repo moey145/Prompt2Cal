@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_05",
+  "category": "clean",
+  "text": "Meet John at Central Park this Saturday at 3pm",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "meet john",
+        "start_time": "2026-07-25T15:00:00+10:00",
+        "end_time": "2026-07-25T16:00:00+10:00",
+        "location": "central park",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meet john",
+        "start_time": "2026-07-25T15:00:00+10:00",
+        "end_time": "2026-07-25T16:00:00+10:00",
+        "location": "central park",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meet john",
+        "start_time": "2026-07-25T15:00:00+10:00",
+        "end_time": "2026-07-25T16:00:00+10:00",
+        "location": "central park",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "meet john",
+      "start_time": "2026-07-25T15:00:00+10:00",
+      "end_time": null,
+      "location": "central park",
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_17",
+  "category": "clean",
+  "text": "Weekly 1:1 every Wednesday at 3pm for the next 4 weeks",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "1:1",
+        "start_time": "2026-07-29T15:00:00+10:00",
+        "end_time": "2026-07-29T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "1:1",
+        "start_time": "2026-07-29T15:00:00+10:00",
+        "end_time": "2026-07-29T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "1:1",
+        "start_time": "2026-07-29T15:00:00+10:00",
+        "end_time": "2026-07-29T16:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "weekly 1:1",
+      "start_time": "2026-07-21T15:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "weekly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

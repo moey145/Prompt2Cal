@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_16",
+  "category": "voice_to_text",
+  "text": "mentoring every other tuesday at five pee em",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "mentoring",
+        "start_time": "2026-08-04T17:00:00+10:00",
+        "end_time": "2026-08-04T18:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "mentoring",
+        "start_time": "2026-08-04T17:00:00+10:00",
+        "end_time": "2026-08-04T18:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "mentoring",
+        "start_time": "2026-08-04T17:00:00+10:00",
+        "end_time": "2026-08-04T18:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "weekly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "mentoring",
+      "start_time": "2026-07-28T17:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "weekly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

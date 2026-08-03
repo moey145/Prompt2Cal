@@ -1,0 +1,64 @@
+{
+  "input_id": "ambiguous_04",
+  "category": "ambiguous",
+  "text": "Meeting with the team later today",
+  "regex_events": [
+    {
+      "title": "meeting with the team later",
+      "start_time": "2026-07-20T14:00:00+10:00",
+      "end_time": "2026-07-20T15:00:00+10:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "llm_runs": [
+    [
+      {
+        "title": "meeting with the team",
+        "start_time": "2026-07-20T14:00:00+10:00",
+        "end_time": "2026-07-20T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting with the team",
+        "start_time": "2026-07-20T14:00:00+10:00",
+        "end_time": "2026-07-20T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting with the team",
+        "start_time": "2026-07-20T14:00:00+10:00",
+        "end_time": "2026-07-20T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "meeting with the team",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.6,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

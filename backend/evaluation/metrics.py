@@ -70,8 +70,14 @@ def merge_scores(scores: Iterable[FieldScore]) -> FieldScore:
     return merged
 
 
-def f1_for_input(predicted: List[EvalEvent], expected: List[EvalEvent]) -> float:
-    pairs, false_positives, false_negatives = align_events(predicted, expected)
+def f1_for_input(
+    predicted: List[EvalEvent],
+    expected: List[EvalEvent],
+    alignment_threshold: float = 0.7,
+) -> float:
+    pairs, false_positives, false_negatives = align_events(
+        predicted, expected, threshold=alignment_threshold
+    )
     scores = [score_aligned_pair(pred, truth) for pred, truth in pairs]
 
     for _ in false_positives:

@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_02",
+  "category": "ambiguous",
+  "text": "Catch up with the boys sometime this weekend",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "catch up with the boys",
+        "start_time": "2026-07-25T14:00:00+10:00",
+        "end_time": "2026-07-25T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "daily"
+      }
+    ],
+    [
+      {
+        "title": "catch up with the boys",
+        "start_time": "2026-07-25T14:00:00+10:00",
+        "end_time": "2026-07-25T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "daily"
+      }
+    ],
+    [
+      {
+        "title": "catch up with the boys",
+        "start_time": "2026-07-25T14:00:00+10:00",
+        "end_time": "2026-07-25T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "daily"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "catch up with the boys",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

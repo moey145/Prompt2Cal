@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_20",
+  "category": "ambiguous",
+  "text": "Lunch downtown around noonish",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "lunch downtown",
+        "start_time": "2026-07-20T12:00:00+10:00",
+        "end_time": "2026-07-20T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch downtown",
+        "start_time": "2026-07-20T12:00:00+10:00",
+        "end_time": "2026-07-20T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch downtown",
+        "start_time": "2026-07-20T12:00:00+10:00",
+        "end_time": "2026-07-20T13:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "lunch",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_07",
+  "category": "ambiguous",
+  "text": "Catch up with Sam when we can",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "catch up with sam",
+        "start_time": "2026-07-20T20:11:04.129444+10:00",
+        "end_time": "2026-07-20T21:11:04.125446+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "catch up with sam when we can",
+        "start_time": "2026-07-20T20:11:18.022622+10:00",
+        "end_time": "2026-07-20T21:11:18.017204+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "catch up with sam",
+        "start_time": "2026-07-20T20:11:39.754736+10:00",
+        "end_time": "2026-07-20T21:11:39.749285+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "catch up with sam",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

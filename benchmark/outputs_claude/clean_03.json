@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_03",
+  "category": "clean",
+  "text": "Yoga class Saturday 8am at Bondi Gym",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "yoga class",
+        "start_time": "2026-07-25T08:00:00+10:00",
+        "end_time": "2026-07-25T09:00:00+10:00",
+        "location": "bondi gym",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "yoga class",
+        "start_time": "2026-07-25T08:00:00+10:00",
+        "end_time": "2026-07-25T09:00:00+10:00",
+        "location": "bondi gym",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "yoga class",
+        "start_time": "2026-07-25T08:00:00+10:00",
+        "end_time": "2026-07-25T09:00:00+10:00",
+        "location": "bondi gym",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "yoga class",
+      "start_time": "2026-07-25T08:00:00+10:00",
+      "end_time": null,
+      "location": "bondi gym",
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

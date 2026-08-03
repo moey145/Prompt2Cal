@@ -1,0 +1,87 @@
+{
+  "input_id": "typos_06",
+  "category": "typos",
+  "text": "Coffe at 10am and code reveiw at 2pm",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "coffe",
+        "start_time": "2026-07-20T10:00:00+10:00",
+        "end_time": "2026-07-20T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "code reveiw",
+        "start_time": "2026-07-20T14:00:00+10:00",
+        "end_time": "2026-07-20T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffe",
+        "start_time": "2026-07-21T10:00:00+10:00",
+        "end_time": "2026-07-21T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "code reveiw",
+        "start_time": "2026-07-21T14:00:00+10:00",
+        "end_time": "2026-07-21T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffe",
+        "start_time": "2026-07-20T10:00:00+10:00",
+        "end_time": "2026-07-20T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      },
+      {
+        "title": "code reveiw",
+        "start_time": "2026-07-20T14:00:00+10:00",
+        "end_time": "2026-07-20T15:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "coffee",
+      "start_time": "2026-07-21T10:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    },
+    {
+      "title": "code review",
+      "start_time": "2026-07-21T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.5454545454545454,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

@@ -11,6 +11,7 @@ import {
   SquarePen,
   X,
   Check,
+  AlertTriangle,
 } from "lucide-react";
 import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
@@ -66,11 +67,27 @@ export const BulkEventsCard = ({
         {parsedEvents.map((event, index) => {
           const isRecurring =
             event.recurrence_type && event.recurrence_type !== "none";
+          const confidence = event.field_confidence || {};
+          const fieldClass = (field) =>
+            confidence[field] === "ungrounded"
+              ? " field-ungrounded-confirm"
+              : "";
+          const hasUngrounded =
+            Object.values(confidence).includes("ungrounded");
 
           return (
             <div key={index} className="event-item-confirm">
               <div className="event-title-row-confirm">
-                <div className="event-title-confirm">{event.title}</div>
+                <div className={"event-title-confirm" + fieldClass("title")}>
+                  {event.title}
+                  {hasUngrounded && (
+                    <AlertTriangle
+                      size={14}
+                      className="confidence-flag-confirm"
+                      title="Some details were not found in your text"
+                    />
+                  )}
+                </div>
                 <div className="event-item-controls-confirm">
                   <button
                     className="edit-button-confirm"
@@ -98,12 +115,22 @@ export const BulkEventsCard = ({
                     <div className="event-start-label-confirm">
                       Starting from
                     </div>
-                    <div className="event-date-confirm">
+                    <div
+                      className={"event-date-confirm" + fieldClass("start_time")}
+                    >
                       {formatDateTimeShort(event.start_time)}
                     </div>
                     <div className="event-time-range-confirm">
-                      {formatTimeShort(event.start_time)} -{" "}
-                      {formatTimeShort(event.end_time)}
+                      <span className={fieldClass("start_time").trim()}>
+                        {formatTimeShort(event.start_time)}
+                      </span>{" "}
+                      -{" "}
+                      <span className={fieldClass("end_time").trim()}>
+                        {formatTimeShort(event.end_time)}
+                      </span>
+                      {event.end_time_assumed && (
+                        <span className="assumed-label-confirm">assumed</span>
+                      )}
                     </div>
                     <div className="recurrence-text-confirm">
                       {getRecurrenceDescription(event) ||
@@ -116,12 +143,22 @@ export const BulkEventsCard = ({
                 <div className="event-time-row-confirm">
                   <Clock className="event-time-icon-confirm" />
                   <div className="event-time-info-confirm">
-                    <div className="event-date-confirm">
+                    <div
+                      className={"event-date-confirm" + fieldClass("start_time")}
+                    >
                       {formatDateTimeShort(event.start_time)}
                     </div>
                     <div className="event-time-range-confirm">
-                      {formatTimeShort(event.start_time)} -{" "}
-                      {formatTimeShort(event.end_time)}
+                      <span className={fieldClass("start_time").trim()}>
+                        {formatTimeShort(event.start_time)}
+                      </span>{" "}
+                      -{" "}
+                      <span className={fieldClass("end_time").trim()}>
+                        {formatTimeShort(event.end_time)}
+                      </span>
+                      {event.end_time_assumed && (
+                        <span className="assumed-label-confirm">assumed</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -129,7 +166,11 @@ export const BulkEventsCard = ({
               {event.location && (
                 <div className="event-time-row-confirm">
                   <MapPin className="event-time-icon-confirm" />
-                  <div className="event-location-info-confirm">
+                  <div
+                    className={
+                      "event-location-info-confirm" + fieldClass("location")
+                    }
+                  >
                     {event.location}
                   </div>
                 </div>

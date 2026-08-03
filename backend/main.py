@@ -9,6 +9,7 @@ import logging
 
 from backend.services.event_parser import EventParser
 from backend.services.calendar_service import CalendarService
+from backend.services.confidence import attach_confidence
 from backend.models.event_models import (
     EventRequest, EventResponse, ParsedEvent,
     BulkEventRequest, BulkEventResponse, FileImportRequest
@@ -160,6 +161,7 @@ async def create_event(request: EventRequest):
                     else:
                         event_dict = event.dict() if hasattr(event, 'dict') else event.model_dump()
                     event_dict["original_text"] = request.text
+                    attach_confidence(event_dict, request.text, request.timezone)
                     events_list.append(event_dict)
                 
                 return JSONResponse(content={
@@ -211,6 +213,7 @@ async def create_event(request: EventRequest):
                                 else:
                                     expanded_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
                                 expanded_event["original_text"] = request.text
+                                attach_confidence(expanded_event, request.text, request.timezone)
                                 events_list.append(expanded_event)
                             return JSONResponse(content={
                                 "success": True,
@@ -237,6 +240,9 @@ async def create_event(request: EventRequest):
                             e.model_dump() if hasattr(e, 'model_dump') else (e.dict() if hasattr(e, 'dict') else e)
                             for e in alt_expanded
                         ]
+                        for alt_dict in events_list:
+                            alt_dict["original_text"] = request.text
+                            attach_confidence(alt_dict, request.text, request.timezone)
                         return JSONResponse(content={
                             "success": True,
                             "parsed_event": None,
@@ -307,6 +313,7 @@ async def create_event(request: EventRequest):
                             else:
                                 expanded_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
                             expanded_event["original_text"] = request.text
+                            attach_confidence(expanded_event, request.text, request.timezone)
                             events_list.append(expanded_event)
                         return JSONResponse(content={
                             "success": True,
@@ -340,6 +347,7 @@ async def create_event(request: EventRequest):
                         else:
                             alt_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
                         alt_event["original_text"] = request.text
+                        attach_confidence(alt_event, request.text, request.timezone)
                         events_list.append(alt_event)
                     return JSONResponse(content={
                         "success": True,
@@ -367,7 +375,10 @@ async def create_event(request: EventRequest):
         
         # Attach original text for downstream processing
         event_dict["original_text"] = request.text
-        
+
+        # Per-field source-grounding confidence for the preview UI
+        attach_confidence(event_dict, request.text, request.timezone)
+
         # Return parsed details for confirmation
         return EventResponse(
             success=True,

@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_18",
+  "category": "clean",
+  "text": "Workshop at 1pm-5pm Friday",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "workshop",
+        "start_time": "2026-07-24T13:00:00+10:00",
+        "end_time": "2026-07-24T17:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "workshop",
+        "start_time": "2026-07-24T13:00:00+10:00",
+        "end_time": "2026-07-24T17:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "workshop",
+        "start_time": "2026-07-24T13:00:00+10:00",
+        "end_time": "2026-07-24T17:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "workshop",
+      "start_time": "2026-07-24T13:00:00+10:00",
+      "end_time": "2026-07-24T17:00:00+10:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 1.0,
+    "llm_fully_correct": true,
+    "llm_pairwise_consistency": 1.0
+  }
+}

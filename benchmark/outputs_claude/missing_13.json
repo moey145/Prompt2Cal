@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_13",
+  "category": "missing_fields",
+  "text": "Dentist (no details)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "dentist",
+        "start_time": "2026-07-23T11:38:31.399495+10:00",
+        "end_time": "2026-07-23T12:38:31.393492+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "dentist",
+        "start_time": "2026-07-23T11:38:34.481976+10:00",
+        "end_time": "2026-07-23T12:38:34.480087+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "dentist",
+        "start_time": "2026-07-23T11:38:37.069904+10:00",
+        "end_time": "2026-07-23T12:38:37.065913+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "dentist",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 0.5
+  }
+}

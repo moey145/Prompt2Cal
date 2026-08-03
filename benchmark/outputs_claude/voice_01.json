@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_01",
+  "category": "voice_to_text",
+  "text": "meeting four next Tuesday at to PM",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "meeting four",
+        "start_time": "2026-08-04T14:00:00+10:00",
+        "end_time": "2026-08-04T15:00:00+10:00",
+        "location": null,
+        "notes": "original description had unclear time ('to pm') \u2014 interpreted as 2pm",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting four",
+        "start_time": "2026-08-04T14:00:00+10:00",
+        "end_time": "2026-08-04T15:00:00+10:00",
+        "location": null,
+        "notes": "original description had unclear time ('to pm') - interpreted as 2pm",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "meeting four",
+        "start_time": "2026-08-04T14:00:00+10:00",
+        "end_time": "2026-08-04T15:00:00+10:00",
+        "location": null,
+        "notes": "original description had unclear time ('to pm') - interpreted as 2pm",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "meeting",
+      "start_time": "2026-08-04T14:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

@@ -50,14 +50,26 @@ class EvaluationRunner:
         llm_runs: int = 3,
         llm_temperature: float = 0.0,
         regex_only: bool = False,
+        provider: str = "openai",
+        model: str | None = None,
     ):
         self.dataset = dataset
         self.output_dir = Path(output_dir)
         self.llm_runs = llm_runs
         self.llm_temperature = llm_temperature
         self.regex_only = regex_only
+        self.provider = provider
+        self.model = model
         self.regex_extractor = RegexExtractor()
-        self.llm_extractor = None if regex_only else LLMExtractor()
+        self.llm_extractor = (
+            None
+            if regex_only
+            else LLMExtractor(provider=provider, model=model)
+        )
+        # Record the resolved model actually used (falls back to the provider
+        # default when no explicit --model override is given).
+        if self.llm_extractor is not None:
+            self.model = getattr(self.llm_extractor.parser, "model", model)
 
     async def run(self, input_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -77,6 +89,8 @@ class EvaluationRunner:
             "llm_runs": self.llm_runs,
             "llm_temperature": self.llm_temperature,
             "regex_only": self.regex_only,
+            "provider": self.provider,
+            "model": self.model,
             "results": [self._result_to_dict(result) for result in results],
             "summary": self._summary_to_dict(summary),
         }

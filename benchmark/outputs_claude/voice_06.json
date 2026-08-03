@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_06",
+  "category": "voice_to_text",
+  "text": "team stand up tomorrow morning at nine ay em",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "team stand up",
+        "start_time": "2026-07-24T09:00:00+10:00",
+        "end_time": "2026-07-24T09:15:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "team stand up",
+        "start_time": "2026-07-24T09:00:00+10:00",
+        "end_time": "2026-07-24T09:15:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "team stand up",
+        "start_time": "2026-07-24T09:00:00+10:00",
+        "end_time": "2026-07-24T09:15:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "team standup",
+      "start_time": "2026-07-24T09:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

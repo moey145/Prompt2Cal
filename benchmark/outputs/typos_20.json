@@ -1,0 +1,46 @@
+{
+  "input_id": "typos_20",
+  "category": "typos",
+  "text": "Projet kickoff nex week at 10am",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "projet kickoff",
+        "start_time": "2026-07-27T10:00:00+10:00",
+        "end_time": "2026-07-27T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [],
+    [
+      {
+        "title": "projet kickoff",
+        "start_time": "2026-07-27T10:00:00+10:00",
+        "end_time": "2026-07-27T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "project kickoff",
+      "start_time": "2026-07-27T10:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.7272727272727272,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

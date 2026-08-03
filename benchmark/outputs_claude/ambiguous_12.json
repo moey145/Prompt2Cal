@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_12",
+  "category": "ambiguous",
+  "text": "Brunch with friends mid-morning Saturday",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "brunch with friends",
+        "start_time": "2026-07-25T10:30:00+10:00",
+        "end_time": "2026-07-25T12:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "brunch with friends",
+        "start_time": "2026-07-25T10:30:00+10:00",
+        "end_time": "2026-07-25T12:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "brunch with friends",
+        "start_time": "2026-07-25T10:30:00+10:00",
+        "end_time": "2026-07-25T12:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "brunch with friends",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.8,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

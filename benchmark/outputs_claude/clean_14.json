@@ -1,0 +1,55 @@
+{
+  "input_id": "clean_14",
+  "category": "clean",
+  "text": "Flight to New York next Monday at 6:30am",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "flight to new york",
+        "start_time": "2026-08-03T06:30:00+10:00",
+        "end_time": "2026-08-03T07:30:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "flight to new york",
+        "start_time": "2026-08-03T06:30:00+10:00",
+        "end_time": "2026-08-03T07:30:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "flight to new york",
+        "start_time": "2026-08-03T06:30:00+10:00",
+        "end_time": "2026-08-03T07:30:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "flight to new york",
+      "start_time": "2026-08-03T06:30:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

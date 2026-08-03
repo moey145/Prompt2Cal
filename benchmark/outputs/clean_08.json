@@ -1,0 +1,37 @@
+{
+  "input_id": "clean_08",
+  "category": "clean",
+  "text": "Project kickoff next week at 10am",
+  "regex_events": [],
+  "llm_runs": [
+    [],
+    [
+      {
+        "title": "project kickoff",
+        "start_time": "2026-07-27T10:00:00+10:00",
+        "end_time": "2026-07-27T11:00:00+10:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    []
+  ],
+  "ground_truth": [
+    {
+      "title": "project kickoff",
+      "start_time": "2026-07-27T10:00:00+10:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.0,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

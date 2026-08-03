@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_18",
+  "category": "missing_fields",
+  "text": "Standup every Monday (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "standup",
+        "start_time": "2026-08-03T14:00:00+10:00",
+        "end_time": "2026-08-03T14:15:00+10:00",
+        "location": null,
+        "notes": "no specific time set",
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "standup",
+        "start_time": "2026-08-03T14:00:00+10:00",
+        "end_time": "2026-08-03T14:15:00+10:00",
+        "location": null,
+        "notes": "no specific time set",
+        "recurrence_type": "weekly"
+      }
+    ],
+    [
+      {
+        "title": "standup",
+        "start_time": "2026-08-03T14:00:00+10:00",
+        "end_time": "2026-08-03T14:15:00+10:00",
+        "location": null,
+        "notes": "no specific time set",
+        "recurrence_type": "weekly"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "standup",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "weekly"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0,
+    "llm_hallucination_rate": 0.75
+  }
+}
