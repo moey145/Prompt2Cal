@@ -68,7 +68,7 @@ class Prompt2CalBackground {
   handleTabUpdate(tabId, changeInfo, tab) {
     // Handle OAuth callback
     if (changeInfo.status === "complete" && tab.url) {
-      if (tab.url.includes("/auth/callback")) {
+      if (tab.url.includes("/auth/callback") || tab.url.includes("/auth/microsoft/callback")) {
         // Auth callback detected, close the tab after a short delay
         // This gives time for the success/error page to load and show
         setTimeout(() => {

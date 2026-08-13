@@ -9,6 +9,7 @@ import logging
 
 from backend.services.event_parser import EventParser
 from backend.services.calendar_service import CalendarService
+from backend.services.microsoft_calendar_service import MicrosoftCalendarService
 from backend.services.confidence import attach_confidence
 from backend.models.event_models import (
     EventRequest, EventResponse, ParsedEvent,
@@ -85,36 +86,81 @@ app.add_middleware(
 # Initialize services
 event_parser = EventParser()
 calendar_service = CalendarService()
+microsoft_calendar_service = MicrosoftCalendarService()
+
+
+def _normalize_provider(provider: Optional[str]) -> str:
+    value = (provider or "google").strip().lower()
+    return "microsoft" if value in {"microsoft", "outlook", "ms"} else "google"
+
+
+def _calendar_service_for(provider: Optional[str]):
+    return (
+        microsoft_calendar_service
+        if _normalize_provider(provider) == "microsoft"
+        else calendar_service
+    )
+
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
 @app.get("/auth/status")
-async def auth_status(user_id: str = None):
-    """Check if Google Calendar is authenticated."""
+async def auth_status(user_id: str = None, provider: str = None):
+    """Check calendar authentication status for Google and/or Microsoft."""
     try:
-        is_authenticated = calendar_service.is_authenticated(user_id=user_id)
+        google_auth = calendar_service.is_authenticated(user_id=user_id)
+        microsoft_auth = microsoft_calendar_service.is_authenticated(user_id=user_id)
+        active = _normalize_provider(provider)
+        authenticated = microsoft_auth if active == "microsoft" else google_auth
+        # If no provider preference is given, authenticated means either is connected
+        if provider is None:
+            authenticated = google_auth or microsoft_auth
+            if microsoft_auth and not google_auth:
+                active = "microsoft"
+            elif google_auth:
+                active = "google"
         return {
-            "authenticated": is_authenticated,
-            "message": "Authenticated" if is_authenticated else "Not authenticated"
+            "authenticated": authenticated,
+            "provider": active,
+            "providers": {
+                "google": google_auth,
+                "microsoft": microsoft_auth,
+            },
+            "message": "Authenticated" if authenticated else "Not authenticated",
         }
     except Exception as e:
         logger.error(f"Error checking auth status: {str(e)}")
-        return {"authenticated": False, "message": f"Error: {str(e)}"}
+        return {
+            "authenticated": False,
+            "provider": _normalize_provider(provider),
+            "providers": {"google": False, "microsoft": False},
+            "message": f"Error: {str(e)}",
+        }
 
 @app.get("/calendars")
-async def get_calendars(user_id: str = None):
-    """Get list of user's writable calendars only."""
+async def get_calendars(user_id: str = None, provider: str = None):
+    """Get list of user's writable calendars for the active provider."""
+    active_provider = _normalize_provider(provider)
+    service = _calendar_service_for(active_provider)
     try:
-        calendars = await calendar_service.get_calendars(user_id=user_id, writable_only=True)
+        calendars = await service.get_calendars(user_id=user_id, writable_only=True)
+        for calendar in calendars:
+            calendar.setdefault("provider", active_provider)
         return {
             "success": True,
-            "calendars": calendars
+            "provider": active_provider,
+            "calendars": calendars,
         }
     except Exception as e:
         logger.error(f"Error fetching calendars: {str(e)}")
-        return {"success": False, "calendars": [], "message": f"Error: {str(e)}"}
+        return {
+            "success": False,
+            "provider": active_provider,
+            "calendars": [],
+            "message": f"Error: {str(e)}",
+        }
 
 @app.post("/create_event", response_model=EventResponse)
 async def create_event(request: EventRequest):
@@ -394,18 +440,14 @@ async def create_event(request: EventRequest):
 @app.post("/confirm_event", response_model=EventResponse)
 async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):
     """
-    Confirm and create the calendar event.
-    
-    Process:
-    1. Validate the parsed event data
-    2. Create event in Google Calendar
-    3. Return success with event link
+    Confirm and create the calendar event in Google or Microsoft Calendar.
     """
     try:
-        logger.info(f"Confirming event: {parsed_event.title}")
-        
-        # Step 4: Create event in Google Calendar
-        event_link = await calendar_service.create_calendar_event(
+        provider = _normalize_provider(getattr(parsed_event, "calendar_provider", None))
+        logger.info(f"Confirming event: {parsed_event.title} via {provider}")
+
+        service = _calendar_service_for(provider)
+        event_link = await service.create_calendar_event(
             parsed_event,
             user_id=user_id,
             original_text=getattr(parsed_event, "original_text", None),
@@ -506,7 +548,7 @@ async def import_events(request: FileImportRequest):
 @app.post("/confirm_bulk_events", response_model=EventResponse)
 async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(None)):
     """
-    Create multiple confirmed events in Google Calendar.
+    Create multiple confirmed events in Google or Microsoft Calendar.
     """
     try:
         logger.info(f"Confirming {len(events)} bulk events")
@@ -517,7 +559,9 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
         
         for event in events:
             try:
-                await calendar_service.create_calendar_event(
+                provider = _normalize_provider(getattr(event, "calendar_provider", None))
+                service = _calendar_service_for(provider)
+                await service.create_calendar_event(
                     event,
                     user_id=user_id,
                     original_text=getattr(event, "original_text", None),
@@ -566,18 +610,35 @@ async def google_auth(user_id: str = None):
     """
     try:
         auth_url = await calendar_service.get_auth_url(user_id=user_id)
-        return {"auth_url": auth_url}
+        return {"auth_url": auth_url, "provider": "google"}
     except Exception as e:
         logger.error(f"Error getting auth URL: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get auth URL: {str(e)}")
 
+@app.get("/auth/microsoft")
+async def microsoft_auth(user_id: str = None):
+    """Initiate Microsoft OAuth2 authentication flow for Outlook calendar."""
+    try:
+        auth_url = await microsoft_calendar_service.get_auth_url(user_id=user_id)
+        return {"auth_url": auth_url, "provider": "microsoft"}
+    except Exception as e:
+        logger.error(f"Error getting Microsoft auth URL: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get Microsoft auth URL: {str(e)}")
+
 @app.post("/auth/logout")
-async def logout(user_id: str = None):
+async def logout(user_id: str = None, provider: str = None):
     """
-    Logout and clear user credentials.
+    Logout and clear user credentials for one or both calendar providers.
     """
     try:
-        success = calendar_service.logout(user_id=user_id)
+        if provider is None:
+            google_ok = calendar_service.logout(user_id=user_id)
+            microsoft_ok = microsoft_calendar_service.logout(user_id=user_id)
+            success = google_ok or microsoft_ok
+        elif _normalize_provider(provider) == "microsoft":
+            success = microsoft_calendar_service.logout(user_id=user_id)
+        else:
+            success = calendar_service.logout(user_id=user_id)
         return {
             "success": success,
             "message": "Successfully logged out" if success else "No token to remove"
@@ -688,6 +749,95 @@ async def google_auth_callback(code: str = None, state: str = None):
         """
         return HTMLResponse(content=error_html, status_code=400)
 
+@app.get("/auth/microsoft/callback")
+async def microsoft_auth_callback(code: str = None, state: str = None):
+    """Handle Microsoft OAuth2 callback and store credentials for the extension."""
+    from fastapi.responses import HTMLResponse
+    try:
+        if not code:
+            raise HTTPException(status_code=400, detail="Authorization code not provided")
+
+        user_id = state if state else None
+        await microsoft_calendar_service.handle_auth_callback(code, user_id=user_id)
+
+        success_html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Authentication Successful</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 50px;
+                    background-color: #f5f5f5;
+                }
+                .success {
+                    background-color: #d4edda;
+                    color: #155724;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border: 1px solid #c3e6cb;
+                    margin: 20px auto;
+                    max-width: 400px;
+                }
+                .icon {
+                    font-size: 48px;
+                    margin-bottom: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="success">
+                <div class="icon">✅</div>
+                <h2>Microsoft Calendar Connected!</h2>
+                <p>You can now close this tab and return to the Prompt2Cal extension.</p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=success_html, status_code=200)
+    except Exception as e:
+        logger.error(f"Error handling Microsoft auth callback: {str(e)}")
+        error_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Authentication Failed</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 50px;
+                    background-color: #f5f5f5;
+                }}
+                .error {{
+                    background-color: #f8d7da;
+                    color: #721c24;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border: 1px solid #f5c6cb;
+                    margin: 20px auto;
+                    max-width: 400px;
+                }}
+                .icon {{
+                    font-size: 48px;
+                    margin-bottom: 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="error">
+                <div class="icon">❌</div>
+                <h2>Authentication Failed</h2>
+                <p>Error: {str(e)}</p>
+                <p>Please try again from the Prompt2Cal extension.</p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=error_html, status_code=400)
+
 @app.post("/find_meeting_slots")
 async def find_meeting_slots(request: dict):
     """
@@ -757,6 +907,7 @@ async def check_conflicts(request: dict):
         recurrence_count = request.get("recurrence_count")
         recurrence_interval = request.get("recurrence_interval", 1)
         end_date = request.get("end_date")
+        provider = _normalize_provider(request.get("calendar_provider") or request.get("provider"))
         
         if not start_time_str or not end_time_str:
             raise HTTPException(status_code=400, detail="start_time and end_time are required")
@@ -770,19 +921,27 @@ async def check_conflicts(request: dict):
         if not duration_minutes:
             duration_minutes = int((end_time - start_time).total_seconds() / 60)
         
-        # Check for conflicts (including recurring event occurrences if applicable)
-        # Token refresh is handled inside check_conflicts method
-        conflicts = await calendar_service.check_conflicts(
-            start_time=start_time,
-            end_time=end_time,
-            buffer_minutes=buffer_minutes,
-            calendar_id=calendar_id,
-            recurrence_type=recurrence_type,
-            recurrence_count=recurrence_count,
-            recurrence_interval=recurrence_interval,
-            end_date=end_date,
-            user_id=user_id
-        )
+        if provider == "microsoft":
+            conflicts = await microsoft_calendar_service.check_conflicts(
+                start_time=start_time_str,
+                end_time=end_time_str,
+                user_id=user_id,
+                calendar_id=calendar_id,
+                buffer_minutes=buffer_minutes,
+            )
+        else:
+            # Token refresh is handled inside check_conflicts method
+            conflicts = await calendar_service.check_conflicts(
+                start_time=start_time,
+                end_time=end_time,
+                buffer_minutes=buffer_minutes,
+                calendar_id=calendar_id,
+                recurrence_type=recurrence_type,
+                recurrence_count=recurrence_count,
+                recurrence_interval=recurrence_interval,
+                end_date=end_date,
+                user_id=user_id
+            )
         
         return {
             "success": True,

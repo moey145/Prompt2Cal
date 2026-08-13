@@ -1,6 +1,9 @@
 // Constants
 // Backend URL - set via environment variable VITE_API_BASE or default to Cloud Run for production
-export const API_BASE = import.meta.env.VITE_API_BASE || "https://prompt2cal-backend-139801429107.us-central1.run.app";
+// Local backend while developing Microsoft Calendar + confidence features.
+// For production/store builds, set VITE_API_BASE to your Cloud Run URL.
+export const API_BASE =
+  import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 export const EVENT_COLORS = [
   "#4285f4",

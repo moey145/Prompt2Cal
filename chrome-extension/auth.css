@@ -48,6 +48,9 @@
 .auth-section {
   padding: 0 20px 10px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .auth-button {
@@ -72,6 +75,10 @@
   background: var(--bg-secondary);
   transform: translateY(-1px);
   box-shadow: var(--shadow);
+}
+
+.auth-button-microsoft:hover {
+  border-color: #0078d4;
 }
 
 .auth-button:disabled {

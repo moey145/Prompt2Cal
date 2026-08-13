@@ -1,53 +1,64 @@
 // Calendar management hook
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { makeApiCall } from "../utils/api";
 
-export const useCalendars = (userId, isAuthenticated) => {
+export const useCalendars = (userId, isAuthenticated, calendarProvider = "google") => {
   const [calendars, setCalendars] = useState([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState(null);
   const [loadingCalendars, setLoadingCalendars] = useState(false);
 
-  const fetchCalendars = async (userIdValue) => {
+  const fetchCalendars = async (userIdValue, providerValue) => {
     try {
       setLoadingCalendars(true);
+      const provider = providerValue || calendarProvider || "google";
       const response = await makeApiCall("/calendars", {
         method: "GET",
-        params: { user_id: userIdValue || userId },
+        params: {
+          user_id: userIdValue || userId,
+          provider,
+        },
       });
 
       if (response.success && response.calendars) {
         setCalendars(response.calendars);
 
-        // Load saved calendar selection or default to primary
-        // Note: Backend now only returns writable calendars, so we don't need to check accessRole here
-        const saved = await chrome.storage.local.get(["selectedCalendarId"]);
-        if (saved.selectedCalendarId) {
-          const exists = response.calendars.find(
-            (c) => c.id === saved.selectedCalendarId
-          );
+        const storageKey =
+          provider === "microsoft"
+            ? "selectedMicrosoftCalendarId"
+            : "selectedCalendarId";
+        const saved = await chrome.storage.local.get([storageKey]);
+        const savedId = saved[storageKey];
+
+        if (savedId) {
+          const exists = response.calendars.find((c) => c.id === savedId);
           if (exists) {
-            setSelectedCalendarId(saved.selectedCalendarId);
+            setSelectedCalendarId(savedId);
           } else {
-            // Saved calendar no longer exists, switch to primary or first available
             const primary = response.calendars.find((c) => c.primary);
-            const newCalendarId = primary ? primary.id : response.calendars[0]?.id || null;
+            const newCalendarId =
+              primary ? primary.id : response.calendars[0]?.id || null;
             setSelectedCalendarId(newCalendarId);
             if (newCalendarId) {
-              await chrome.storage.local.set({ selectedCalendarId: newCalendarId });
+              await chrome.storage.local.set({ [storageKey]: newCalendarId });
             }
           }
         } else {
-          // No saved calendar, default to primary or first available
           const primary = response.calendars.find((c) => c.primary);
-          const defaultCalendarId = primary ? primary.id : response.calendars[0]?.id || null;
+          const defaultCalendarId =
+            primary ? primary.id : response.calendars[0]?.id || null;
           setSelectedCalendarId(defaultCalendarId);
           if (defaultCalendarId) {
-            await chrome.storage.local.set({ selectedCalendarId: defaultCalendarId });
+            await chrome.storage.local.set({ [storageKey]: defaultCalendarId });
           }
         }
+      } else {
+        setCalendars([]);
+        setSelectedCalendarId(null);
       }
     } catch (error) {
       console.error("Failed to fetch calendars:", error);
+      setCalendars([]);
+      setSelectedCalendarId(null);
     } finally {
       setLoadingCalendars(false);
     }
@@ -55,11 +66,12 @@ export const useCalendars = (userId, isAuthenticated) => {
 
   const updateSelectedCalendar = async (calendarId) => {
     setSelectedCalendarId(calendarId);
-    await chrome.storage.local.set({ selectedCalendarId: calendarId });
+    const storageKey =
+      calendarProvider === "microsoft"
+        ? "selectedMicrosoftCalendarId"
+        : "selectedCalendarId";
+    await chrome.storage.local.set({ [storageKey]: calendarId });
   };
-
-  // Note: fetchCalendars should be called explicitly from parent component
-  // after authentication is confirmed to avoid dependency issues
 
   return {
     calendars,
@@ -69,4 +81,3 @@ export const useCalendars = (userId, isAuthenticated) => {
     updateSelectedCalendar,
   };
 };
-

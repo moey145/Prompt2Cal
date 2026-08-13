@@ -62,9 +62,14 @@ const Popup = () => {
     isAuthenticated,
     isCheckingAuth,
     loadingAuth,
+    loadingMicrosoftAuth,
+    calendarProvider,
+    providers,
     checkAuthStatus,
     handleGoogleAuth: authGoogleAuth,
+    handleMicrosoftAuth: authMicrosoftAuth,
     handleLogout: authLogout,
+    switchProvider,
     setIsAuthenticated,
   } = useAuth(userId);
 
@@ -74,7 +79,7 @@ const Popup = () => {
     loadingCalendars,
     fetchCalendars,
     updateSelectedCalendar,
-  } = useCalendars(userId, isAuthenticated);
+  } = useCalendars(userId, isAuthenticated, calendarProvider);
 
   const { isListening, toggleVoiceRecognition } = useVoiceRecognition();
 
@@ -135,14 +140,22 @@ const Popup = () => {
         setTimeout(async () => {
           const authenticated = await checkAuthStatus(userIdValue);
           if (authenticated) {
-            await fetchCalendars(userIdValue);
+            const stored = await chrome.storage.local.get(["calendar_provider"]);
+            await fetchCalendars(
+              userIdValue,
+              stored.calendar_provider || "google"
+            );
           }
           setAuthPending(false);
         }, 500);
       } else {
         const authenticated = await checkAuthStatus(userIdValue);
         if (authenticated) {
-          await fetchCalendars(userIdValue);
+          const stored = await chrome.storage.local.get(["calendar_provider"]);
+          await fetchCalendars(
+            userIdValue,
+            stored.calendar_provider || "google"
+          );
         }
         setAuthPending(false);
       }
@@ -210,10 +223,44 @@ const Popup = () => {
     }
   };
 
+  const handleMicrosoftAuth = async () => {
+    try {
+      await authMicrosoftAuth();
+    } catch (error) {
+      showMessage(`Microsoft authentication error: ${error.message}`, "error");
+    }
+  };
+
+  const handleProviderChange = async (provider) => {
+    try {
+      const authenticated = await switchProvider(provider, userId);
+      if (authenticated) {
+        await fetchCalendars(userId, provider);
+        showMessage(
+          provider === "microsoft"
+            ? "Using Microsoft Calendar"
+            : "Using Google Calendar",
+          "success"
+        );
+      } else {
+        showMessage(
+          `Connect ${
+            provider === "microsoft" ? "Microsoft" : "Google"
+          } Calendar first`,
+          "error"
+        );
+      }
+    } catch (error) {
+      showMessage(`Could not switch calendar account: ${error.message}`, "error");
+    }
+  };
+
   const handleLogout = async () => {
+    const providerLabel =
+      calendarProvider === "microsoft" ? "Microsoft" : "Google";
     if (
       !confirm(
-        "Are you sure you want to logout? You'll need to reconnect your Google Calendar."
+        `Are you sure you want to logout? You'll need to reconnect your ${providerLabel} Calendar.`
       )
     ) {
       return;
@@ -223,7 +270,16 @@ const Popup = () => {
       setLoading(true);
       const success = await authLogout();
       if (success) {
-        showMessage("Successfully logged out", "success");
+        showMessage(`Successfully logged out of ${providerLabel}`, "success");
+        const stored = await chrome.storage.local.get([
+          "prompt2cal_auth_status",
+          "calendar_provider",
+        ]);
+        if (stored.prompt2cal_auth_status) {
+          await fetchCalendars(userId, stored.calendar_provider || "google");
+        } else {
+          setShowSettings(false);
+        }
       } else {
         showMessage("Logout failed", "error");
       }
@@ -305,7 +361,7 @@ const Popup = () => {
     if (!parsedEvent || loading || loadingSingle) return;
     if (!isAuthenticated) {
       showMessage(
-        "Please connect your Google Calendar to create events",
+        "Please connect Google or Microsoft Calendar to create events",
         "error"
       );
       return;
@@ -319,6 +375,7 @@ const Popup = () => {
         color: selectedColor,
         reminder: selectedReminder,
         calendar_id: selectedCalendarId,
+        calendar_provider: calendarProvider,
       };
 
       const response = await makeApiCall("/confirm_event", {
@@ -362,7 +419,7 @@ const Popup = () => {
     }
     if (!isAuthenticated) {
       showMessage(
-        "Please connect your Google Calendar to create events",
+        "Please connect Google or Microsoft Calendar to create events",
         "error"
       );
       return;
@@ -376,6 +433,7 @@ const Popup = () => {
         color: event.color || DEFAULT_COLOR,
         reminder: selectedReminder,
         calendar_id: selectedCalendarId,
+        calendar_provider: calendarProvider,
       }));
 
       const response = await makeApiCall("/confirm_bulk_events", {
@@ -629,6 +687,7 @@ const Popup = () => {
           end_time: event.end_time,
           duration_minutes: duration,
           calendar_id: selectedCalendarId,
+          calendar_provider: calendarProvider,
           buffer_minutes: 15,
           // Pass recurrence info for recurring events
           recurrence_type: isRecurring ? event.recurrence_type : null,
@@ -677,6 +736,7 @@ const Popup = () => {
             end_time: event.end_time,
             duration_minutes: duration,
             calendar_id: selectedCalendarId,
+            calendar_provider: calendarProvider,
             buffer_minutes: 15,
             // Pass recurrence info for recurring events
             recurrence_type: isRecurring ? event.recurrence_type : null,
@@ -746,6 +806,13 @@ const Popup = () => {
                   await updateSelectedCalendar(e.target.value);
                 }}
                 onLogout={handleLogout}
+                calendarProvider={calendarProvider}
+                providers={providers}
+                onProviderChange={handleProviderChange}
+                onConnectGoogle={handleGoogleAuth}
+                onConnectMicrosoft={handleMicrosoftAuth}
+                loadingAuth={loadingAuth}
+                loadingMicrosoftAuth={loadingMicrosoftAuth}
               />
             </div>
           )}
@@ -780,7 +847,12 @@ const Popup = () => {
       </div>
 
       {!isCheckingAuth && !isAuthenticated && !authPending && (
-        <AuthSection onAuth={handleGoogleAuth} loadingAuth={loadingAuth} />
+        <AuthSection
+          onGoogleAuth={handleGoogleAuth}
+          onMicrosoftAuth={handleMicrosoftAuth}
+          loadingAuth={loadingAuth}
+          loadingMicrosoftAuth={loadingMicrosoftAuth}
+        />
       )}
 
       <div className="main-section" id="mainSection">
