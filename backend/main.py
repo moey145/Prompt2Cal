@@ -30,10 +30,6 @@ app = FastAPI(
 )
 
 # Configure CORS
-from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
-
 # Get allowed origins from environment variable (comma-separated)
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000")
 allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
@@ -43,41 +39,14 @@ chrome_ext_id = os.getenv("CHROME_EXTENSION_ID")
 if chrome_ext_id:
     allowed_origins.append(f"chrome-extension://{chrome_ext_id}")
 
-# Custom middleware to handle Chrome extension CORS (must be added before CORSMiddleware)
-# Chrome extensions have unique IDs, so we need to allow any chrome-extension:// origin
-@app.middleware("http")
-async def chrome_extension_cors_middleware(request: Request, call_next):
-    origin = request.headers.get("origin")
-    
-    # Handle preflight requests for chrome-extension origins
-    if request.method == "OPTIONS" and origin and origin.startswith("chrome-extension://"):
-        return Response(
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": origin,
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Max-Age": "3600",
-            }
-        )
-    
-    # Handle actual requests - let CORSMiddleware handle non-chrome-extension origins
-    response = await call_next(request)
-    
-    # Override CORS headers for chrome-extension origins
-    if origin and origin.startswith("chrome-extension://"):
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-    
-    return response
-
-# Add standard CORS middleware for web origins
+# Chrome extensions each have a unique ID, so extension origins are matched by
+# pattern rather than listed individually. This must be handled by CORSMiddleware
+# itself: it is the outermost layer and answers preflight requests before any
+# inner middleware runs.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

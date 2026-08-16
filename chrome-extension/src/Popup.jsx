@@ -1,5 +1,5 @@
 // Refactored Popup component using extracted components and hooks
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Sun, Moon, Settings } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { useCalendars } from "./hooks/useCalendars";
@@ -82,13 +82,22 @@ const Popup = () => {
   } = useCalendars(userId, isAuthenticated, calendarProvider);
 
   const { isListening, toggleVoiceRecognition } = useVoiceRecognition();
+  const eventInputHydrated = useRef(false);
 
   // Initialize on mount
   useEffect(() => {
     initializeUser();
     loadThemeFromStorage();
+    loadDraftInput();
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    if (!eventInputHydrated.current) return;
+    chrome.storage.local
+      .set({ prompt2cal_event_input: eventInput })
+      .catch(() => {});
+  }, [eventInput]);
 
   // Close settings dropdown when clicking outside
   useEffect(() => {
@@ -108,6 +117,19 @@ const Popup = () => {
     if (result.darkMode) {
       setDarkMode(result.darkMode);
       document.documentElement.classList.add("dark-mode");
+    }
+  };
+
+  const loadDraftInput = async () => {
+    try {
+      const result = await chrome.storage.local.get(["prompt2cal_event_input"]);
+      if (typeof result.prompt2cal_event_input === "string") {
+        setEventInput(result.prompt2cal_event_input);
+      }
+    } catch (error) {
+      console.error("Failed to restore draft input:", error);
+    } finally {
+      eventInputHydrated.current = true;
     }
   };
 
