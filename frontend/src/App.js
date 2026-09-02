@@ -254,8 +254,10 @@ function App() {
     setEventLink("");
 
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const response = await axios.post("/create_event", {
         text: inputText,
+        timezone,
       });
 
       if (response.data.success) {
@@ -278,7 +280,13 @@ function App() {
     setMessage("");
 
     try {
-      const response = await axios.post("/confirm_event", parsedEvent);
+      const timezone =
+        parsedEvent.timezone ||
+        Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const response = await axios.post("/confirm_event", {
+        ...parsedEvent,
+        timezone,
+      });
 
       if (response.data.success) {
         setMessage(response.data.message);
@@ -604,16 +612,21 @@ function App() {
             <div className="edit-form-group">
               <label>Color:</label>
               <select
-                value={editedEvent.color || "#4285f4"}
+                value={editedEvent.color || "#3f51b5"}
                 onChange={(e) => handleEditFormChange("color", e.target.value)}
                 className="edit-input"
               >
-                <option value="#4285f4">Blue</option>
-                <option value="#ea4335">Red</option>
-                <option value="#fbbc04">Yellow</option>
-                <option value="#34a853">Green</option>
-                <option value="#9c27b0">Purple</option>
-                <option value="#ff9800">Orange</option>
+                <option value="#d50000">Tomato</option>
+                <option value="#e67c73">Flamingo</option>
+                <option value="#f4511e">Tangerine</option>
+                <option value="#f6bf26">Banana</option>
+                <option value="#33b679">Sage</option>
+                <option value="#0b8043">Basil</option>
+                <option value="#039be5">Peacock</option>
+                <option value="#3f51b5">Blueberry</option>
+                <option value="#7986cb">Lavender</option>
+                <option value="#8e24aa">Grape</option>
+                <option value="#616161">Graphite</option>
               </select>
             </div>
             <div className="edit-form-group">

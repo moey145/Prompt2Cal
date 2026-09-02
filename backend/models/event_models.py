@@ -14,7 +14,10 @@ class EventRequest(BaseModel):
     text: str = Field(..., description="Natural language description of the event")
     timezone: Optional[str] = Field(None, description="Client IANA timezone, e.g., 'America/New_York'")
     user_id: Optional[str] = Field(None, description="User ID for authentication")
-    force_multiple: Optional[bool] = Field(False, description="Force parsing as multiple events")
+    force_multiple: Optional[bool] = Field(
+        None,
+        description="True = force multi-event parse, False = one event only, None = auto-detect",
+    )
 
 class ParsedEvent(BaseModel):
     title: str = Field(..., description="Event title")
@@ -27,7 +30,7 @@ class ParsedEvent(BaseModel):
     recurrence_type: RecurrenceType = Field(RecurrenceType.NONE, description="Recurrence pattern")
     recurrence_count: Optional[int] = Field(None, description="Number of occurrences")
     recurrence_interval: Optional[int] = Field(1, description="Interval between recurrences")
-    color: Optional[str] = Field("#4285f4", description="Event color in hex format")
+    color: Optional[str] = Field("#3f51b5", description="Event color in hex format")
     reminder: Optional[str] = Field("none", description="Reminder time in minutes before event (or 'none')")
     buffer_before: Optional[int] = Field(0, description="Buffer time in minutes before the event")
     buffer_after: Optional[int] = Field(0, description="Buffer time in minutes after the event")
@@ -40,6 +43,10 @@ class ParsedEvent(BaseModel):
     calendar_provider: Optional[str] = Field(
         "google",
         description="Calendar provider to create the event in: google or microsoft",
+    )
+    timezone: Optional[str] = Field(
+        None,
+        description="IANA timezone for the event wall-clock times, e.g. Australia/Sydney",
     )
 
 class BulkEventRequest(BaseModel):

@@ -472,29 +472,22 @@ class CalendarService:
             raise Exception("Event start and end times are required")
         
         try:
-            # Convert ISO strings to datetime objects
-            # Handle both timezone-aware and naive datetime strings
-            if 'T' in parsed_event.start_time and '+' in parsed_event.start_time:
-                # Already timezone-aware
-                start_datetime = datetime.fromisoformat(parsed_event.start_time.replace('Z', '+00:00'))
-                end_datetime = datetime.fromisoformat(parsed_event.end_time.replace('Z', '+00:00'))
-            else:
-                # Naive datetime, assume local time
-                start_datetime = datetime.fromisoformat(parsed_event.start_time)
-                end_datetime = datetime.fromisoformat(parsed_event.end_time)
-            
+            # Prefer the client's IANA timezone so wall-clock times stay stable
+            # across daylight saving (fromisoformat alone yields a fixed offset).
+            fallback_tz = (
+                getattr(parsed_event, "timezone", None)
+                or "UTC"
+            )
+            start_datetime = self._parse_event_datetime(parsed_event.start_time)
+            end_datetime = self._parse_event_datetime(parsed_event.end_time)
+            start_payload = self._google_time_payload(start_datetime, fallback_tz)
+            end_payload = self._google_time_payload(end_datetime, fallback_tz)
+
             # Create event body
-            # Use the timezone from the datetime objects
             event_body = {
                 'summary': parsed_event.title,
-                'start': {
-                    'dateTime': start_datetime.isoformat(),
-                    'timeZone': str(start_datetime.tzinfo) if start_datetime.tzinfo else 'America/New_York',
-                },
-                'end': {
-                    'dateTime': end_datetime.isoformat(),
-                    'timeZone': str(end_datetime.tzinfo) if end_datetime.tzinfo else 'America/New_York',
-                },
+                'start': start_payload,
+                'end': end_payload,
             }
             
             # Add optional fields
@@ -531,11 +524,21 @@ class CalendarService:
                     }
                 }
 
-            # Add color if specified (only use Google Calendar predefined colors)
+            # Add color if specified (Google Calendar predefined event colorIds 1-11)
             if parsed_event.color:
                 color_id = self._get_google_color_id(parsed_event.color)
                 if color_id:
                     event_body['colorId'] = color_id
+                    logger.info(
+                        "Applying Google event colorId=%s for hex=%s",
+                        color_id,
+                        parsed_event.color,
+                    )
+                else:
+                    logger.warning(
+                        "Could not map event color %s to a Google colorId",
+                        parsed_event.color,
+                    )
             
             # Add reminders if specified
             if parsed_event.reminder and parsed_event.reminder != "none":
@@ -557,15 +560,34 @@ class CalendarService:
                 logger.info(f"Adding recurrence rule: {recurrence_rule}")
             
             # Create the main event
+            target_calendar = calendar_id or 'primary'
             insert_kwargs = {
-                'calendarId': calendar_id or 'primary',
+                'calendarId': target_calendar,
                 'body': event_body,
             }
             if 'conferenceData' in event_body:
                 insert_kwargs['conferenceDataVersion'] = 1
 
             event = self.service.events().insert(**insert_kwargs).execute()
-            
+
+            # If color was requested but Google omitted it, patch once as a fallback.
+            requested_color_id = event_body.get('colorId')
+            if requested_color_id and event.get('colorId') != requested_color_id:
+                logger.warning(
+                    "Insert response missing colorId=%s (got %s); patching event %s",
+                    requested_color_id,
+                    event.get('colorId'),
+                    event.get('id'),
+                )
+                try:
+                    event = self.service.events().patch(
+                        calendarId=target_calendar,
+                        eventId=event['id'],
+                        body={'colorId': requested_color_id},
+                    ).execute()
+                except Exception as patch_error:
+                    logger.error("Failed to patch event color: %s", patch_error)
+
             # Create buffer events if specified
             buffer_events = []
             if parsed_event.buffer_before and parsed_event.buffer_before > 0:
@@ -573,19 +595,13 @@ class CalendarService:
                 buffer_end = start_datetime
                 buffer_event_body = {
                     'summary': f"🕐 {parsed_event.title} (Buffer)",
-                    'start': {
-                        'dateTime': buffer_start.isoformat(),
-                        'timeZone': str(buffer_start.tzinfo) if buffer_start.tzinfo else 'America/New_York',
-                    },
-                    'end': {
-                        'dateTime': buffer_end.isoformat(),
-                        'timeZone': str(buffer_end.tzinfo) if buffer_end.tzinfo else 'America/New_York',
-                    },
-                    'colorId': '8',  # Blue Grey for buffer events
+                    'start': self._google_time_payload(buffer_start, fallback_tz),
+                    'end': self._google_time_payload(buffer_end, fallback_tz),
+                    'colorId': '8',  # Graphite for buffer events
                 }
                 buffer_event = self.service.events().insert(
-                    calendarId=calendar_id or 'primary',
-                    body=buffer_event_body
+                    calendarId=target_calendar,
+                    body=buffer_event_body,
                 ).execute()
                 buffer_events.append(buffer_event)
                 logger.info(f"Buffer before event created: {buffer_event.get('id')}")
@@ -595,26 +611,24 @@ class CalendarService:
                 buffer_end = end_datetime + timedelta(minutes=parsed_event.buffer_after)
                 buffer_event_body = {
                     'summary': f"🕐 {parsed_event.title} (Buffer)",
-                    'start': {
-                        'dateTime': buffer_start.isoformat(),
-                        'timeZone': str(buffer_start.tzinfo) if buffer_start.tzinfo else 'America/New_York',
-                    },
-                    'end': {
-                        'dateTime': buffer_end.isoformat(),
-                        'timeZone': str(buffer_end.tzinfo) if buffer_end.tzinfo else 'America/New_York',
-                    },
-                    'colorId': '8',  # Blue Grey for buffer events
+                    'start': self._google_time_payload(buffer_start, fallback_tz),
+                    'end': self._google_time_payload(buffer_end, fallback_tz),
+                    'colorId': '8',  # Graphite for buffer events
                 }
                 buffer_event = self.service.events().insert(
-                    calendarId=calendar_id or 'primary',
-                    body=buffer_event_body
+                    calendarId=target_calendar,
+                    body=buffer_event_body,
                 ).execute()
                 buffer_events.append(buffer_event)
                 logger.info(f"Buffer after event created: {buffer_event.get('id')}")
             
             # Return the main event link
             event_link = event.get('htmlLink', '')
-            logger.info(f"Event created successfully: {event.get('id')}")
+            logger.info(
+                "Event created successfully: id=%s colorId=%s",
+                event.get('id'),
+                event.get('colorId'),
+            )
             
             return event_link
             
@@ -718,14 +732,8 @@ class CalendarService:
         if is_weekday_event and "BYDAY=" not in ";".join(rrule_parts):
             rrule_parts.append("BYDAY=MO,TU,WE,TH,FR")
         
-        # Add COUNT if specified
-        if parsed_event.recurrence_count:
-            rrule_parts.append(f"COUNT={parsed_event.recurrence_count}")
-        elif parsed_event.end_after_count:
-            rrule_parts.append(f"COUNT={parsed_event.end_after_count}")
-        # If no count specified and no end_date, it's indefinite (no COUNT or UNTIL)
-        
-        # Add UNTIL if end_date is specified
+        # Prefer UNTIL when an end_date is present. Combining COUNT and UNTIL
+        # is ambiguous for Google Calendar and wrong for "for the next N months".
         if parsed_event.end_date:
             from .date_parser import DateParser
             date_parser = DateParser()
@@ -736,32 +744,147 @@ class CalendarService:
                 # Google Calendar uses UTC date strings in YYYYMMDDTHHMMSSZ format
                 until_str = end_datetime.strftime("%Y%m%dT%H%M%SZ")
                 rrule_parts.append(f"UNTIL={until_str}")
+        elif parsed_event.recurrence_count:
+            rrule_parts.append(f"COUNT={parsed_event.recurrence_count}")
+        elif parsed_event.end_after_count:
+            rrule_parts.append(f"COUNT={parsed_event.end_after_count}")
+        # If no count and no end_date, the series is indefinite
         
         # Build the complete RRULE string
         rrule = "RRULE:" + ";".join(rrule_parts)
         
         return [rrule]
     
-    def _get_google_color_id(self, hex_color: str) -> str:
-        """Convert hex color to Google Calendar colorId if it matches a predefined color."""
-        # Google Calendar predefined colors - only the 8 colors we support in the UI
-        color_mapping = {
-            '#4285f4': '1',  # Blue
-            '#ea4335': '2',  # Red  
-            '#fbbc04': '3',  # Yellow
-            '#34a853': '4',  # Green
-            '#9c27b0': '5',  # Purple
-            '#ff9800': '6',  # Orange
-            '#795548': '7',  # Brown
-            '#607d8b': '8',  # Blue Grey
+    def _parse_event_datetime(self, value: str) -> datetime:
+        """Parse an ISO datetime string from a ParsedEvent."""
+        if not value:
+            raise Exception("Event start and end times are required")
+        normalized = value.replace("Z", "+00:00")
+        return datetime.fromisoformat(normalized)
+
+    def _resolve_iana_timezone(self, dt: datetime, fallback_tz: str) -> str:
+        """Return an IANA timezone name, never a fixed offset like UTC+10:00."""
+        if dt.tzinfo is not None:
+            zone = getattr(dt.tzinfo, "zone", None) or getattr(dt.tzinfo, "key", None)
+            if zone:
+                return str(zone)
+        fallback = (fallback_tz or "").strip()
+        if fallback and fallback.upper() != "UTC" and "/" in fallback:
+            return fallback
+        if fallback.upper() == "UTC":
+            return "UTC"
+        # Reject offset-style names Google cannot use for DST-aware recurrence
+        if fallback.startswith("UTC") or fallback.startswith("+") or fallback.startswith("-"):
+            return "UTC"
+        return fallback or "UTC"
+
+    def _google_time_payload(self, dt: datetime, fallback_tz: str) -> Dict:
+        """Build Google Calendar start/end with wall-clock time + IANA timeZone.
+
+        Using a fixed offset (e.g. +10:00 / UTC+10:00) makes recurring events
+        shift by an hour when daylight saving starts or ends. Wall-clock time
+        with an IANA zone keeps 10pm as 10pm across DST.
+        """
+        time_zone = self._resolve_iana_timezone(dt, fallback_tz)
+        if dt.tzinfo is not None and time_zone not in ("UTC",) and "/" in time_zone:
+            try:
+                import pytz
+                local_tz = pytz.timezone(time_zone)
+                local_dt = dt.astimezone(local_tz)
+                wall_clock = local_dt.replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
+                return {"dateTime": wall_clock, "timeZone": time_zone}
+            except Exception:
+                pass
+        if dt.tzinfo is None:
+            return {
+                "dateTime": dt.strftime("%Y-%m-%dT%H:%M:%S"),
+                "timeZone": time_zone,
+            }
+        # Last resort: keep the offset instant but still prefer a real IANA zone
+        return {
+            "dateTime": dt.isoformat(),
+            "timeZone": time_zone,
         }
-        
-        # Normalize hex color (remove # if present, convert to lowercase)
-        normalized_color = hex_color.lower().lstrip('#')
-        if len(normalized_color) == 6:
-            normalized_color = '#' + normalized_color
-        
-        return color_mapping.get(normalized_color, None)
+
+    def _get_google_color_id(self, hex_color: str) -> Optional[str]:
+        """Convert a hex color to a Google Calendar event ``colorId`` (1-11).
+
+        Maps the UI hexes Google Calendar shows in its event color picker, plus
+        the pastel backgrounds from ``colors.get()`` and older Prompt2Cal values.
+        Unknown hexes fall back to the nearest palette color.
+        """
+        # Google Calendar event picker hexes (UI) → colorId
+        color_mapping = {
+            "#7986cb": "1",  # Lavender
+            "#33b679": "2",  # Sage
+            "#8e24aa": "3",  # Grape
+            "#e67c73": "4",  # Flamingo
+            "#f6bf26": "5",  # Banana
+            "#f4511e": "6",  # Tangerine
+            "#039be5": "7",  # Peacock
+            "#616161": "8",  # Graphite
+            "#3f51b5": "9",  # Blueberry
+            "#0b8043": "10", # Basil
+            "#d50000": "11", # Tomato
+        }
+        # API colors.get() pastel backgrounds + older Prompt2Cal hexes
+        legacy_mapping = {
+            "#a4bdfc": "1",
+            "#7ae7bf": "2",
+            "#dbadff": "3",
+            "#ff887c": "4",
+            "#fbd75b": "5",
+            "#ffb878": "6",
+            "#46d6db": "7",
+            "#e1e1e1": "8",
+            "#5484ed": "9",
+            "#51b749": "10",
+            "#dc2127": "11",
+            "#4285f4": "9",
+            "#ea4335": "11",
+            "#fbbc04": "5",
+            "#34a853": "10",
+            "#9c27b0": "3",
+            "#ff9800": "6",
+            "#795548": "8",
+            "#607d8b": "8",
+        }
+
+        if not hex_color:
+            return None
+
+        normalized = str(hex_color).strip().lower()
+        if not normalized.startswith("#"):
+            normalized = f"#{normalized}"
+        if len(normalized) != 7:
+            return None
+
+        if normalized in color_mapping:
+            return color_mapping[normalized]
+        if normalized in legacy_mapping:
+            return legacy_mapping[normalized]
+
+        def _rgb(value: str):
+            return (
+                int(value[1:3], 16),
+                int(value[3:5], 16),
+                int(value[5:7], 16),
+            )
+
+        try:
+            target = _rgb(normalized)
+        except ValueError:
+            return None
+
+        best_id = None
+        best_dist = None
+        for hex_value, color_id in color_mapping.items():
+            r, g, b = _rgb(hex_value)
+            dist = (r - target[0]) ** 2 + (g - target[1]) ** 2 + (b - target[2]) ** 2
+            if best_dist is None or dist < best_dist:
+                best_dist = dist
+                best_id = color_id
+        return best_id
 
     async def get_events_in_range(self, start_time: datetime, end_time: datetime, calendar_id: Optional[str] = None, user_id: Optional[str] = None) -> List[Dict]:
         """

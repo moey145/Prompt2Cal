@@ -39,6 +39,67 @@ DURATION_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+END_RANGE_PATTERN = re.compile(
+    r"\bfrom\b.+\b(to|until|till|through)\b"
+    r"|\b(until|till|through)\b"
+    r"|\b(to|tp)\s+\d"
+    r"|\d\s*[-\u2013]\s*\d",
+    re.IGNORECASE | re.DOTALL,
+)
+
+STATED_DURATION_CAPTURE = re.compile(
+    r"\b(?:for\s+)?(\d+(?:\.\d+)?|an?|half(?:\s+an?)?)\s*(hours?|hrs?|minutes?|mins?)\b",
+    re.IGNORECASE,
+)
+
+WEEKDAY_SERIES_PATTERN = re.compile(
+    r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+    re.IGNORECASE,
+)
+NEXT_DURATION_SERIES_PATTERN = re.compile(
+    r"\b(?:for\s+(?:the\s+)?)?next\s+"
+    r"(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+"
+    r"(months?|weeks?)\b",
+    re.IGNORECASE,
+)
+
+
+def duration_minutes_from_source(source: str) -> Optional[int]:
+    """Return an explicit duration from the input, or None if none was stated."""
+    if not source:
+        return None
+    match = STATED_DURATION_CAPTURE.search(source)
+    if not match:
+        return None
+    amount = match.group(1).lower()
+    unit = match.group(2).lower()
+    if amount in ("a", "an"):
+        minutes = 60.0 if unit.startswith("h") else 1.0
+    elif amount.startswith("half"):
+        minutes = 30.0 if unit.startswith("h") else 0.5
+    else:
+        minutes = float(amount)
+        if unit.startswith("h"):
+            minutes *= 60
+    parsed = int(round(minutes))
+    return parsed if parsed > 0 else None
+
+
+def source_states_end_or_duration(source: str) -> bool:
+    if not source:
+        return False
+    return bool(DURATION_PATTERN.search(source) or END_RANGE_PATTERN.search(source))
+
+
+def source_implies_weekly_series(source: str) -> bool:
+    """Weekday + 'for the next N months/weeks' grounds a weekly recurrence."""
+    if not source:
+        return False
+    return bool(
+        WEEKDAY_SERIES_PATTERN.search(source)
+        and NEXT_DURATION_SERIES_PATTERN.search(source)
+    )
+
 _date_parser = DateParser()
 
 
@@ -95,8 +156,21 @@ def attach_confidence(
     try:
         confidence = verify_event(event_dict, source_text)
 
-        if confidence.get("end_time") == UNGROUNDED and DURATION_PATTERN.search(source_text):
+        if confidence.get("end_time") == UNGROUNDED and source_states_end_or_duration(source_text):
             confidence["end_time"] = GROUNDED
+
+        # Research verifier requires "every"/"weekly"; production also accepts
+        # "Monday for the next 6 months" as evidence for a weekly series.
+        recurrence_value = event_dict.get("recurrence_type")
+        recurrence_str = str(
+            getattr(recurrence_value, "value", None) or recurrence_value or ""
+        ).lower()
+        if (
+            confidence.get("recurrence_type") == UNGROUNDED
+            and recurrence_str == "weekly"
+            and source_implies_weekly_series(source_text)
+        ):
+            confidence["recurrence_type"] = GROUNDED
 
         regex_event = _resolved_regex_event(source_text, tz_name or "UTC")
         if regex_event:

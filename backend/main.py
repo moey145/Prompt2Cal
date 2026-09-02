@@ -176,6 +176,8 @@ async def create_event(request: EventRequest):
                     else:
                         event_dict = event.dict() if hasattr(event, 'dict') else event.model_dump()
                     event_dict["original_text"] = request.text
+                    if request.timezone:
+                        event_dict["timezone"] = request.timezone
                     attach_confidence(event_dict, request.text, request.timezone)
                     events_list.append(event_dict)
                 
@@ -189,192 +191,41 @@ async def create_event(request: EventRequest):
                     "is_bulk": True
                 })
             elif len(parsed_events) == 1:
-                # Check if the single event is recurring and needs expansion
+                # A single recurring series (with or without end_date/count) must stay
+                # one calendar event with an RRULE. Do not expand into a bulk list.
                 single_event = parsed_events[0]
                 recurrence_str = (
                     single_event.recurrence_type.value
                     if hasattr(single_event, 'recurrence_type') and hasattr(single_event.recurrence_type, 'value')
                     else str(getattr(single_event, 'recurrence_type', '') or '').lower()
                 )
-                recurrence_count = getattr(single_event, 'recurrence_count', None)
-                end_date = getattr(single_event, 'end_date', None)
-                # Expand ONLY if: (recurrence_count is explicitly set and > 1) OR (end_date is set)
-                # Do NOT expand indefinite recurring events (no count, no end_date)
-                # CRITICAL: If recurrence_count is None, it's indefinite - do NOT expand
-                should_expand = (
-                    recurrence_str and 
-                    recurrence_str != "none" and 
-                    recurrence_count is not None and  # Must have explicit count
-                    recurrence_count > 1 and  # Must be > 1
-                    end_date is None  # If end_date is set, expand separately
-                ) or (
-                    recurrence_str and 
-                    recurrence_str != "none" and 
-                    end_date is not None  # Expand if end_date is explicitly set
-                )
-                if should_expand:
+                if recurrence_str and recurrence_str != "none":
                     logger.info(
-                        f"Single recurring event detected, expanding: type={recurrence_str}, count={recurrence_count}, end_date={end_date}"
+                        "Recurring series detected in multi path; keeping as one event "
+                        f"(type={recurrence_str}, count={getattr(single_event, 'recurrence_count', None)}, "
+                        f"end_date={getattr(single_event, 'end_date', None)})"
                     )
-                    try:
-                        expanded = await event_parser.event_expander.expand_single_recurring_event(single_event, tz_name=request.timezone, original_input=request.text)
-                        if expanded and len(expanded) > 1:
-                            events_list = []
-                            for e in expanded:
-                                if hasattr(e, 'model_dump'):
-                                    expanded_event = e.model_dump()
-                                elif isinstance(e, dict):
-                                    expanded_event = dict(e)
-                                else:
-                                    expanded_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
-                                expanded_event["original_text"] = request.text
-                                attach_confidence(expanded_event, request.text, request.timezone)
-                                events_list.append(expanded_event)
-                            return JSONResponse(content={
-                                "success": True,
-                                "parsed_event": None,
-                                "parsed_events": events_list,
-                                "message": "",
-                                "event_link": None,
-                                "requires_confirmation": True,
-                                "is_bulk": True
-                            })
-                    except Exception as ex:
-                        logger.warning(f"Failed to expand single recurring event: {ex}")
-                elif recurrence_str and recurrence_str != "none" and recurrence_count is None and end_date is None:
-                    # Indefinite recurring event - log it but don't expand
-                    logger.info(
-                        f"Indefinite recurring event detected in multiple path, NOT expanding: type={recurrence_str}, count=None (indefinite)"
-                    )
-
-                # Try text-based expansion as a fallback when only 1 event came back
-                try:
-                    alt_expanded = await event_parser.expand_recurring_events(request.text, request.timezone)
-                    if alt_expanded and len(alt_expanded) > 1:
-                        events_list = [
-                            e.model_dump() if hasattr(e, 'model_dump') else (e.dict() if hasattr(e, 'dict') else e)
-                            for e in alt_expanded
-                        ]
-                        for alt_dict in events_list:
-                            alt_dict["original_text"] = request.text
-                            attach_confidence(alt_dict, request.text, request.timezone)
-                        return JSONResponse(content={
-                            "success": True,
-                            "parsed_event": None,
-                            "parsed_events": events_list,
-                            "message": "",
-                            "event_link": None,
-                            "requires_confirmation": True,
-                            "is_bulk": True
-                        })
-                except Exception as ex:
-                    logger.warning(f"Alternate recurring expansion in multi failed: {ex}")
-                
-                logger.info("Multiple events detected but only 1 event returned, falling back to single event")
+                else:
+                    logger.info("Multiple events detected but only 1 event returned, falling back to single event")
         
         # Parse single event (with timezone passed in)
         parsed_event = await event_parser.parse_event_text(request.text, tz_name=request.timezone)
 
         # If user clicked Single Event button (force_multiple=False), NEVER expand
         # Always return exactly 1 event
-        if request.force_multiple is False:
-            logger.info("Single Event button clicked - returning exactly 1 event (no expansion)")
-            # Strip recurrence info if present to ensure it's a single event
-            if hasattr(parsed_event, 'recurrence_type'):
-                parsed_event.recurrence_type = "none"
-            if hasattr(parsed_event, 'recurrence_count'):
-                parsed_event.recurrence_count = None
-            if hasattr(parsed_event, 'recurrence_interval'):
-                parsed_event.recurrence_interval = 1
-            if hasattr(parsed_event, 'end_date'):
-                parsed_event.end_date = None
-        else:
-            # For auto-detect (None) or Multiple Events button (True), expand recurring events
-            # Only expand if there's an explicit count > 1 or an end_date (not for indefinite events)
-            recurrence_str = (
-                parsed_event.recurrence_type.value
-                if hasattr(parsed_event, 'recurrence_type') and hasattr(parsed_event.recurrence_type, 'value')
-                else str(getattr(parsed_event, 'recurrence_type', '') or '').lower()
+        # Never expand a recurring series into a bulk list of one-offs.
+        # Google / Microsoft create one series via RRULE (UNTIL/COUNT).
+        recurrence_str = (
+            parsed_event.recurrence_type.value
+            if hasattr(parsed_event, 'recurrence_type') and hasattr(parsed_event.recurrence_type, 'value')
+            else str(getattr(parsed_event, 'recurrence_type', '') or '').lower()
+        )
+        if recurrence_str and recurrence_str != "none":
+            logger.info(
+                "Recurring series kept as one event for calendar RRULE: "
+                f"type={recurrence_str}, count={getattr(parsed_event, 'recurrence_count', None)}, "
+                f"end_date={getattr(parsed_event, 'end_date', None)}"
             )
-            recurrence_count = getattr(parsed_event, 'recurrence_count', None)
-            end_date = getattr(parsed_event, 'end_date', None)
-            # Expand ONLY if: (recurrence_count is explicitly set and > 1) OR (end_date is set)
-            # Do NOT expand indefinite recurring events (no count, no end_date)
-            # CRITICAL: If recurrence_count is None, it's indefinite - do NOT expand
-            should_expand = (
-                recurrence_str and 
-                recurrence_str != "none" and 
-                recurrence_count is not None and  # Must have explicit count
-                recurrence_count > 1 and  # Must be > 1
-                end_date is None  # If end_date is set, expand separately
-            ) or (
-                recurrence_str and 
-                recurrence_str != "none" and 
-                end_date is not None  # Expand if end_date is explicitly set
-            )
-            if should_expand:
-                logger.info(
-                    f"Single parse yielded recurring event, expanding for UI preview: type={recurrence_str}, count={recurrence_count}, end_date={end_date}"
-                )
-                try:
-                    expanded = await event_parser.event_expander.expand_single_recurring_event(parsed_event, tz_name=request.timezone, original_input=request.text)
-                    if expanded and len(expanded) > 1:
-                        events_list = []
-                        for e in expanded:
-                            if hasattr(e, 'model_dump'):
-                                expanded_event = e.model_dump()
-                            elif isinstance(e, dict):
-                                expanded_event = dict(e)
-                            else:
-                                expanded_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
-                            expanded_event["original_text"] = request.text
-                            attach_confidence(expanded_event, request.text, request.timezone)
-                            events_list.append(expanded_event)
-                        return JSONResponse(content={
-                            "success": True,
-                            "parsed_event": None,
-                            "parsed_events": events_list,
-                            "message": "",
-                            "event_link": None,
-                            "requires_confirmation": True,
-                            "is_bulk": True
-                        })
-                except Exception as ex:
-                    logger.warning(f"Failed to expand recurring event for preview: {ex}")
-            elif recurrence_str and recurrence_str != "none" and recurrence_count is None and end_date is None:
-                # Indefinite recurring event - log it but don't expand
-                logger.info(
-                    f"Indefinite recurring event detected, NOT expanding for UI preview: type={recurrence_str}, count=None (indefinite)"
-                )
-
-        # As a final fallback: if UI asked for multiple and we still have one, try text-based expansion
-        # Only do this if Multiple Events button was clicked
-        if is_multiple and request.force_multiple:
-            try:
-                alt_expanded = await event_parser.expand_recurring_events(request.text, request.timezone)
-                if alt_expanded and len(alt_expanded) > 1:
-                    events_list = []
-                    for e in alt_expanded:
-                        if hasattr(e, 'model_dump'):
-                            alt_event = e.model_dump()
-                        elif isinstance(e, dict):
-                            alt_event = dict(e)
-                        else:
-                            alt_event = e.dict() if hasattr(e, 'dict') else e.model_dump()
-                        alt_event["original_text"] = request.text
-                        attach_confidence(alt_event, request.text, request.timezone)
-                        events_list.append(alt_event)
-                    return JSONResponse(content={
-                        "success": True,
-                        "parsed_event": None,
-                        "parsed_events": events_list,
-                        "message": "",
-                        "event_link": None,
-                        "requires_confirmation": True,
-                        "is_bulk": True
-                    })
-            except Exception as ex:
-                logger.warning(f"Alternate recurring expansion failed: {ex}")
 
         # Convert to dict for response (check if it has model_dump method)
         if hasattr(parsed_event, 'model_dump'):
@@ -390,6 +241,8 @@ async def create_event(request: EventRequest):
         
         # Attach original text for downstream processing
         event_dict["original_text"] = request.text
+        if request.timezone:
+            event_dict["timezone"] = request.timezone
 
         # Per-field source-grounding confidence for the preview UI
         attach_confidence(event_dict, request.text, request.timezone)

@@ -6,14 +6,17 @@ export const API_BASE =
   import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 export const EVENT_COLORS = [
-  "#4285f4",
-  "#ea4335",
-  "#fbbc04",
-  "#34a853",
-  "#9c27b0",
-  "#ff9800",
-  "#795548",
-  "#607d8b",
+  "#d50000", // Tomato (11)
+  "#e67c73", // Flamingo (4)
+  "#f4511e", // Tangerine (6)
+  "#f6bf26", // Banana (5)
+  "#33b679", // Sage (2)
+  "#0b8043", // Basil (10)
+  "#039be5", // Peacock (7)
+  "#3f51b5", // Blueberry (9)
+  "#7986cb", // Lavender (1)
+  "#8e24aa", // Grape (3)
+  "#616161", // Graphite (8)
 ];
 
 export const REMINDER_OPTIONS = [
@@ -28,6 +31,6 @@ export const REMINDER_OPTIONS = [
   { value: "2880", label: "2 days before" },
 ];
 
-export const DEFAULT_COLOR = "#4285f4";
+export const DEFAULT_COLOR = "#3f51b5";
 export const DEFAULT_REMINDER = "none";
 

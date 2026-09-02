@@ -392,12 +392,14 @@ const Popup = () => {
     try {
       setLoading(true);
 
+      const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const eventWithColor = {
         ...parsedEvent,
         color: selectedColor,
         reminder: selectedReminder,
         calendar_id: selectedCalendarId,
         calendar_provider: calendarProvider,
+        timezone: parsedEvent.timezone || clientTimezone,
       };
 
       const response = await makeApiCall("/confirm_event", {
@@ -450,12 +452,14 @@ const Popup = () => {
     try {
       setLoading(true);
 
+      const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const eventsWithColor = parsedEvents.map((event) => ({
         ...event,
-        color: event.color || DEFAULT_COLOR,
+        color: event.color || selectedColor || DEFAULT_COLOR,
         reminder: selectedReminder,
         calendar_id: selectedCalendarId,
         calendar_provider: calendarProvider,
+        timezone: event.timezone || clientTimezone,
       }));
 
       const response = await makeApiCall("/confirm_bulk_events", {

@@ -75,8 +75,10 @@
 
 .color-presets {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 8px;
+  max-width: 220px;
 }
 
 .color-preset {
@@ -85,6 +87,8 @@
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .color-preset.selected {

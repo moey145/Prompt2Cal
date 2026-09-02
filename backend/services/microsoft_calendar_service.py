@@ -218,17 +218,29 @@ class MicrosoftCalendarService:
         return False
 
     @staticmethod
-    def _split_datetime(value: str) -> tuple[str, str]:
+    def _split_datetime(value: str, fallback_tz: Optional[str] = None) -> tuple[str, str]:
         dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        if hasattr(dt.tzinfo, "zone") and getattr(dt.tzinfo, "zone"):
-            return dt.replace(tzinfo=None).isoformat(timespec="seconds"), dt.tzinfo.zone  # type: ignore[attr-defined]
-        # Offset-only timestamps: normalize to UTC for Graph compatibility
+        zone = None
+        if dt.tzinfo is not None:
+            zone = getattr(dt.tzinfo, "zone", None) or getattr(dt.tzinfo, "key", None)
+        if not zone and fallback_tz and "/" in fallback_tz:
+            zone = fallback_tz
+            try:
+                import pytz
+                local_tz = pytz.timezone(zone)
+                dt = dt.astimezone(local_tz) if dt.tzinfo else local_tz.localize(dt)
+            except Exception:
+                pass
+        if zone:
+            return dt.replace(tzinfo=None).isoformat(timespec="seconds"), zone
+        # Offset-only timestamps without a client IANA zone: keep absolute instant in UTC
         dt_utc = dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
         return dt_utc.replace(tzinfo=None).isoformat(timespec="seconds"), "UTC"
 
     def _build_event_body(self, parsed_event: ParsedEvent) -> Dict:
-        start_dt, start_tz = self._split_datetime(parsed_event.start_time)
-        end_dt, end_tz = self._split_datetime(parsed_event.end_time)
+        fallback_tz = getattr(parsed_event, "timezone", None)
+        start_dt, start_tz = self._split_datetime(parsed_event.start_time, fallback_tz)
+        end_dt, end_tz = self._split_datetime(parsed_event.end_time, fallback_tz)
         body: Dict = {
             "subject": parsed_event.title,
             "start": {"dateTime": start_dt, "timeZone": start_tz},

@@ -107,7 +107,7 @@
 
 /* Align clock with time range (middle of the three texts: date, time, recurrence) for recurring events */
 .event-time-row-confirm:has(.event-start-label-confirm) .event-time-icon-confirm {
-  margin-top: 47px;
+  margin-top: 56px;
 }
 
 /* Center clock icon vertically with date and time for non-recurring events */
@@ -133,6 +133,10 @@
   letter-spacing: 0.3px;
   margin-bottom: 1px;
   opacity: 1;
+}
+
+.event-until-label-confirm {
+  margin-top: 8px;
 }
 
 .event-date-confirm {

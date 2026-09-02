@@ -13,7 +13,7 @@ import {
   X,
   AlertTriangle,
 } from "lucide-react";
-import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
+import { formatDateTimeShort, formatTimeShort, formatDateOnly } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
 import { ConflictWarning } from "./ConflictWarning";
 
@@ -32,6 +32,9 @@ export const SingleEventCard = ({
   const isRecurring =
     parsedEvent.recurrence_type &&
     parsedEvent.recurrence_type !== "none";
+  const recurrenceEndLabel = parsedEvent.end_date
+    ? formatDateOnly(parsedEvent.end_date)
+    : null;
 
   // Source-grounding confidence computed by the backend verifier:
   // fields marked "ungrounded" were not found in the user's input text.
@@ -99,6 +102,11 @@ export const SingleEventCard = ({
                   parsedEvent.recurrence_type.charAt(0).toUpperCase() +
                     parsedEvent.recurrence_type.slice(1)}
               </div>
+              {recurrenceEndLabel && (
+                <div className="event-until-confirm">
+                  Until {recurrenceEndLabel}
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -204,4 +212,3 @@ export const SingleEventCard = ({
     </div>
   );
 };
-

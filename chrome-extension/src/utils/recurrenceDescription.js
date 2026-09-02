@@ -1,4 +1,5 @@
 // Recurrence description utility
+import { formatDateOnly } from "./dateFormatters";
 
 export const getRecurrenceDescription = (event) => {
   if (!event || !event.recurrence_type || event.recurrence_type === "none") {
@@ -155,9 +156,18 @@ export const getRecurrenceDescription = (event) => {
         recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
     }
 
+    // End date is shown in a dedicated "Until" row on the confirm card.
+    // Keep count-only endings in the text so the period is still visible.
+    if (!event.end_date) {
+      if (event.recurrence_count && event.recurrence_count > 0) {
+        description = `${description}, ${event.recurrence_count} times`;
+      } else if (event.end_after_count && event.end_after_count > 0) {
+        description = `${description}, ${event.end_after_count} times`;
+      }
+    }
+
     return description;
   } catch (e) {
     return recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1);
   }
 };
-

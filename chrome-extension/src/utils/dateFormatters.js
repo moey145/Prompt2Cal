@@ -46,3 +46,23 @@ export const formatTimeShort = (isoString) => {
   return date.toLocaleString("en-US", options);
 };
 
+/** Format a date or ISO datetime without shifting date-only values across timezones. */
+export const formatDateOnly = (value) => {
+  if (!value) return "";
+  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const date = new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+  return formatDateTimeShort(value);
+};
+

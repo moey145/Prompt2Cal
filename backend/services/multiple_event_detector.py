@@ -33,13 +33,19 @@ class MultipleEventDetector:
             time_tokens = re.findall(r"\b\d{1,2}(:\d{2})?\s*(am|pm)\b", text_lower)
             time_count = len(time_tokens)
             
-            # Check for time ranges (e.g., "9:00am - 11:30am") - these are single events
-            time_range_pattern = r"\b\d{1,2}(:\d{2})?\s*(am|pm)\s*-\s*\d{1,2}(:\d{2})?\s*(am|pm)\b"
+            # Check for time ranges - these are a single event's start/end, not two events
+            # Covers: "9:00am - 11:30am", "10pm to 11pm", "from 10pm until 11pm"
+            time_range_pattern = (
+                r"\b\d{1,2}(:\d{2})?\s*(am|pm)\s*[-–]\s*\d{1,2}(:\d{2})?\s*(am|pm)\b"
+                r"|\b\d{1,2}(:\d{2})?\s*(am|pm)\s+(to|until|till|through)\s+\d{1,2}(:\d{2})?\s*(am|pm)\b"
+                r"|\bfrom\s+\d{1,2}(:\d{2})?\s*(am|pm)\s+(to|until|till|through)\s+\d{1,2}(:\d{2})?\s*(am|pm)\b"
+            )
             has_time_range = bool(re.search(time_range_pattern, text_lower))
             
             # If it's a time range, reduce the time count to 1
             if has_time_range and time_count >= 2:
                 time_count = 1
+                logger.info("Clock time range detected - treating as one event's start/end")
             
             # Check for multiple day indicators
             day_indicators = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'tomorrow', 'today']
@@ -115,6 +121,19 @@ class MultipleEventDetector:
             # Check for recurring patterns (strict)
             recurring_patterns = ['every day', 'every other', 'every ', 'daily', 'weekly', 'monthly', 'yearly', 'each month', 'each week', 'each day', 'first monday', 'first tuesday', 'first wednesday', 'first thursday', 'first friday', 'first saturday', 'first sunday']
             has_recurring = any(pattern in text_lower for pattern in recurring_patterns)
+            # "Monday for the next 6 months" is also one recurring series
+            has_weekday_series = bool(
+                re.search(
+                    r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+                    text_lower,
+                )
+                and re.search(
+                    r"\b(?:for\s+(?:the\s+)?)?next\s+(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(months?|weeks?)\b",
+                    text_lower,
+                )
+            )
+            if has_weekday_series:
+                has_recurring = True
             
             # Check for multiple distinct activities (lunch, dinner, meeting, etc.) - define early for use below
             activity_indicators = ['lunch', 'dinner', 'meeting', 'appointment', 'call', 'visit', 'workout', 'yoga', 'exercise', 'training', 'class', 'session']

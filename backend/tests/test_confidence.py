@@ -55,6 +55,23 @@ class TestDurationRefinement:
         result = attach_confidence(event, "Team meeting tomorrow at 3pm for 2 hours")
         assert result["field_confidence"]["end_time"] == "grounded"
 
+    def test_to_end_time_grounds_end_time(self):
+        event = make_event(end_time="2026-08-31T08:00:00+10:00")
+        result = attach_confidence(event, "Gym every Monday at 6:30am to 8am")
+        assert result["field_confidence"]["end_time"] == "grounded"
+
+    def test_weekday_next_months_grounds_weekly(self):
+        event = make_event(
+            title="Meeting",
+            recurrence_type="weekly",
+            end_time="2026-08-31T23:00:00+10:00",
+        )
+        result = attach_confidence(
+            event,
+            "Monday for the next 6 months meeting at 10pm - 11pm",
+        )
+        assert result["field_confidence"]["recurrence_type"] == "grounded"
+
     def test_no_duration_no_range_stays_ungrounded(self):
         event = make_event()
         result = attach_confidence(event, "Team meeting tomorrow at 3pm")

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
-CACHE_VERSION = "v29"  # Increment when cache format changes (v29: add post-processing to extract time from title if missing from start_time)
+CACHE_VERSION = "v30"  # v30: weekday + for-the-next-N-months stays a single recurring series with end_date
 
 # GPT-5 rejects non-default temperature values; omit the parameter and rely on
 # repeated-run consistency measurement instead.
@@ -350,8 +350,29 @@ class IntelligentEventParser:
 
             # Normalize duration phrases like "next two months"
             recurrence_count = event.recurrence_count
+            text_lower_src = (original_text or "").lower()
+            weekday_in_text = re.search(
+                r"\b(every\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+                text_lower_src,
+            )
+            next_duration = re.search(
+                r"\b(?:for\s+(?:the\s+)?)?next\s+(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(months?|weeks?)\b",
+                text_lower_src,
+            )
+            # "Monday for the next 6 months" is a weekly series even without "every"
+            if (
+                weekday_in_text
+                and next_duration
+                and recurrence_type in (None, "", "none")
+            ):
+                recurrence_type = "weekly"
+                logger.info(
+                    "Inferred weekly recurrence from weekday + next-N duration: '%s'",
+                    original_text,
+                )
+
             if (recurrence_type in {"weekly", "daily", "monthly"} and
-                    (recurrence_count is None or recurrence_count <= 0)):
+                    (recurrence_count is None or recurrence_count <= 0 or not event.end_date)):
 
                 # Include original input text to catch patterns like "for 6 weeks", "for the next 3 months", "for next 3 months"
                 source_text = f"{original_text} {event.notes or ''} {event.title} {event.start_time}".lower()
@@ -382,8 +403,29 @@ class IntelligentEventParser:
                             recurrence_count = count_value
                             recurrence_type = 'weekly'
                         elif 'month' in unit:
-                            recurrence_count = count_value * 4  # approximate
+                            # Prefer an end_date for "next N months" so the calendar
+                            # gets UNTIL rather than an approximate weekly COUNT.
                             recurrence_type = 'weekly'
+                            if not event.end_date:
+                                try:
+                                    start_dt = dateparser.parse(str(event.start_time)) or datetime.now()
+                                    month = start_dt.month - 1 + count_value
+                                    year = start_dt.year + month // 12
+                                    month = month % 12 + 1
+                                    day = min(start_dt.day, [31, 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1])
+                                    end_dt = start_dt.replace(year=year, month=month, day=day)
+                                    event = event.model_copy(update={"end_date": end_dt.strftime("%Y-%m-%d")}) if hasattr(event, "model_copy") else event.copy(update={"end_date": end_dt.strftime("%Y-%m-%d")})
+                                    logger.info(
+                                        "Set end_date from next-%s-months phrase: %s",
+                                        count_value,
+                                        event.end_date,
+                                    )
+                                except Exception as end_err:
+                                    logger.warning("Failed to derive end_date from months phrase: %s", end_err)
+                                    recurrence_count = count_value * 4
+                            # Keep count None when end_date is set; RRULE uses UNTIL
+                            if event.end_date:
+                                recurrence_count = None
                         elif 'day' in unit:
                             recurrence_count = count_value
                             recurrence_type = 'daily'
@@ -403,6 +445,13 @@ class IntelligentEventParser:
                             recurrence_count = max(1, delta_days // 30)
                 except Exception as e:
                     logger.warning(f"Failed to infer recurrence_count from end_date: {e}")
+
+            # For "next N months" phrases, end_date is the source of truth.
+            # Drop approximate COUNT so the calendar RRULE uses UNTIL only.
+            if event.end_date and next_duration and "month" in next_duration.group(2):
+                recurrence_count = None
+                if recurrence_type in (None, "", "none"):
+                    recurrence_type = "weekly"
 
             # Ensure valid recurrence_interval
             # If quarterly pattern detected, set interval to 3
@@ -803,9 +852,10 @@ class IntelligentEventParser:
         return True
     
     def _get_cache_key(self, text: str) -> str:
-        """Generate cache key from text with version."""
+        """Generate cache key from text with version and model."""
         text_key = hashlib.md5(text.lower().strip().encode()).hexdigest()
-        return f"{CACHE_VERSION}_{text_key}"
+        model = getattr(self, "model", "unknown")
+        return f"{CACHE_VERSION}_{model}_{text_key}"
     
     def _get_system_prompt(self) -> str:
         return """You are an expert at parsing natural language event descriptions into structured calendar events.
@@ -886,6 +936,7 @@ Instructions:
    - recurrence_count: number of occurrences - CRITICAL: ONLY set a number if explicitly specified (e.g., "for 4 weeks", "for 3 months"). If user says "Every Monday" or "Every day" without "for X weeks/months" or "until [date]", set recurrence_count to null (unlimited/indefinite)
    - recurrence_interval: for "every other" patterns, set to 2
    - end_date or end_after_count: if "for X months/weeks" or "until [date]" is specified
+   - CRITICAL: "Monday for the next 6 months" / "for the next 6 months meeting every Monday" is ONE weekly recurring series. Set recurrence_type "weekly", start_time to the next that weekday, and end_date about 6 months later. Do NOT emit many separate events and do NOT leave recurrence_type as "none".
    - CRITICAL: "for the whole of [month]" or "for [month]" or "during [month]" → set end_date to "last [day] of [month]" (e.g., "for the whole of December" → end_date: "last Tuesday of December" or "December 31")
    - "from DATE - DATE" or "DATE - DATE" patterns: 
      - CRITICAL: If title contains "trip", "vacation", "holiday", or "conference" → ALWAYS single event (recurrence_type: "none")

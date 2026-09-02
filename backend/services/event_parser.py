@@ -5,6 +5,7 @@ This is the main entry point for event parsing functionality.
 
 import os
 import logging
+import re
 from typing import List, Optional
 import pytz
 from datetime import datetime, timedelta
@@ -12,35 +13,78 @@ from dotenv import load_dotenv
 
 from ..models.event_models import ParsedEvent
 from .intelligent_parser import IntelligentEventParser
+from .claude_parser import ClaudeEventParser, DEFAULT_CLAUDE_MODEL
 from .rules_parser import parse_with_rules
 from .date_parser import DateParser
 from .event_expander import EventExpander
 from .multiple_event_detector import MultipleEventDetector
+from .confidence import duration_minutes_from_source, source_states_end_or_duration
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+_WEEKDAY = r"monday|tuesday|wednesday|thursday|friday|saturday|sunday"
+_NEXT_DURATION = (
+    r"(?:for\s+(?:the\s+)?)?next\s+"
+    r"(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+"
+    r"(months?|weeks?)"
+)
+
+
+def text_implies_recurring_series(text: str) -> bool:
+    """True when the input describes a recurring series the rules parser often misses."""
+    if not text:
+        return False
+    lower = text.lower()
+    if re.search(r"\b(every|each|daily|weekly|monthly|yearly)\b", lower):
+        return True
+    if re.search(rf"\b({_WEEKDAY})\b", lower) and re.search(_NEXT_DURATION, lower):
+        return True
+    return False
+
+
 class EventParser:
     """Main event parser that orchestrates parsing of natural language event descriptions."""
     
     def __init__(self):
-        # Initialize OpenAI client
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        if not self.openai_api_key:
-            logger.warning("OpenAI API key not found. LLM parsing will be disabled.")
-        
-        # Initialize components
-        if self.openai_api_key:
-                self.intelligent_parser = IntelligentEventParser(self.openai_api_key)
+        provider = os.getenv("LLM_PROVIDER", "claude").strip().lower()
+        anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_api_key = openai_api_key
+
+        if provider in ("claude", "anthropic"):
+            if anthropic_api_key:
+                model = os.getenv("LLM_MODEL", DEFAULT_CLAUDE_MODEL)
+                self.intelligent_parser = ClaudeEventParser(anthropic_api_key, model=model)
+                logger.info("Live event parser: Claude (%s)", model)
+            elif openai_api_key:
+                logger.warning(
+                    "LLM_PROVIDER is Claude but ANTHROPIC_API_KEY is missing; falling back to OpenAI"
+                )
+                self.intelligent_parser = IntelligentEventParser(openai_api_key)
+            else:
+                logger.warning("No LLM API key found. LLM parsing will be disabled.")
+                self.intelligent_parser = None
+        elif openai_api_key:
+            self.intelligent_parser = IntelligentEventParser(openai_api_key)
+            logger.info("Live event parser: OpenAI (%s)", self.intelligent_parser.model)
         else:
+            logger.warning("OpenAI API key not found. LLM parsing will be disabled.")
             self.intelligent_parser = None
         self.date_parser = DateParser()
         self.event_expander = EventExpander()
         self.multiple_event_detector = MultipleEventDetector()
 
-    def _resolve_event_datetimes(self, event: ParsedEvent, local_tz: pytz.timezone) -> None:
+    def _resolve_event_datetimes(
+        self,
+        event: ParsedEvent,
+        local_tz: pytz.timezone,
+        source_text: Optional[str] = None,
+    ) -> None:
         """Convert natural-language start/end times to ISO, preserving multi-day ranges."""
+        source = source_text or getattr(event, "original_text", None) or ""
+
         if event.start_time and not str(event.start_time).startswith("20"):
             start_datetime = self.date_parser.parse_start_time(str(event.start_time), local_tz)
             if start_datetime:
@@ -54,16 +98,19 @@ class EventParser:
                 event.end_time = end_datetime.isoformat()
 
         if (
-            event.duration_minutes
-            and event.start_time
+            event.start_time
             and str(event.start_time).startswith("20")
             and (not event.end_time or not str(event.end_time).startswith("20"))
         ):
+            stated_duration = duration_minutes_from_source(source)
+            duration = stated_duration or event.duration_minutes or 60
+            if stated_duration:
+                event.duration_minutes = stated_duration
             start_dt = datetime.fromisoformat(event.start_time)
-            event.end_time = (start_dt + timedelta(minutes=event.duration_minutes)).isoformat()
-            # End time was not stated in the input; surface that to the UI
-            # instead of presenting the default duration as extracted fact.
-            event.end_time_assumed = True
+            event.end_time = (start_dt + timedelta(minutes=duration)).isoformat()
+            # Only label the end as assumed when the user did not state a
+            # duration or an end range. "for 2 hours" and "to 8am" are stated.
+            event.end_time_assumed = not source_states_end_or_duration(source)
     
     async def is_multiple_events(self, text: str) -> bool:
         """Determine if the input text describes multiple events."""
@@ -249,7 +296,8 @@ class EventParser:
                     # Parse dates and expand recurring events
                     parsed_events = []
                     for event in events:
-                        self._resolve_event_datetimes(event, local_tz)
+                        event.original_text = text
+                        self._resolve_event_datetimes(event, local_tz, source_text=text)
                         
                         # Check for recurrence and expand if needed
                         recurrence_str = str(event.recurrence_type).lower() if event.recurrence_type else "none"
@@ -258,31 +306,14 @@ class EventParser:
                         logger.info(f"Checking event '{event.title}' for recurrence: type={recurrence_str}, count={recurrence_count}")
                         
                         if recurrence_str and recurrence_str != "none" and recurrence_str != "recurrencetype.none":
-                            # Only expand if it's NOT an indefinite recurring event
-                            # Indefinite = recurrence_count is None AND end_date is None
-                            # Expand ONLY if: (recurrence_count is explicitly set and > 1) OR (end_date is set)
-                            should_expand = (
-                                recurrence_count is not None and  # Must have explicit count
-                                recurrence_count > 1 and  # Must be > 1
-                                end_date is None  # If end_date is set, expand separately
-                            ) or (
-                                end_date is not None  # Expand if end_date is explicitly set
+                            # Keep finite and indefinite series as one calendar RRULE event.
+                            # Expanding into many one-offs drops end_date from the UI.
+                            logger.info(
+                                "Keeping recurring series as one event in multi path: "
+                                f"{event.title}, type={recurrence_str}, count={recurrence_count}, "
+                                f"end_date={end_date}"
                             )
-                            
-                            if should_expand:
-                                # Expand recurring event
-                                logger.info(f"Expanding recurring event: {event.title}, type: {recurrence_str}, count: {recurrence_count}")
-                                recurring = await self.event_expander.expand_single_recurring_event(event, tz_name, text)
-                                if recurring:
-                                    logger.info(f"Expansion successful: {len(recurring)} events created")
-                                    parsed_events.extend(recurring)
-                                else:
-                                    logger.warning(f"Expansion failed, keeping original event")
-                                    parsed_events.append(event)
-                            else:
-                                # Indefinite recurring event - don't expand, return as-is
-                                logger.info(f"Indefinite recurring event detected (count=None, end_date=None), NOT expanding: {event.title}, type: {recurrence_str}")
-                                parsed_events.append(event)
+                            parsed_events.append(event)
                         else:
                             parsed_events.append(event)
                     
@@ -340,8 +371,28 @@ class EventParser:
             else:
                 local_tz = pytz.timezone('UTC')
             
-            # Try rules parser first
+            # Try rules parser first, but skip it when the input clearly describes a
+            # recurring series (e.g. "Monday for the next 6 months ... 10pm - 11pm").
+            # Rules often match the clock range and return a one-off with no RRULE.
             rules_result = parse_with_rules(text, str(local_tz))
+            if rules_result and text_implies_recurring_series(text):
+                rule_event = rules_result[0]
+                rule_recurrence = (
+                    getattr(rule_event, "recurrence_type", None)
+                    if not isinstance(rule_event, dict)
+                    else rule_event.get("recurrence_type")
+                )
+                rule_end = (
+                    getattr(rule_event, "end_date", None)
+                    if not isinstance(rule_event, dict)
+                    else rule_event.get("end_date")
+                )
+                rule_recurrence_str = str(rule_recurrence or "none").lower()
+                if rule_recurrence_str in ("", "none") and not rule_end:
+                    logger.info(
+                        "Skipping rules parser for recurring-series input; using LLM"
+                    )
+                    rules_result = None
             if rules_result and len(rules_result) > 0:
                 event_data = rules_result[0]
                 
@@ -366,6 +417,7 @@ class EventParser:
                 else:
                     # Handle dictionary format (fallback)
                     start_time_str = event_data.get('start_time')
+                    end_time_str = event_data.get('end_time') or event_data.get('end')
                     title = event_data.get('title', 'Untitled Event')
                     duration_minutes = event_data.get('duration_minutes', 60)
                     recurrence_type = event_data.get('recurrence_type', 'none')
@@ -390,9 +442,14 @@ class EventParser:
                             end_datetime = self.date_parser.parse_start_time(end_time_str, local_tz)
                             if not end_datetime:
                                 end_datetime = self.date_parser.parse_end_date(end_time_str, local_tz)
-                        end_assumed = end_datetime is None
-                        if not end_datetime:
+                        if end_datetime:
+                            end_assumed = False
+                        else:
+                            stated_duration = duration_minutes_from_source(text)
+                            if stated_duration:
+                                duration_minutes = stated_duration
                             end_datetime = start_datetime + timedelta(minutes=duration_minutes)
+                            end_assumed = not source_states_end_or_duration(text)
 
                         return ParsedEvent(
                             title=title,
@@ -416,7 +473,8 @@ class EventParser:
                 events = await self.intelligent_parser.parse(text, str(local_tz))
                 if events and len(events) > 0:
                     event = events[0]
-                    self._resolve_event_datetimes(event, local_tz)
+                    event.original_text = text
+                    self._resolve_event_datetimes(event, local_tz, source_text=text)
                     
                     return event
             

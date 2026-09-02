@@ -13,9 +13,12 @@ import {
   Check,
   AlertTriangle,
 } from "lucide-react";
-import { formatDateTimeShort, formatTimeShort } from "../utils/dateFormatters";
+import { formatDateTimeShort, formatTimeShort, formatDateOnly } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
 import { ConflictWarning } from "./ConflictWarning";
+
+const recurrenceEndLabel = (event) =>
+  event.end_date ? formatDateOnly(event.end_date) : null;
 
 export const BulkEventsCard = ({
   parsedEvents,
@@ -137,6 +140,16 @@ export const BulkEventsCard = ({
                         event.recurrence_type.charAt(0).toUpperCase() +
                           event.recurrence_type.slice(1)}
                     </div>
+                    {recurrenceEndLabel(event) && (
+                      <>
+                        <div className="event-start-label-confirm event-until-label-confirm">
+                          Until
+                        </div>
+                        <div className="event-date-confirm">
+                          {recurrenceEndLabel(event)}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (
