@@ -31,6 +31,10 @@ Advanced AI understands natural language, so you can say things like:
 
 Automatically checks your calendar for scheduling conflicts before creating events, so you never double-book.
 
+### 🔍 **Confidence Highlighting**
+
+Before you create an event, fields the AI filled in that **weren't found in your text** are highlighted on the confirm screen — so you can catch hallucinated dates, times, or locations before they land on your calendar. End times inferred from a default duration (rather than something you stated) are labelled as **assumed**.
+
 ### 📋 **Selected Text**
 
 Select text from any webpage and the extension will automatically detect it—perfect for quickly adding events from emails or web pages.
@@ -49,18 +53,19 @@ Create repeating events with natural language:
 
 ### 🎨 **Fully Customizable**
 
-- Choose event colors
+- Choose event colors (Google Calendar palette)
 - Set reminder notifications
 - Add locations and attendees
 - Select which calendar to use
+- Connect **Google Calendar** or **Microsoft Outlook**
 - Beautiful dark mode support
 
 ## 🎯 How It Works
 
 1. **Type or speak** your event in natural language
-2. **AI parses** your text into structured event data
-3. **Review and confirm** the parsed details
-4. **Event is created** in your Google Calendar instantly
+2. **AI parses** your text into structured event data (Claude Sonnet 4.6)
+3. **Review and confirm** the parsed details — ungrounded fields are highlighted
+4. **Event is created** in your Google or Outlook calendar instantly
 
 ## 📖 Example Usage
 
@@ -92,16 +97,21 @@ This project consists of:
 
 ### Backend API
 
-- **Tech Stack:** FastAPI (Python), OpenAI GPT, Google Calendar API
+- **Tech Stack:** FastAPI (Python), Claude Sonnet 4.6 (live parser), Google Calendar API, Microsoft Graph
 - **Deployment:** Google Cloud Run
-- **Features:** Natural language parsing, event creation, OAuth2 handling
+- **Features:** Natural language parsing, source-grounding confidence, event creation, OAuth2 handling
 - **Location:** `backend/`
 
 ### Key Services
 
 - **Rules Parser:** Deterministic parsing for common patterns
-- **Intelligent Parser:** AI-powered parsing for complex natural language
-- **Calendar Service:** Google Calendar integration with conflict detection
+- **Intelligent Parser:** Claude-powered parsing for complex natural language
+- **Confidence layer:** Source-grounding verifier applied to every live extraction
+- **Calendar Service:** Google Calendar and Microsoft Outlook integration with conflict detection
+
+### Research evaluation
+
+The capstone benchmark, evaluation harness, verifier scoring, and reproduction commands are documented separately in **[RESEARCH.md](RESEARCH.md)** (not required to use the extension).
 
 ## 📁 Project Structure
 
@@ -118,6 +128,9 @@ Prompt2Cal/
 ├── docs/                      # Documentation & website
 │   ├── index.html             # Homepage
 │   └── privacy-policy.html    # Privacy policy
+├── benchmark/                 # Research benchmark dataset & artefacts
+├── scripts/                   # Evaluation & analysis CLI scripts
+├── RESEARCH.md                # Benchmark reproduction guide (capstone)
 └── README.md                  # This file
 ```
 
@@ -127,8 +140,8 @@ Prompt2Cal/
 
 - Python 3.8+
 - Node.js 16+
-- OpenAI API key
-- Google Cloud Project with Calendar API enabled
+- Anthropic API key (live parser) and/or OpenAI API key (research harness)
+- Google Cloud Project with Calendar API enabled (optional: Azure app for Outlook)
 
 ### Backend Setup
 
@@ -142,7 +155,7 @@ Prompt2Cal/
 
    ```bash
    cp env.example .env
-   # Edit .env and add your OpenAI API key
+   # Edit .env: ANTHROPIC_API_KEY (live parser), GOOGLE_* / MS_* (calendar OAuth)
    ```
 
 3. **Set up Google Calendar API:**
@@ -220,8 +233,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- OpenAI for the GPT API
+- Anthropic for the Claude API (live parser)
+- OpenAI for GPT API (research benchmark)
 - Google for the Calendar API
+- Microsoft for the Graph Calendar API
 - FastAPI for the excellent Python web framework
 - React for the frontend framework
 
