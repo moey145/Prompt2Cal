@@ -44,18 +44,54 @@ def test_event_parser_rules_first(event_parser, text, validator):
     assert validator(event), f"Validation failed for: {text}\nGot event: {event}"
 
 
-@pytest.mark.parametrize(
-    "text, expected_count",
-    [
-        (
-            "Create 3 standup meetings every day this week at 10am",
-            3,
-        ),
-    ],
-)
-def test_event_parser_bulk(event_parser, text, expected_count):
-    events = asyncio.run(event_parser.parse_bulk_events(text))
-    assert len(events) == expected_count, f"Expected {expected_count} events, got {len(events)}"
+class StubLLMParser:
+    """Stands in for the live LLM so multi-event post-processing runs offline."""
+
+    def __init__(self, *events):
+        self.events = events
+
+    async def parse(self, text, tz_name):
+        return [event.model_copy() for event in self.events]
+
+
+def test_multiple_events_keeps_recurring_series_as_one_event(event_parser):
+    from backend.models.event_models import ParsedEvent
+
+    text = "Create 3 standup meetings every day this week at 10am"
+    event_parser.intelligent_parser = StubLLMParser(
+        ParsedEvent(
+            title="Standup",
+            start_time="tomorrow at 10am",
+            recurrence_type="daily",
+            recurrence_count=3,
+        )
+    )
+    events = asyncio.run(event_parser.parse_multiple_events(text, tz_name="Australia/Sydney"))
+
+    # A finite series stays one RRULE event rather than 3 one-off events.
+    assert len(events) == 1
+    assert events[0].recurrence_type == "daily"
+    assert events[0].recurrence_count == 3
+    assert datetime.fromisoformat(events[0].start_time).hour == 10
+    assert events[0].end_time_assumed is True
+    assert events[0].original_text == text
+
+
+def test_multiple_events_without_recurrence_words_are_one_offs(event_parser):
+    from backend.models.event_models import ParsedEvent
+
+    event_parser.intelligent_parser = StubLLMParser(
+        ParsedEvent(title="Lunch", start_time="tomorrow at 1pm", recurrence_type="weekly"),
+        ParsedEvent(title="Dinner", start_time="tomorrow at 7pm", recurrence_type="weekly"),
+    )
+    events = asyncio.run(
+        event_parser.parse_multiple_events(
+            "Lunch at 1pm and dinner at 7pm tomorrow", tz_name="Australia/Sydney"
+        )
+    )
+
+    assert [event.title for event in events] == ["Lunch", "Dinner"]
+    assert all(event.recurrence_type == "none" for event in events)
 
 
 def test_resolve_event_datetimes_preserves_multi_day_range(event_parser):
