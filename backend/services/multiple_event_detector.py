@@ -9,12 +9,57 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+CLAUSE_SPLIT_PATTERN = re.compile(r"[,;]|\.\s+|\s(?:then|also|plus|and)\s")
+CLAUSE_TIME_PATTERN = re.compile(r"\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b")
+CLAUSE_RECURRENCE_PATTERN = re.compile(r"\b(?:every|daily|weekly|monthly|yearly|each)\b")
+NOTES_SECTION_PATTERN = re.compile(r"\b(?:notes?|reminders?|description|desc)\s*:")
+# Words that qualify a time or series rather than name an event, so a clause
+# made only of these ("Wednesday at 5pm", "remind me at 8:30am") is not an event.
+NON_EVENT_WORDS = {
+    'at', 'on', 'from', 'to', 'until', 'till', 'through', 'the', 'a', 'an', 'by',
+    'around', 'about', 'for', 'in', 'am', 'pm', 'starting', 'start', 'ending',
+    'end', 'ends', 'finish', 'finishing', 'remind', 'reminder', 'me', 'before',
+    'after', 'minute', 'minutes', 'mins', 'hour', 'hours', 'week', 'weeks',
+    'month', 'months', 'next', 'this', 'other',
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'weekday', 'weekdays', 'weekend', 'day', 'days', 'today', 'tomorrow', 'tonight',
+    'every', 'daily', 'weekly', 'monthly', 'yearly', 'each',
+}
+
+
+def _clause_names_event(clause: str) -> bool:
+    words = re.findall(r"[a-z]+", CLAUSE_TIME_PATTERN.sub(" ", clause))
+    return any(word not in NON_EVENT_WORDS for word in words)
+
+
+def has_one_off_alongside_series(text_lower: str) -> bool:
+    """True when a recurring series and a separate timed one-off event share the text.
+
+    "Dentist Thursday 10am, then standup every Monday at 9am" is two events,
+    even though it contains a recurring pattern.
+    """
+    notes_match = NOTES_SECTION_PATTERN.search(text_lower)
+    if notes_match:
+        text_lower = text_lower[:notes_match.start()]
+    clauses = [c.strip() for c in CLAUSE_SPLIT_PATTERN.split(text_lower) if c.strip()]
+    has_series = any(
+        CLAUSE_RECURRENCE_PATTERN.search(c) and _clause_names_event(c) for c in clauses
+    )
+    has_one_off = any(
+        CLAUSE_TIME_PATTERN.search(c)
+        and not CLAUSE_RECURRENCE_PATTERN.search(c)
+        and _clause_names_event(c)
+        for c in clauses
+    )
+    return has_series and has_one_off
+
+
 class MultipleEventDetector:
     """Handles detection of multiple events in input text."""
-    
+
     def __init__(self):
         pass
-    
+
     async def is_multiple_events(self, text: str) -> bool:
         """
         Determine if the input text describes multiple events.
@@ -187,14 +232,22 @@ class MultipleEventDetector:
             # Recurring events are single events that get expanded later
             # Don't treat them as multiple events UNLESS we have multiple recurring patterns
             # If we detect a single recurring pattern, override the multiple events detection
-            # But if we have multiple "Every [day]" patterns, those are multiple recurring events
-            if has_recurring and not multiple_every_patterns and not has_multiple_sentences_with_events:
+            # But if we have multiple "Every [day]" patterns, those are multiple recurring events,
+            # and a timed one-off event next to the series is a separate event too
+            one_off_alongside_series = has_one_off_alongside_series(text_lower)
+            if (
+                has_recurring
+                and not multiple_every_patterns
+                and not has_multiple_sentences_with_events
+                and not one_off_alongside_series
+            ):
                 logger.info("Single recurring pattern detected - treating as single recurring event, not multiple events")
                 is_multiple = False
             
             logger.info(f"Is multiple events: {is_multiple}")
             logger.info(f"Has separator: {has_separator}")
             logger.info(f"Has recurring: {has_recurring}")
+            logger.info(f"One-off event alongside series: {one_off_alongside_series}")
             logger.info(f"Multiple 'Every' patterns: {multiple_every_patterns} (count: {len(every_matches)})")
             logger.info(f"Multiple sentences with events: {has_multiple_sentences_with_events} (count: {sentences_with_events})")
             logger.info(f"Has numbered events: {has_numbered_events}")

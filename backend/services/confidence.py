@@ -10,10 +10,12 @@ Applies the research findings back to the production platform:
   routing mechanism: when the Regex parser independently extracts the same
   value for a field, that field's confidence is upgraded to "corroborated".
 
-One production refinement is layered on top of the frozen research rules: an
+Production refinements are layered on top of the frozen research rules: an
 end time derived from an explicitly stated duration ("for 2 hours") counts as
 grounded, because the duration is evidence the user supplied even though it
-is not a clock-time range.
+is not a clock-time range; and an end time the parser filled in from the
+default duration (``end_time_assumed``) is never grounded, because two clock
+times in multi-event input may belong to different events.
 """
 
 from __future__ import annotations
@@ -158,6 +160,13 @@ def attach_confidence(
 
         if confidence.get("end_time") == UNGROUNDED and source_states_end_or_duration(source_text):
             confidence["end_time"] = GROUNDED
+
+        # The research verifier grounds an end time on any two clock times in
+        # the source, but in multi-event input those can belong to different
+        # events. An end time the parser derived from the default duration was
+        # not stated by the user, whatever the verifier found.
+        if event_dict.get("end_time_assumed") and confidence.get("end_time") == GROUNDED:
+            confidence["end_time"] = UNGROUNDED
 
         # Research verifier requires "every"/"weekly"; production also accepts
         # "Monday for the next 6 months" as evidence for a weekly series.

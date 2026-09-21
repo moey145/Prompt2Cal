@@ -77,6 +77,22 @@ class TestDurationRefinement:
         result = attach_confidence(event, "Team meeting tomorrow at 3pm")
         assert result["field_confidence"]["end_time"] == "ungrounded"
 
+    def test_assumed_end_time_not_grounded_by_other_events_times(self):
+        # Two clock times satisfy the research verifier, but the 9am belongs to
+        # the standup; the dentist's end time came from the default duration.
+        event = make_event(
+            title="Dentist",
+            start_time="2026-09-24T10:00:00+01:00",
+            end_time="2026-09-24T11:00:00+01:00",
+            end_time_assumed=True,
+        )
+        result = attach_confidence(
+            event,
+            "Dentist Thursday 10am, then team standup every Monday at 9am for 3 weeks",
+            tz_name="Europe/London",
+        )
+        assert result["field_confidence"]["end_time"] == "ungrounded"
+
 
 class TestRegexCorroboration:
     def test_time_range_can_be_corroborated(self):
