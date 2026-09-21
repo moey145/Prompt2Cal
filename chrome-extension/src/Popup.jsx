@@ -7,7 +7,7 @@ import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { makeApiCall } from "./utils/api";
 import { normalizeEventPayload } from "./utils/eventNormalizers";
 import { parseAttendeeInput, ensureUniqueEmails } from "./utils/emailUtils";
-import { DEFAULT_COLOR, DEFAULT_REMINDER } from "./utils/constants";
+import { DEFAULT_COLOR, DEFAULT_REMINDER, SESSION_PATTERN } from "./utils/constants";
 import { SettingsDropdown } from "./components/SettingsDropdown";
 import { AuthSection } from "./components/AuthSection";
 import { EventInputSection } from "./components/EventInputSection";
@@ -92,6 +92,31 @@ const Popup = () => {
     // eslint-disable-next-line
   }, []);
 
+  // Sign-in finishes in the background worker; pick up its result if this
+  // popup is open when it lands.
+  useEffect(() => {
+    const handleStorageChange = async (changes, area) => {
+      if (area !== "local") return;
+      const session = changes.prompt2cal_user_id?.newValue;
+      if (session && SESSION_PATTERN.test(session)) {
+        setUserId(session);
+        const authenticated = await checkAuthStatus(session);
+        if (authenticated) {
+          const stored = await chrome.storage.local.get(["calendar_provider"]);
+          await fetchCalendars(session, stored.calendar_provider || "google");
+        }
+      }
+      const authError = changes.prompt2cal_auth_error?.newValue;
+      if (authError) {
+        showMessage(authError, "error");
+        await chrome.storage.local.remove(["prompt2cal_auth_error"]);
+      }
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
+    // eslint-disable-next-line
+  }, []);
+
   useEffect(() => {
     if (!eventInputHydrated.current) return;
     chrome.storage.local
@@ -142,14 +167,22 @@ const Popup = () => {
 
   const initializeUser = async () => {
     try {
-      const result = await chrome.storage.local.get(["prompt2cal_user_id"]);
-      let userIdValue;
-
-      if (result.prompt2cal_user_id) {
+      const result = await chrome.storage.local.get([
+        "prompt2cal_user_id",
+        "prompt2cal_auth_error",
+      ]);
+      // Only the backend issues sessions, at sign-in. IDs made up by older
+      // versions of the extension are no longer accepted, so those users
+      // connect their calendar again.
+      let userIdValue = null;
+      if (SESSION_PATTERN.test(result.prompt2cal_user_id || "")) {
         userIdValue = result.prompt2cal_user_id;
-      } else {
-        userIdValue = "user_" + Math.random().toString(36).substr(2, 9);
-        await chrome.storage.local.set({ prompt2cal_user_id: userIdValue });
+      } else if (result.prompt2cal_user_id) {
+        await chrome.storage.local.remove(["prompt2cal_user_id"]);
+      }
+      if (result.prompt2cal_auth_error) {
+        showMessage(result.prompt2cal_auth_error, "error");
+        await chrome.storage.local.remove(["prompt2cal_auth_error"]);
       }
 
       setUserId(userIdValue);

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import os
@@ -11,10 +11,8 @@ from backend.services.event_parser import EventParser
 from backend.services.calendar_service import CalendarService
 from backend.services.microsoft_calendar_service import MicrosoftCalendarService
 from backend.services.confidence import attach_confidence
-from backend.models.event_models import (
-    EventRequest, EventResponse, ParsedEvent,
-    BulkEventRequest, BulkEventResponse, FileImportRequest
-)
+from backend.services import token_store
+from backend.models.event_models import EventRequest, EventResponse, ParsedEvent
 
 # Load environment variables
 load_dotenv()
@@ -71,6 +69,12 @@ def _calendar_service_for(provider: Optional[str]):
     )
 
 
+def _require_session(user_id: Optional[str]) -> None:
+    """Reject calendar access without a session this server issued at sign-in."""
+    if not token_store.is_valid_session(user_id):
+        raise HTTPException(status_code=401, detail="Not signed in. Please connect your calendar.")
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
@@ -111,6 +115,7 @@ async def auth_status(user_id: str = None, provider: str = None):
 @app.get("/calendars")
 async def get_calendars(user_id: str = None, provider: str = None):
     """Get list of user's writable calendars for the active provider."""
+    _require_session(user_id)
     active_provider = _normalize_provider(provider)
     service = _calendar_service_for(active_provider)
     try:
@@ -264,6 +269,7 @@ async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):
     """
     Confirm and create the calendar event in Google or Microsoft Calendar.
     """
+    _require_session(user_id)
     try:
         provider = _normalize_provider(getattr(parsed_event, "calendar_provider", None))
         logger.info(f"Confirming event: {parsed_event.title} via {provider}")
@@ -291,87 +297,12 @@ async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):
         logger.error(f"Error creating event: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to create event: {str(e)}")
 
-@app.post("/create_bulk_events", response_model=BulkEventResponse)
-async def create_bulk_events(request: BulkEventRequest):
-    """
-    Create multiple events from natural language bulk requests.
-    
-    Examples:
-    - "Create 5 meetings every day this week at 2pm"
-    - "Create 3 appointments every week for the next month"
-    """
-    try:
-        logger.info(f"Processing bulk event request: {request.text}")
-        
-        # Parse bulk events
-        parsed_events = await event_parser.parse_bulk_events(
-            request.text, 
-            request.count, 
-            request.start_date
-        )
-        
-        if not parsed_events:
-            raise HTTPException(status_code=400, detail="No events could be parsed from the request")
-        
-        # Convert to dicts
-        events_list = []
-        for event in parsed_events:
-            if isinstance(event, ParsedEvent) and hasattr(event, 'model_dump'):
-                event_dict = event.model_dump()
-            elif isinstance(event, dict):
-                event_dict = dict(event)
-            else:
-                event_dict = event.dict() if hasattr(event, 'dict') else event
-            event_dict["original_text"] = request.text
-            events_list.append(event_dict)
-        
-        return BulkEventResponse(
-            success=True,
-            parsed_events=events_list,
-            message=f"Successfully parsed {len(parsed_events)} events for bulk creation.",
-            total_created=len(parsed_events)
-        )
-        
-    except Exception as e:
-        logger.error(f"Error parsing bulk events: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to parse bulk events: {str(e)}")
-
-@app.post("/import_events", response_model=BulkEventResponse)
-async def import_events(request: FileImportRequest):
-    """
-    Import events from CSV or text files.
-    
-    CSV format: Title,Start Time,End Time,Location,Notes
-    Text format: One event description per line
-    """
-    try:
-        logger.info(f"Processing file import: {request.file_type}")
-        
-        # Parse events from file content
-        parsed_events = await event_parser.parse_file_import(
-            request.file_content, 
-            request.file_type
-        )
-        
-        if not parsed_events:
-            raise HTTPException(status_code=400, detail="No events could be parsed from the file")
-        
-        return BulkEventResponse(
-            success=True,
-            parsed_events=parsed_events,
-            message=f"Successfully imported {len(parsed_events)} events from file.",
-            total_created=len(parsed_events)
-        )
-        
-    except Exception as e:
-        logger.error(f"Error importing events: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to import events: {str(e)}")
-
 @app.post("/confirm_bulk_events", response_model=EventResponse)
 async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(None)):
     """
     Create multiple confirmed events in Google or Microsoft Calendar.
     """
+    _require_session(user_id)
     try:
         logger.info(f"Confirming {len(events)} bulk events")
         
@@ -425,33 +356,42 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
         logger.error(f"Error creating bulk events: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to create bulk events: {str(e)}")
 
+async def _start_sign_in(provider: str, service, redirect_uri: Optional[str], user_id: Optional[str]):
+    if not token_store.is_allowed_redirect_uri(redirect_uri):
+        raise HTTPException(
+            status_code=400,
+            detail="Sign-in must be started from the Prompt2Cal extension. Please update the extension.",
+        )
+    state = token_store.create_pending_state(provider, redirect_uri, previous_session=user_id)
+    try:
+        auth_url = await service.get_auth_url(state)
+    except Exception as e:
+        logger.error(f"Error getting {provider} auth URL: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get auth URL: {str(e)}")
+    return {"auth_url": auth_url, "provider": provider}
+
 @app.get("/auth/google")
-async def google_auth(user_id: str = None):
+async def google_auth(redirect_uri: str = None, user_id: str = None):
     """
     Initiate Google OAuth2 authentication flow.
+
+    ``redirect_uri`` is the extension's chrome.identity redirect URL, which
+    receives the new session when sign-in completes. ``user_id`` is the
+    caller's current session, whose other calendar connections carry over.
     """
-    try:
-        auth_url = await calendar_service.get_auth_url(user_id=user_id)
-        return {"auth_url": auth_url, "provider": "google"}
-    except Exception as e:
-        logger.error(f"Error getting auth URL: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get auth URL: {str(e)}")
+    return await _start_sign_in("google", calendar_service, redirect_uri, user_id)
 
 @app.get("/auth/microsoft")
-async def microsoft_auth(user_id: str = None):
+async def microsoft_auth(redirect_uri: str = None, user_id: str = None):
     """Initiate Microsoft OAuth2 authentication flow for Outlook calendar."""
-    try:
-        auth_url = await microsoft_calendar_service.get_auth_url(user_id=user_id)
-        return {"auth_url": auth_url, "provider": "microsoft"}
-    except Exception as e:
-        logger.error(f"Error getting Microsoft auth URL: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get Microsoft auth URL: {str(e)}")
+    return await _start_sign_in("microsoft", microsoft_calendar_service, redirect_uri, user_id)
 
 @app.post("/auth/logout")
 async def logout(user_id: str = None, provider: str = None):
     """
     Logout and clear user credentials for one or both calendar providers.
     """
+    _require_session(user_id)
     try:
         if provider is None:
             google_ok = calendar_service.logout(user_id=user_id)
@@ -473,207 +413,69 @@ async def logout(user_id: str = None, provider: str = None):
 async def root():
     return {"message": "Prompt2Cal API is running"}
 
-@app.get("/auth/callback")
-async def google_auth_callback(code: str = None, state: str = None):
+SIGN_IN_LINK_INVALID_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign-in Failed</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f5f5f5; }
+        .error { background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px;
+                 border: 1px solid #f5c6cb; margin: 20px auto; max-width: 400px; }
+    </style>
+</head>
+<body>
+    <div class="error">
+        <h2>Sign-in link expired or invalid</h2>
+        <p>Please connect your calendar again from the Prompt2Cal extension.</p>
+    </div>
+</body>
+</html>
+"""
+
+
+async def _finish_sign_in(provider: str, service, code: Optional[str], state: Optional[str], error: Optional[str]):
+    """Complete an OAuth callback and hand a new session to the extension that started it.
+
+    The session goes only to the chrome.identity redirect URL recorded when the
+    sign-in started, so a sign-in link forwarded to someone else never gives
+    the sender access to that person's calendar.
     """
-    Handle Google OAuth2 callback and store credentials.
-    For Chrome extension, return a success page instead of redirecting.
-    """
+    pending = token_store.consume_pending_state(state, provider)
+    if not pending:
+        return HTMLResponse(content=SIGN_IN_LINK_INVALID_HTML, status_code=400)
+
+    redirect_uri = pending["redirect_uri"]
+    if error or not code:
+        return RedirectResponse(f"{redirect_uri}#error=access_denied", status_code=302)
     try:
-        if not code:
-            raise HTTPException(status_code=400, detail="Authorization code not provided")
-        
-        # Extract user_id from state parameter
-        user_id = state if state else None
-        
-        await calendar_service.handle_auth_callback(code, user_id=user_id)
-        
-        # Return success page for Chrome extension
-        from fastapi.responses import HTMLResponse
-        success_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Authentication Successful</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    text-align: center;
-                    padding: 50px;
-                    background-color: #f5f5f5;
-                }
-                .success {
-                    background-color: #d4edda;
-                    color: #155724;
-                    padding: 20px;
-                    border-radius: 8px;
-                    border: 1px solid #c3e6cb;
-                    margin: 20px auto;
-                    max-width: 400px;
-                }
-                .icon {
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="success">
-                <div class="icon">✅</div>
-                <h2>Google Calendar Connected!</h2>
-                <p>You can now close this tab and return to the Prompt2Cal extension.</p>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=success_html, status_code=200)
-        
+        token_data = await service.exchange_code(code)
     except Exception as e:
-        logger.error(f"Error handling auth callback: {str(e)}")
-        # Return error page for Chrome extension
-        from fastapi.responses import HTMLResponse
-        error_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Authentication Failed</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    text-align: center;
-                    padding: 50px;
-                    background-color: #f5f5f5;
-                }}
-                .error {{
-                    background-color: #f8d7da;
-                    color: #721c24;
-                    padding: 20px;
-                    border-radius: 8px;
-                    border: 1px solid #f5c6cb;
-                    margin: 20px auto;
-                    max-width: 400px;
-                }}
-                .icon {{
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="error">
-                <div class="icon">❌</div>
-                <h2>Authentication Failed</h2>
-                <p>Error: {str(e)}</p>
-                <p>Please try again from the Prompt2Cal extension.</p>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=error_html, status_code=400)
+        logger.error(f"Error handling {provider} auth callback: {str(e)}")
+        return RedirectResponse(f"{redirect_uri}#error=sign_in_failed", status_code=302)
+
+    session = token_store.start_session(pending["previous_session"])
+    service.save_token(session, token_data)
+    return RedirectResponse(f"{redirect_uri}#session={session}", status_code=302)
+
+@app.get("/auth/callback")
+async def google_auth_callback(code: str = None, state: str = None, error: str = None):
+    """Handle Google OAuth2 callback and store credentials."""
+    return await _finish_sign_in("google", calendar_service, code, state, error)
 
 @app.get("/auth/microsoft/callback")
-async def microsoft_auth_callback(code: str = None, state: str = None):
-    """Handle Microsoft OAuth2 callback and store credentials for the extension."""
-    from fastapi.responses import HTMLResponse
-    try:
-        if not code:
-            raise HTTPException(status_code=400, detail="Authorization code not provided")
-
-        user_id = state if state else None
-        await microsoft_calendar_service.handle_auth_callback(code, user_id=user_id)
-
-        success_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Authentication Successful</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    text-align: center;
-                    padding: 50px;
-                    background-color: #f5f5f5;
-                }
-                .success {
-                    background-color: #d4edda;
-                    color: #155724;
-                    padding: 20px;
-                    border-radius: 8px;
-                    border: 1px solid #c3e6cb;
-                    margin: 20px auto;
-                    max-width: 400px;
-                }
-                .icon {
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="success">
-                <div class="icon">✅</div>
-                <h2>Microsoft Calendar Connected!</h2>
-                <p>You can now close this tab and return to the Prompt2Cal extension.</p>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=success_html, status_code=200)
-    except Exception as e:
-        logger.error(f"Error handling Microsoft auth callback: {str(e)}")
-        error_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Authentication Failed</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    text-align: center;
-                    padding: 50px;
-                    background-color: #f5f5f5;
-                }}
-                .error {{
-                    background-color: #f8d7da;
-                    color: #721c24;
-                    padding: 20px;
-                    border-radius: 8px;
-                    border: 1px solid #f5c6cb;
-                    margin: 20px auto;
-                    max-width: 400px;
-                }}
-                .icon {{
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="error">
-                <div class="icon">❌</div>
-                <h2>Authentication Failed</h2>
-                <p>Error: {str(e)}</p>
-                <p>Please try again from the Prompt2Cal extension.</p>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=error_html, status_code=400)
+async def microsoft_auth_callback(code: str = None, state: str = None, error: str = None):
+    """Handle Microsoft OAuth2 callback and store credentials."""
+    return await _finish_sign_in("microsoft", microsoft_calendar_service, code, state, error)
 
 @app.post("/find_meeting_slots")
 async def find_meeting_slots(request: dict):
     """
     Find available meeting slots in a given time range.
     """
+    user_id = request.get("user_id")
+    _require_session(user_id)
     try:
-        user_id = request.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")
-        
-        # Get calendar service for user
-        calendar_service = CalendarService()
-        await calendar_service.initialize_user_service(user_id)
-        
         # Parse request parameters
         duration_minutes = request.get("duration_minutes", 60)
         start_date_str = request.get("start_date")
@@ -695,7 +497,8 @@ async def find_meeting_slots(request: dict):
             start_date=start_date,
             end_date=end_date,
             working_hours=tuple(working_hours),
-            buffer_minutes=buffer_minutes
+            buffer_minutes=buffer_minutes,
+            user_id=user_id
         )
         
         return {
@@ -714,11 +517,9 @@ async def check_conflicts(request: dict):
     """
     Check if a proposed meeting time conflicts with existing events.
     """
+    user_id = request.get("user_id")
+    _require_session(user_id)
     try:
-        user_id = request.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")
-        
         # Parse request parameters
         start_time_str = request.get("start_time")
         end_time_str = request.get("end_time")

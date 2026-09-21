@@ -1,6 +1,7 @@
 // Authentication hook
 import { useState, useEffect } from "react";
 import { makeApiCall } from "../utils/api";
+import { API_BASE } from "../utils/constants";
 
 const hasChromeStorage = () =>
   typeof chrome !== "undefined" &&
@@ -112,24 +113,26 @@ export const useAuth = (userId) => {
     }
   };
 
-  const startOAuth = async (endpoint, provider, setLoading) => {
+  const startOAuth = async (provider, setLoading) => {
     if (loadingAuth || loadingMicrosoftAuth) return;
 
     try {
       setLoading(true);
 
-      const response = await makeApiCall(endpoint, {
-        method: "GET",
-        params: { user_id: userId },
-      });
-
       await chrome.storage.local.set({
         waitingForAuth: true,
         calendar_provider: provider,
       });
+      await chrome.storage.local.remove(["prompt2cal_auth_error"]);
       setCalendarProvider(provider);
-      await chrome.tabs.create({ url: response.auth_url });
-      window.close();
+      // The background worker runs the sign-in window and stores the new
+      // session; this popup closes when that window opens.
+      await chrome.runtime.sendMessage({
+        action: "startOAuth",
+        provider,
+        apiBase: API_BASE,
+        previousSession: userId,
+      });
     } catch (error) {
       console.error("Auth error:", error);
       throw error;
@@ -139,11 +142,11 @@ export const useAuth = (userId) => {
   };
 
   const handleGoogleAuth = async () => {
-    await startOAuth("/auth/google", "google", setLoadingAuth);
+    await startOAuth("google", setLoadingAuth);
   };
 
   const handleMicrosoftAuth = async () => {
-    await startOAuth("/auth/microsoft", "microsoft", setLoadingMicrosoftAuth);
+    await startOAuth("microsoft", setLoadingMicrosoftAuth);
   };
 
   const switchProvider = async (provider, userIdValue) => {

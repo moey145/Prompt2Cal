@@ -5,6 +5,7 @@
   "description": "Convert natural language text to calendar events with AI-powered parsing and Google Calendar integration",
   "permissions": [
     "activeTab",
+    "identity",
     "storage",
     "scripting"
   ],

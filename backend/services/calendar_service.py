@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from uuid import uuid4
 
 from ..models.event_models import ParsedEvent
+from . import token_store
 
 load_dotenv()
 
@@ -24,14 +25,12 @@ class CalendarService:
         # Use absolute paths for credentials files
         self.BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.CREDENTIALS_FILE = os.path.join(self.BASE_DIR, 'credentials.json')
-        self.TOKEN_FILE = os.path.join(self.BASE_DIR, 'token.json')
-        self.service = None
-        
+
         # Load OAuth client credentials from environment variables
         self.CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
         self.CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
         self.REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI', 'http://localhost:8000/auth/callback')
-        
+
         # Fallback to credentials.json if env vars not set (for backward compatibility)
         if not self.CLIENT_ID or not self.CLIENT_SECRET:
             if os.path.exists(self.CREDENTIALS_FILE):
@@ -48,64 +47,12 @@ class CalendarService:
                             self.REDIRECT_URI = creds_data['redirect_uris'][0]
                 except Exception as e:
                     logger.warning(f"Could not load credentials from file: {e}")
-        
-        self._load_credentials()
-    
-    def _load_credentials(self):
-        """Load or create credentials for Google Calendar API."""
-        creds = None
-        
-        # Load existing token
-        if os.path.exists(self.TOKEN_FILE):
-            try:
-                creds = Credentials.from_authorized_user_file(self.TOKEN_FILE, self.SCOPES)
-            except (ValueError, Exception) as e:
-                logger.warning(f"Invalid or corrupted token file: {str(e)}")
-                logger.info("Removing invalid token file and will require re-authentication")
-                # Remove the invalid token file
-                try:
-                    os.remove(self.TOKEN_FILE)
-                except Exception as remove_error:
-                    logger.error(f"Could not remove invalid token file: {str(remove_error)}")
-                creds = None
-        
-        # If there are no valid credentials, we need to authenticate
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                try:
-                    creds.refresh(Request())
-                    # Save refreshed credentials
-                    with open(self.TOKEN_FILE, 'w') as token:
-                        token.write(creds.to_json())
-                except Exception as e:
-                    logger.warning(f"Could not refresh credentials: {str(e)}")
-                    creds = None
-            else:
-                # Check if credentials.json exists
-                if not os.path.exists(self.CREDENTIALS_FILE):
-                    logger.warning(f"Google credentials file not found at {self.CREDENTIALS_FILE}")
-                    logger.info("Google Calendar integration will not be available until credentials are set up")
-                    return
-                
-                logger.info("No valid credentials found. Google Calendar authentication required.")
-                # For now, we'll handle auth in the auth endpoints
-                return
-        
-        # Build the service only if we have valid credentials
-        if creds:
-            try:
-                self.service = build('calendar', 'v3', credentials=creds)
-                logger.info("Google Calendar service initialized successfully")
-            except Exception as e:
-                logger.error(f"Error building Calendar service: {str(e)}")
-                self.service = None
-    
-    async def get_auth_url(self, user_id: Optional[str] = None) -> str:
-        """Get the Google OAuth2 authorization URL."""
+
+    def _require_client_config(self):
         if not self.CLIENT_ID or not self.CLIENT_SECRET:
             raise Exception("Google OAuth credentials not found. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file")
-        
-        # Create client config from environment variables
+
+    def _oauth_flow(self) -> Flow:
         client_config = {
             "web": {
                 "client_id": self.CLIENT_ID,
@@ -115,131 +62,71 @@ class CalendarService:
                 "redirect_uris": [self.REDIRECT_URI]
             }
         }
-        
-        flow = Flow.from_client_config(
-            client_config,
-            self.SCOPES,
-            redirect_uri=self.REDIRECT_URI
-        )
-        
-        # Add user_id to state to persist it through OAuth flow
-        state = user_id if user_id else ""
-        
-        auth_url, _ = flow.authorization_url(
+        return Flow.from_client_config(client_config, self.SCOPES, redirect_uri=self.REDIRECT_URI)
+
+    async def get_auth_url(self, state: str) -> str:
+        """Get the Google OAuth2 authorization URL for a pending sign-in."""
+        self._require_client_config()
+        auth_url, _ = self._oauth_flow().authorization_url(
             access_type='offline',
             include_granted_scopes='true',
             prompt='consent',  # Force consent screen to get refresh token
             state=state
         )
-        
         return auth_url
-    
-    async def handle_auth_callback(self, code: str, user_id: Optional[str] = None):
-        """Handle the OAuth2 callback and save credentials."""
-        if not self.CLIENT_ID or not self.CLIENT_SECRET:
-            raise Exception("Google OAuth credentials not found. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file")
-        
-        # Log credentials (masked for security)
-        logger.info(f"Using CLIENT_ID: {self.CLIENT_ID[:20]}... (length: {len(self.CLIENT_ID)})")
-        logger.info(f"Using CLIENT_SECRET: {'*' * min(len(self.CLIENT_SECRET), 20)}... (length: {len(self.CLIENT_SECRET)})")
-        logger.info(f"Using REDIRECT_URI: {self.REDIRECT_URI}")
-        
-        # Create client config from environment variables
-        client_config = {
-            "web": {
-                "client_id": self.CLIENT_ID,
-                "client_secret": self.CLIENT_SECRET,
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "redirect_uris": [self.REDIRECT_URI]
-            }
-        }
-        
-        flow = Flow.from_client_config(
-            client_config,
-            self.SCOPES,
-            redirect_uri=self.REDIRECT_URI
-        )
-        
-        # Exchange code for credentials
+
+    async def exchange_code(self, code: str) -> Dict:
+        """Exchange an OAuth2 authorization code for token data to store."""
+        self._require_client_config()
+        flow = self._oauth_flow()
         try:
             flow.fetch_token(code=code)
-        except Exception as e:
-            logger.error(f"Failed to fetch token. CLIENT_ID: {self.CLIENT_ID[:20]}..., CLIENT_SECRET length: {len(self.CLIENT_SECRET) if self.CLIENT_SECRET else 0}, REDIRECT_URI: {self.REDIRECT_URI}")
+        except Exception:
+            logger.error(f"Failed to fetch token. CLIENT_ID: {self.CLIENT_ID[:20]}..., REDIRECT_URI: {self.REDIRECT_URI}")
             raise
         creds = flow.credentials
-        
-        # Determine token file path based on user_id
-        if user_id:
-            user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
-            os.makedirs(user_tokens_dir, exist_ok=True)
-            token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
-        else:
-            token_file = self.TOKEN_FILE
-        
-        # Save only user-specific tokens (without client_id/secret)
-        # Store initial authentication timestamp to enforce 1-month re-authentication
-        from datetime import datetime as dt
-        token_data = {
+        # Store only user-specific tokens (without client_id/secret), plus when
+        # the user signed in so re-authentication can be enforced after 14 days
+        return {
             "token": creds.token,
             "refresh_token": creds.refresh_token,
             "token_uri": creds.token_uri,
             "scopes": creds.scopes,
             "expiry": creds.expiry.isoformat() if creds.expiry else None,
-            "auth_timestamp": dt.now().isoformat()  # Store when authentication was first done
+            "auth_timestamp": datetime.now().isoformat(),
         }
-        
-        with open(token_file, 'w') as token:
+
+    def save_token(self, session: str, token_data: Dict) -> None:
+        with open(token_store.token_path("google", session), 'w') as token:
             json.dump(token_data, token)
-        
-        logger.info(f"Google Calendar authentication completed successfully for user: {user_id}")
-        
-        # Reinitialize service with new credentials
-        self.service = build('calendar', 'v3', credentials=creds)
-    
-    def _ensure_valid_credentials(self, user_id: Optional[str] = None) -> bool:
-        """Ensure credentials are valid and refresh if needed. Returns True if valid.
-        Forces re-authentication after 14 days for security."""
-        if not user_id:
-            return False
-        
-        user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
-        token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
-        
+        logger.info(f"Google Calendar connected for session {token_store.short_id(session)}")
+
+    def _load_credentials(self, user_id: Optional[str]) -> Optional[Credentials]:
+        """Load a session's credentials, refreshing them if needed.
+
+        Returns None when the user must sign in again. Forces re-authentication
+        after 14 days for security.
+        """
+        token_file = token_store.token_path("google", user_id)
         if not os.path.exists(token_file):
-            return False
-        
+            return None
+        if not self.CLIENT_ID or not self.CLIENT_SECRET:
+            logger.error("Cannot load credentials: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
+            return None
+
         try:
-            # Load user token data
             with open(token_file, 'r') as f:
                 token_data = json.load(f)
-            
-            if not self.CLIENT_ID or not self.CLIENT_SECRET:
-                logger.error("Cannot refresh credentials: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
-                return False
-            
-            # Check if authentication is older than 14 days
-            from datetime import datetime as dt, timedelta
+
             auth_timestamp = token_data.get('auth_timestamp')
             if auth_timestamp:
-                auth_date = dt.fromisoformat(auth_timestamp)
-                days_since_auth = (dt.now() - auth_date).days
-                
+                days_since_auth = (datetime.now() - datetime.fromisoformat(auth_timestamp)).days
                 if days_since_auth >= 14:
-                    logger.info(f"Authentication expired after 14 days for user: {user_id} (authenticated {days_since_auth} days ago)")
-                    # Delete the token file to force re-authentication
-                    try:
-                        os.remove(token_file)
-                        logger.info(f"Removed expired token file for user: {user_id}")
-                    except Exception as e:
-                        logger.error(f"Error removing expired token file: {e}")
-                    return False
-            
-            # Reconstruct credentials
-            expiry = None
-            if token_data.get('expiry'):
-                expiry = dt.fromisoformat(token_data['expiry'])
-            
+                    logger.info(f"Authentication expired after 14 days for session {token_store.short_id(user_id)}")
+                    os.remove(token_file)
+                    return None
+
+            expiry = datetime.fromisoformat(token_data['expiry']) if token_data.get('expiry') else None
             creds = Credentials(
                 token=token_data.get('token'),
                 refresh_token=token_data.get('refresh_token'),
@@ -249,166 +136,50 @@ class CalendarService:
                 scopes=token_data.get('scopes', self.SCOPES),
                 expiry=expiry
             )
-            
-            # Refresh if expired or about to expire (within 20 minutes)
-            # This ensures tokens are refreshed proactively before expiration
-            if creds and creds.refresh_token:
-                should_refresh = creds.expired
-                if not should_refresh and creds.expiry:
-                    # Refresh if token expires within 20 minutes (proactive refresh)
-                    time_until_expiry = creds.expiry - dt.now()
-                    should_refresh = time_until_expiry <= timedelta(minutes=20)
-                
-                if should_refresh:
-                    logger.info(f"Refreshing expired token for user: {user_id}")
-                    try:
-                        # Preserve the refresh_token before refreshing (in case Google doesn't return it)
-                        original_refresh_token = creds.refresh_token
-                        creds.refresh(Request())
-                        # Save refreshed token (preserve auth_timestamp and refresh_token)
-                        # Use original refresh_token if new one is None (shouldn't happen, but safety check)
-                        refresh_token_to_save = creds.refresh_token if creds.refresh_token else original_refresh_token
-                        token_data = {
-                            "token": creds.token,
-                            "refresh_token": refresh_token_to_save,
-                            "token_uri": creds.token_uri,
-                            "scopes": creds.scopes,
-                            "expiry": creds.expiry.isoformat() if creds.expiry else None,
-                            "auth_timestamp": auth_timestamp  # Preserve original auth timestamp
-                        }
-                        with open(token_file, 'w') as token:
-                            json.dump(token_data, token)
-                        logger.info(f"Token refreshed successfully for user: {user_id}")
-                    except Exception as refresh_error:
-                        logger.error(f"Failed to refresh token for user {user_id}: {refresh_error}")
-                        # Don't delete the token file - it might still be valid for a short time
-                        # Only delete if refresh token is invalid (which would require re-auth anyway)
-                        # Check if it's a refresh token error
-                        error_str = str(refresh_error).lower()
-                        if 'invalid_grant' in error_str or 'invalid_token' in error_str or 'token has been expired or revoked' in error_str:
-                            logger.warning(f"Refresh token is invalid for user {user_id}, requiring re-authentication")
-                            # Only delete if it's been 14+ days OR if refresh token is definitely invalid
-                            # For now, keep the token file - the 14-day check will handle it
-                        # Return False so caller knows credentials aren't valid
-                        return False
-            
-            # Rebuild service with fresh credentials
-            if creds and creds.valid:
-                self.service = build('calendar', 'v3', credentials=creds)
-                return True
-            else:
-                logger.warning(f"Credentials are not valid for user: {user_id}")
-                return False
-                
         except Exception as e:
-            logger.error(f"Error ensuring valid credentials for user {user_id}: {e}")
-            return False
-    
-    def _load_user_credentials(self, user_id: Optional[str] = None):
-        """Load credentials for a specific user.
-        Forces re-authentication after 14 days for security."""
-        if user_id:
-            user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
-            token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
-            if os.path.exists(token_file):
-                try:
-                    # Load user token data (without client credentials)
-                    with open(token_file, 'r') as f:
-                        token_data = json.load(f)
-                    
-                    # Check if authentication is older than 14 days
-                    from datetime import datetime as dt
-                    auth_timestamp = token_data.get('auth_timestamp')
-                    if auth_timestamp:
-                        auth_date = dt.fromisoformat(auth_timestamp)
-                        days_since_auth = (dt.now() - auth_date).days
-                        
-                        if days_since_auth >= 14:
-                            logger.info(f"Authentication expired after 14 days for user: {user_id} (authenticated {days_since_auth} days ago)")
-                            # Delete the token file to force re-authentication
-                            try:
-                                os.remove(token_file)
-                                logger.info(f"Removed expired token file for user: {user_id}")
-                            except Exception as e:
-                                logger.error(f"Error removing expired token file: {e}")
-                            return False
-                    
-                    # Reconstruct credentials with client_id/secret from env
-                    if not self.CLIENT_ID or not self.CLIENT_SECRET:
-                        logger.error("Cannot load user credentials: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
-                        return False
-                    
-                    # Handle both old format (with client_id/secret) and new format (without)
-                    if 'client_id' in token_data:
-                        # Old format - use as-is but update from env if available
-                        creds = Credentials.from_authorized_user_file(token_file, self.SCOPES)
-                    else:
-                        # New format - reconstruct credentials
-                        expiry = None
-                        if token_data.get('expiry'):
-                            expiry = dt.fromisoformat(token_data['expiry'])
-                        
-                        creds = Credentials(
-                            token=token_data.get('token'),
-                            refresh_token=token_data.get('refresh_token'),
-                            token_uri=token_data.get('token_uri', 'https://oauth2.googleapis.com/token'),
-                            client_id=self.CLIENT_ID,
-                            client_secret=self.CLIENT_SECRET,
-                            scopes=token_data.get('scopes', self.SCOPES),
-                            expiry=expiry
-                        )
-                    
-                    # Refresh if expired or about to expire (within 20 minutes)
-                    # This ensures tokens are refreshed proactively before expiration
-                    should_refresh = False
-                    if creds and creds.refresh_token:
-                        should_refresh = creds.expired
-                        if not should_refresh and creds.expiry:
-                            # Refresh if token expires within 20 minutes (proactive refresh)
-                            time_until_expiry = creds.expiry - dt.now()
-                            should_refresh = time_until_expiry <= timedelta(minutes=20)
-                    
-                    if should_refresh:
-                        logger.info(f"Refreshing expired token for user: {user_id}")
-                        try:
-                            # Preserve the refresh_token before refreshing (in case Google doesn't return it)
-                            original_refresh_token = creds.refresh_token
-                            creds.refresh(Request())
-                            # Save refreshed token (preserve auth_timestamp and refresh_token)
-                            # Use original refresh_token if new one is None (shouldn't happen, but safety check)
-                            refresh_token_to_save = creds.refresh_token if creds.refresh_token else original_refresh_token
-                            refreshed_token_data = {
-                                "token": creds.token,
-                                "refresh_token": refresh_token_to_save,
-                                "token_uri": creds.token_uri,
-                                "scopes": creds.scopes,
-                                "expiry": creds.expiry.isoformat() if creds.expiry else None
-                            }
-                            # Preserve auth_timestamp if it exists
-                            if auth_timestamp:
-                                refreshed_token_data["auth_timestamp"] = auth_timestamp
-                            with open(token_file, 'w') as token:
-                                json.dump(refreshed_token_data, token)
-                            logger.info(f"Token refreshed successfully for user: {user_id}")
-                        except Exception as refresh_error:
-                            logger.error(f"Failed to refresh token for user {user_id}: {refresh_error}")
-                            # Don't delete the token file immediately - check if it's a refresh token error
-                            error_str = str(refresh_error).lower()
-                            if 'invalid_grant' in error_str or 'invalid_token' in error_str or 'token has been expired or revoked' in error_str:
-                                logger.warning(f"Refresh token is invalid for user {user_id}")
-                                # Only delete if it's been 14+ days - otherwise keep it for retry
-                                # The 14-day check above will handle deletion
-                            # Return False to indicate credentials aren't valid
-                            return False
-                    
-                    if creds and creds.valid:
-                        self.service = build('calendar', 'v3', credentials=creds)
-                        return True
-                except Exception as e:
-                    logger.error(f"Error loading user credentials: {e}")
-                    return False
-        return False
-    
+            logger.error(f"Error loading credentials for session {token_store.short_id(user_id)}: {e}")
+            return None
+
+        # Refresh if expired or about to expire (within 20 minutes). Google
+        # token expiry is naive UTC.
+        should_refresh = bool(creds.refresh_token) and (
+            creds.expired
+            or (creds.expiry is not None and creds.expiry - datetime.utcnow() <= timedelta(minutes=20))
+        )
+        if should_refresh:
+            try:
+                original_refresh_token = creds.refresh_token
+                creds.refresh(Request())
+                refreshed_token_data = {
+                    "token": creds.token,
+                    # Google may omit the refresh token on refresh; keep the original
+                    "refresh_token": creds.refresh_token or original_refresh_token,
+                    "token_uri": creds.token_uri,
+                    "scopes": creds.scopes,
+                    "expiry": creds.expiry.isoformat() if creds.expiry else None,
+                }
+                if auth_timestamp:
+                    refreshed_token_data["auth_timestamp"] = auth_timestamp
+                with open(token_file, 'w') as token:
+                    json.dump(refreshed_token_data, token)
+            except Exception as refresh_error:
+                # Keep the token file: the 14-day check removes it for good
+                logger.error(f"Failed to refresh token for session {token_store.short_id(user_id)}: {refresh_error}")
+                return None
+
+        return creds if creds.valid else None
+
+    def _service_for(self, user_id: Optional[str]):
+        """Build a Calendar API client for this request's user only.
+
+        Never cached on the instance: this service is shared by every request,
+        so a stored client would act on whichever user loaded it last.
+        """
+        creds = self._load_credentials(user_id)
+        if not creds:
+            raise Exception("Google Calendar is not connected. Please authenticate first.")
+        return build('calendar', 'v3', credentials=creds)
+
     async def get_calendars(self, user_id: Optional[str] = None, writable_only: bool = True) -> List[Dict]:
         """
         Get list of user's calendars.
@@ -418,16 +189,10 @@ class CalendarService:
             user_id: Optional user ID to load credentials for
             writable_only: If True, only return calendars where user has write access (writer/owner)
         """
-        if user_id:
-            # Ensure credentials are valid and refreshed before API call
-            if not self._ensure_valid_credentials(user_id):
-                self._load_user_credentials(user_id)
-        
-        if not self.service:
-            raise Exception("Google Calendar service not initialized. Please authenticate first.")
-        
+        service = self._service_for(user_id)
+
         try:
-            calendar_list = self.service.calendarList().list().execute()
+            calendar_list = service.calendarList().list().execute()
             calendars = []
             for calendar in calendar_list.get('items', []):
                 access_role = calendar.get('accessRole', 'reader')
@@ -453,14 +218,8 @@ class CalendarService:
         """
         Create an event in Google Calendar and return the event link.
         """
-        # Ensure credentials are valid and refreshed before API call
-        if user_id:
-            if not self._ensure_valid_credentials(user_id):
-                self._load_user_credentials(user_id)
-        
-        if not self.service:
-            raise Exception("Google Calendar service not initialized. Please authenticate first.")
-        
+        service = self._service_for(user_id)
+
         # Prefer the original_text parameter, but fall back to the event payload if not supplied
         if original_text is None:
             original_text = getattr(parsed_event, "original_text", None)
@@ -568,7 +327,7 @@ class CalendarService:
             if 'conferenceData' in event_body:
                 insert_kwargs['conferenceDataVersion'] = 1
 
-            event = self.service.events().insert(**insert_kwargs).execute()
+            event = service.events().insert(**insert_kwargs).execute()
 
             # If color was requested but Google omitted it, patch once as a fallback.
             requested_color_id = event_body.get('colorId')
@@ -580,7 +339,7 @@ class CalendarService:
                     event.get('id'),
                 )
                 try:
-                    event = self.service.events().patch(
+                    event = service.events().patch(
                         calendarId=target_calendar,
                         eventId=event['id'],
                         body={'colorId': requested_color_id},
@@ -599,7 +358,7 @@ class CalendarService:
                     'end': self._google_time_payload(buffer_end, fallback_tz),
                     'colorId': '8',  # Graphite for buffer events
                 }
-                buffer_event = self.service.events().insert(
+                buffer_event = service.events().insert(
                     calendarId=target_calendar,
                     body=buffer_event_body,
                 ).execute()
@@ -615,7 +374,7 @@ class CalendarService:
                     'end': self._google_time_payload(buffer_end, fallback_tz),
                     'colorId': '8',  # Graphite for buffer events
                 }
-                buffer_event = self.service.events().insert(
+                buffer_event = service.events().insert(
                     calendarId=target_calendar,
                     body=buffer_event_body,
                 ).execute()
@@ -886,30 +645,25 @@ class CalendarService:
                 best_id = color_id
         return best_id
 
-    async def get_events_in_range(self, start_time: datetime, end_time: datetime, calendar_id: Optional[str] = None, user_id: Optional[str] = None) -> List[Dict]:
+    async def get_events_in_range(self, start_time: datetime, end_time: datetime, calendar_id: Optional[str] = None, user_id: Optional[str] = None, service=None) -> List[Dict]:
         """
         Get all events in a specific time range from Google Calendar.
-        
+
         Args:
             start_time: Start of time range
             end_time: End of time range
             calendar_id: Optional calendar ID (defaults to 'primary')
-            user_id: Optional user ID to load credentials for
+            user_id: Session to load credentials for
+            service: An API client already built for this request's user
         """
-        # Ensure credentials are valid and refreshed before API call
-        if user_id:
-            if not self._ensure_valid_credentials(user_id):
-                self._load_user_credentials(user_id)
-        
-        if not self.service:
-            raise Exception("Google Calendar service not initialized. Please authenticate first.")
-        
+        service = service or self._service_for(user_id)
+
         try:
             # Convert to RFC3339 format for Google Calendar API
             time_min = start_time.isoformat() + 'Z' if start_time.tzinfo is None else start_time.isoformat()
             time_max = end_time.isoformat() + 'Z' if end_time.tzinfo is None else end_time.isoformat()
             
-            events_result = self.service.events().list(
+            events_result = service.events().list(
                 calendarId=calendar_id or 'primary',
                 timeMin=time_min,
                 timeMax=time_max,
@@ -929,20 +683,22 @@ class CalendarService:
             raise Exception(f"Failed to get calendar events: {str(e)}")
 
     async def find_available_slots(self, duration_minutes: int, start_date: datetime, end_date: datetime, 
-                                 working_hours: tuple = (9, 17), buffer_minutes: int = 15) -> List[Dict]:
+                                 working_hours: tuple = (9, 17), buffer_minutes: int = 15,
+                                 user_id: Optional[str] = None) -> List[Dict]:
         """
         Find available time slots for a meeting of specified duration.
-        
+
         Args:
             duration_minutes: Duration of the meeting in minutes
             start_date: Start of search range
             end_date: End of search range
             working_hours: Tuple of (start_hour, end_hour) for working hours
             buffer_minutes: Buffer time around meetings
+            user_id: Session whose calendar to search
         """
         try:
             # Get existing events in the range
-            existing_events = await self.get_events_in_range(start_date, end_date)
+            existing_events = await self.get_events_in_range(start_date, end_date, user_id=user_id)
             
             # Parse existing events into time blocks
             busy_blocks = []
@@ -1029,16 +785,10 @@ class CalendarService:
             recurrence_count: Optional number of occurrences to check (defaults to 10 for recurring events)
             recurrence_interval: Interval between occurrences (defaults to 1)
             end_date: Optional end date for recurring events
-            user_id: Optional user ID to load credentials for
+            user_id: Session whose calendar to check
         """
-        # Ensure credentials are valid and refreshed before API call
-        if user_id:
-            if not self._ensure_valid_credentials(user_id):
-                self._load_user_credentials(user_id)
-        
-        if not self.service:
-            raise Exception("Google Calendar service not initialized. Please authenticate first.")
-        
+        service = self._service_for(user_id)
+
         try:
             # Determine how many occurrences to check
             occurrences_to_check = 1
@@ -1121,7 +871,7 @@ class CalendarService:
                 buffered_end = end_time + timedelta(minutes=buffer_minutes)
             
             # Get events in the buffered range
-            existing_events = await self.get_events_in_range(buffered_start, buffered_end, calendar_id=calendar_id)
+            existing_events = await self.get_events_in_range(buffered_start, buffered_end, calendar_id=calendar_id, service=service)
             
             conflicts = []
             recurring_event_groups = {}  # Map of recurringEventId to list of conflicts
@@ -1210,17 +960,19 @@ class CalendarService:
             raise Exception(f"Failed to check conflicts: {str(e)}")
     
     async def find_alternative_times(self, start_time: datetime, end_time: datetime, duration_minutes: int, 
-                                     search_window_hours: int = 24, calendar_id: Optional[str] = None) -> List[Dict]:
+                                     search_window_hours: int = 24, calendar_id: Optional[str] = None,
+                                     user_id: Optional[str] = None) -> List[Dict]:
         """
         Find alternative available time slots on the same day as the proposed event.
         Prioritizes same-day alternatives: one before and one after the conflict.
-        
+
         Args:
             start_time: Proposed meeting start time
             end_time: Proposed meeting end time
             duration_minutes: Duration of the meeting
             search_window_hours: How many hours before/after to search if same-day not found (default 24)
             calendar_id: Optional calendar ID (defaults to 'primary')
+            user_id: Session whose calendar to search
         """
         try:
             # Get the start and end of the same day as the proposed event
@@ -1232,7 +984,7 @@ class CalendarService:
             search_end = start_time + timedelta(hours=search_window_hours)
             
             # Get all events in the wider search window
-            existing_events = await self.get_events_in_range(search_start, search_end, calendar_id=calendar_id)
+            existing_events = await self.get_events_in_range(search_start, search_end, calendar_id=calendar_id, user_id=user_id)
             
             # Build list of busy time blocks
             busy_blocks = []
@@ -1359,65 +1111,32 @@ class CalendarService:
             raise Exception(f"Failed to find alternative times: {str(e)}")
 
     def is_authenticated(self, user_id: Optional[str] = None) -> bool:
-        """Check if the service is authenticated and ready to use."""
-        if user_id:
-            # Check for user-specific token
-            user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
-            token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
-            logger.info(f"Checking auth for user_id: {user_id}, token_file: {token_file}")
-            
-            if os.path.exists(token_file):
-                try:
-                    # Read token file manually to handle missing refresh_token
-                    with open(token_file, 'r') as f:
-                        token_data = json.load(f)
-                    
-                    logger.info(f"Token file contains keys: {list(token_data.keys())}")
-                    
-                    # Check if we have the basic auth info
-                    if 'token' in token_data or 'access_token' in token_data:
-                        logger.info("Token file exists and contains auth data - user is authenticated")
-                        return True
-                    else:
-                        logger.warning("Token file exists but doesn't contain valid auth data")
-                        return False
-                except Exception as e:
-                    logger.error(f"Error loading credentials: {e}")
-                    return False
-            else:
-                logger.warning(f"Token file does not exist: {token_file}")
+        """Check whether this session has stored Google Calendar tokens."""
+        if not token_store.is_valid_session(user_id):
             return False
-        else:
-            # Check for global token
-            return self.service is not None
+        token_file = token_store.token_path("google", user_id)
+        if not os.path.exists(token_file):
+            return False
+        try:
+            with open(token_file, 'r') as f:
+                token_data = json.load(f)
+            return 'token' in token_data or 'access_token' in token_data
+        except Exception as e:
+            logger.error(f"Error reading credentials for session {token_store.short_id(user_id)}: {e}")
+            return False
     
     def logout(self, user_id: Optional[str] = None) -> bool:
         """
-        Logout and clear user credentials.
+        Logout and clear this session's Google credentials.
         Returns True if token was successfully removed, False otherwise.
         """
         try:
-            if user_id:
-                # Remove user-specific token
-                user_tokens_dir = os.path.join(self.BASE_DIR, 'user_tokens')
-                token_file = os.path.join(user_tokens_dir, f'{user_id}.json')
-                if os.path.exists(token_file):
-                    os.remove(token_file)
-                    logger.info(f"Removed token file for user: {user_id}")
-                    return True
-                else:
-                    logger.warning(f"No token file found for user: {user_id}")
-                    return False
-            else:
-                # Remove global token
-                if os.path.exists(self.TOKEN_FILE):
-                    os.remove(self.TOKEN_FILE)
-                    self.service = None
-                    logger.info("Removed global token file")
-                    return True
-                else:
-                    logger.warning("No global token file found")
-                    return False
+            token_file = token_store.token_path("google", user_id)
+            if os.path.exists(token_file):
+                os.remove(token_file)
+                logger.info(f"Removed Google token for session {token_store.short_id(user_id)}")
+                return True
+            return False
         except Exception as e:
             logger.error(f"Error during logout: {str(e)}")
             return False

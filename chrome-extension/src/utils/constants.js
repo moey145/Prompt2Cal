@@ -5,6 +5,9 @@
 export const API_BASE =
   import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
+// Sessions are issued by the backend when a calendar sign-in completes.
+export const SESSION_PATTERN = /^s_[A-Za-z0-9_-]{43}$/;
+
 export const EVENT_COLORS = [
   "#d50000", // Tomato (11)
   "#e67c73", // Flamingo (4)

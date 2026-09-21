@@ -194,23 +194,41 @@ Prompt2Cal/
    - Click "Load unpacked"
    - Select the `chrome-extension/dist` folder
 
+### Deploying the Backend (Cloud Run)
+
+Calendar tokens are stored in a Cloud Storage bucket mounted into the service, so sign-ins survive restarts and are shared across instances. Create the bucket once and let the service's runtime service account use it:
+
+```bash
+gcloud storage buckets create gs://PROJECT_ID-prompt2cal-tokens \
+  --location=us-central1 --uniform-bucket-level-access --public-access-prevention
+gcloud storage buckets add-iam-policy-binding gs://PROJECT_ID-prompt2cal-tokens \
+  --member=serviceAccount:RUNTIME_SERVICE_ACCOUNT --role=roles/storage.objectUser
+gcloud builds submit --config cloudbuild.yaml
+```
+
+Set `CHROME_EXTENSION_ID` on the service to the published extension's ID so only that extension can complete a sign-in.
+
 ## 📝 API Endpoints
 
-### `POST /parse_event`
+### `POST /create_event`
 
-Parse natural language into structured event data.
+Parse natural language into structured event data for confirmation.
 
-### `POST /confirm_event`
+### `POST /confirm_event`, `POST /confirm_bulk_events`
 
-Create the confirmed event in Google Calendar.
+Create the confirmed event(s) in Google Calendar or Outlook.
 
 ### `GET /calendars`
 
-Get user's available Google Calendars.
+Get the user's writable calendars.
 
-### `GET /check_conflicts`
+### `POST /check_conflicts`
 
 Check for scheduling conflicts.
+
+### `GET /auth/google`, `GET /auth/microsoft`
+
+Start a calendar sign-in from the extension. When it completes, the backend issues a session and hands it only to the extension's `chrome.identity` redirect URL. Calendar endpoints take that session as `user_id` and reject anything else.
 
 ## 🤝 Contributing
 

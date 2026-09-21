@@ -20,6 +20,23 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      # Calendar tokens live in Cloud Storage so sign-ins survive restarts and
+      # are shared by every instance. The bucket must exist, and the service's
+      # runtime service account needs roles/storage.objectUser on it.
+      - '--execution-environment'
+      - 'gen2'
+      - '--add-volume'
+      - 'name=user-tokens,type=cloud-storage,bucket=${_TOKEN_BUCKET}'
+      - '--add-volume-mount'
+      - 'volume=user-tokens,mount-path=/mnt/user-tokens'
+      - '--update-env-vars'
+      - 'TOKEN_STORAGE_DIR=/mnt/user-tokens'
+
+substitutions:
+  _TOKEN_BUCKET: '${PROJECT_ID}-prompt2cal-tokens'
+
+options:
+  dynamicSubstitutions: true
 
 images:
   - 'gcr.io/$PROJECT_ID/prompt2cal-backend'

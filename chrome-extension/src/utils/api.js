@@ -13,7 +13,12 @@ export const makeApiCall = async (endpoint, options = {}) => {
   const finalOptions = { ...defaultOptions, ...options };
 
   if (finalOptions.params) {
-    const params = new URLSearchParams(finalOptions.params);
+    // Leave out unset values rather than sending the string "null"
+    const params = new URLSearchParams(
+      Object.entries(finalOptions.params).filter(
+        ([, value]) => value !== null && value !== undefined
+      )
+    );
     const paramString = params.toString();
     const fullUrl = paramString ? `${url}?${paramString}` : url;
     delete finalOptions.params;

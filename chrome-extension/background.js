@@ -16,11 +16,6 @@ class Prompt2CalBackground {
       this.handleMessage(request, sender, sendResponse);
       return true; // Keep message channel open for async responses
     });
-
-    // Handle tab updates (for auth callback)
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      this.handleTabUpdate(tabId, changeInfo, tab);
-    });
   }
 
   handleInstallation(details) {
@@ -56,6 +51,13 @@ class Prompt2CalBackground {
           sendResponse({ success: true });
           break;
 
+        case "startOAuth":
+          // Runs here rather than in the popup, which closes as soon as the
+          // sign-in window takes focus.
+          sendResponse({ started: true });
+          await this.startOAuth(request);
+          break;
+
         default:
           sendResponse({ error: "Unknown action" });
       }
@@ -65,18 +67,48 @@ class Prompt2CalBackground {
     }
   }
 
-  handleTabUpdate(tabId, changeInfo, tab) {
-    // Handle OAuth callback
-    if (changeInfo.status === "complete" && tab.url) {
-      if (tab.url.includes("/auth/callback") || tab.url.includes("/auth/microsoft/callback")) {
-        // Auth callback detected, close the tab after a short delay
-        // This gives time for the success/error page to load and show
-        setTimeout(() => {
-          chrome.tabs.remove(tabId).catch(() => {
-            // Tab might already be closed
-          });
-        }, 3000); // Increased to 3 seconds to show the success message
+  // Sign in to a calendar provider. The backend issues a new session when
+  // sign-in completes and redirects to this extension's chrome.identity URL,
+  // the only place the session is ever delivered.
+  async startOAuth({ provider, apiBase, previousSession }) {
+    try {
+      const params = new URLSearchParams({
+        redirect_uri: chrome.identity.getRedirectURL("oauth"),
+      });
+      if (previousSession) {
+        params.set("user_id", previousSession);
       }
+      const endpoint = provider === "microsoft" ? "/auth/microsoft" : "/auth/google";
+      const response = await fetch(`${apiBase}${endpoint}?${params}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || `HTTP ${response.status}`);
+      }
+
+      const finalUrl = await chrome.identity.launchWebAuthFlow({
+        url: data.auth_url,
+        interactive: true,
+      });
+      const result = new URLSearchParams(new URL(finalUrl).hash.slice(1));
+      const session = result.get("session");
+      if (!session) {
+        throw new Error(
+          result.get("error") === "access_denied"
+            ? "Calendar access was not granted."
+            : "Sign-in failed. Please try again."
+        );
+      }
+      await chrome.storage.local.set({
+        prompt2cal_user_id: session,
+        calendar_provider: provider,
+      });
+    } catch (error) {
+      console.error("Sign-in failed:", error);
+      await chrome.storage.local.set({
+        prompt2cal_auth_error: error.message || "Sign-in failed. Please try again.",
+      });
+    } finally {
+      await chrome.storage.local.remove(["waitingForAuth"]);
     }
   }
 

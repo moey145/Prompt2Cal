@@ -14,6 +14,7 @@ import httpx
 from dotenv import load_dotenv
 
 from ..models.event_models import ParsedEvent
+from . import token_store
 
 load_dotenv()
 
@@ -41,11 +42,7 @@ class MicrosoftCalendarService:
         self.SCOPES = DEFAULT_SCOPES
 
     def _token_file(self, user_id: Optional[str]) -> str:
-        if user_id:
-            tokens_dir = os.path.join(self.BASE_DIR, "user_tokens")
-            os.makedirs(tokens_dir, exist_ok=True)
-            return os.path.join(tokens_dir, f"ms_{user_id}.json")
-        return os.path.join(self.BASE_DIR, "ms_token.json")
+        return token_store.token_path("microsoft", user_id)
 
     def _auth_base(self) -> str:
         return f"https://login.microsoftonline.com/{self.TENANT_ID}/oauth2/v2.0"
@@ -57,7 +54,7 @@ class MicrosoftCalendarService:
                 "Set MS_CLIENT_ID and MS_CLIENT_SECRET in your .env file."
             )
 
-    async def get_auth_url(self, user_id: Optional[str] = None) -> str:
+    async def get_auth_url(self, state: str) -> str:
         self._require_client_config()
         params = {
             "client_id": self.CLIENT_ID,
@@ -65,12 +62,13 @@ class MicrosoftCalendarService:
             "redirect_uri": self.REDIRECT_URI,
             "response_mode": "query",
             "scope": " ".join(self.SCOPES),
-            "state": user_id or "",
+            "state": state,
             "prompt": "select_account",
         }
         return f"{self._auth_base()}/authorize?{urlencode(params)}"
 
-    async def handle_auth_callback(self, code: str, user_id: Optional[str] = None) -> None:
+    async def exchange_code(self, code: str) -> Dict:
+        """Exchange an OAuth2 authorization code for token data to store."""
         self._require_client_config()
         data = {
             "client_id": self.CLIENT_ID,
@@ -97,12 +95,11 @@ class MicrosoftCalendarService:
             "auth_timestamp": datetime.now(timezone.utc).isoformat(),
             "provider": "microsoft",
         }
-        token_file = self._token_file(user_id)
-        with open(token_file, "w", encoding="utf-8") as handle:
-            json.dump(token_data, handle)
-        logger.info("Microsoft Calendar authentication completed for user: %s", user_id)
+        return token_data
 
     def _load_token(self, user_id: Optional[str]) -> Optional[Dict]:
+        if not token_store.is_valid_session(user_id):
+            return None
         token_file = self._token_file(user_id)
         if not os.path.exists(token_file):
             return None
@@ -110,10 +107,10 @@ class MicrosoftCalendarService:
             with open(token_file, "r", encoding="utf-8") as handle:
                 return json.load(handle)
         except Exception as exc:
-            logger.error("Failed to load Microsoft token for %s: %s", user_id, exc)
+            logger.error("Failed to load Microsoft token for %s: %s", token_store.short_id(user_id), exc)
             return None
 
-    def _save_token(self, user_id: Optional[str], token_data: Dict) -> None:
+    def save_token(self, user_id: Optional[str], token_data: Dict) -> None:
         token_file = self._token_file(user_id)
         with open(token_file, "w", encoding="utf-8") as handle:
             json.dump(token_data, handle)
@@ -170,7 +167,7 @@ class MicrosoftCalendarService:
             token_data["expires_at"] = (
                 datetime.now(timezone.utc) + timedelta(seconds=expires_in - 60)
             ).isoformat()
-            self._save_token(user_id, token_data)
+            self.save_token(user_id, token_data)
 
         return token_data["access_token"]
 
@@ -210,10 +207,12 @@ class MicrosoftCalendarService:
         return bool(token_data.get("access_token") or token_data.get("token"))
 
     def logout(self, user_id: Optional[str] = None) -> bool:
+        if not token_store.is_valid_session(user_id):
+            return False
         token_file = self._token_file(user_id)
         if os.path.exists(token_file):
             os.remove(token_file)
-            logger.info("Removed Microsoft token for user: %s", user_id)
+            logger.info("Removed Microsoft token for %s", token_store.short_id(user_id))
             return True
         return False
 

@@ -49,21 +49,6 @@ class ParsedEvent(BaseModel):
         description="IANA timezone for the event wall-clock times, e.g. Australia/Sydney",
     )
 
-class BulkEventRequest(BaseModel):
-    text: str = Field(..., description="Natural language description for bulk events")
-    count: Optional[int] = Field(None, description="Number of events to create")
-    start_date: Optional[str] = Field(None, description="Start date for bulk events")
-
-class BulkEventResponse(BaseModel):
-    success: bool
-    parsed_events: List[Dict[str, Any]] = Field(default_factory=list)
-    message: str
-    total_created: Optional[int] = None
-
-class FileImportRequest(BaseModel):
-    file_content: str = Field(..., description="Content of uploaded file")
-    file_type: str = Field(..., description="Type of file (csv, txt)")
-
 class EventResponse(BaseModel):
     model_config = {"from_attributes": True, "arbitrary_types_allowed": True}
     
