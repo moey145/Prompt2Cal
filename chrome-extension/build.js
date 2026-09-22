@@ -60,5 +60,18 @@ svgIconFiles.forEach(file => {
   }
 });
 
+// The manifest's toolbar and store icons point at assets/Logo.png, which Vite
+// does not emit, so copy it in from icons/
+try {
+  mkdirSync(join(__dirname, 'dist', 'assets'), { recursive: true });
+  copyFileSync(
+    join(__dirname, 'icons', 'Logo.png'),
+    join(__dirname, 'dist', 'assets', 'Logo.png')
+  );
+  console.log(`✓ Copied icons/Logo.png to assets/Logo.png`);
+} catch (err) {
+  console.error(`✗ Error copying icons/Logo.png:`, err.message);
+}
+
 console.log('\n✅ Build complete! Load the "dist" folder in Chrome.');
 
