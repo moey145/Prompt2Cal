@@ -40,6 +40,10 @@ class ParsedEvent(BaseModel):
     recurrence_count: Optional[int] = Field(None, description="Number of occurrences")
     recurrence_interval: Optional[int] = Field(1, description="Interval between recurrences")
     color: Optional[str] = Field("#3f51b5", description="Event color in hex format")
+    category: Optional[str] = Field(
+        None,
+        description="Outlook category name; Outlook's equivalent of Google's event colour",
+    )
     reminder: Optional[str] = Field("none", description="Reminder time in minutes before event (or 'none')")
     buffer_before: Optional[int] = Field(0, description="Buffer time in minutes before the event")
     buffer_after: Optional[int] = Field(0, description="Buffer time in minutes after the event")

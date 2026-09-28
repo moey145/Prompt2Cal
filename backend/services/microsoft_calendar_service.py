@@ -270,6 +270,10 @@ class MicrosoftCalendarService:
         if getattr(parsed_event, "add_conference", False):
             body["isOnlineMeeting"] = True
             body["onlineMeetingProvider"] = "teamsForBusiness"
+        # Outlook's stand-in for Google's colour: a category the mailbox knows.
+        category = getattr(parsed_event, "category", None)
+        if category:
+            body["categories"] = [category]
         # Outlook takes a single lead time, unlike Google's list of overrides.
         reminder = getattr(parsed_event, "reminder", None)
         reminder_minutes = None
@@ -398,9 +402,21 @@ class MicrosoftCalendarService:
             start_dt -= timedelta(minutes=buffer_minutes)
             end_dt += timedelta(minutes=buffer_minutes)
 
+        return await self.get_events_in_range(
+            start_dt, end_dt, user_id=user_id, calendar_id=calendar_id
+        )
+
+    async def get_events_in_range(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        user_id: Optional[str] = None,
+        calendar_id: Optional[str] = None,
+    ) -> List[Dict]:
+        """Events between two moments, in the shape the conflict UI expects."""
         params = {
-            "startDateTime": start_dt.isoformat().replace("+00:00", "Z"),
-            "endDateTime": end_dt.isoformat().replace("+00:00", "Z"),
+            "startDateTime": start_time.isoformat().replace("+00:00", "Z"),
+            "endDateTime": end_time.isoformat().replace("+00:00", "Z"),
         }
         path = (
             f"/me/calendars/{calendar_id}/calendarView"
@@ -408,15 +424,26 @@ class MicrosoftCalendarService:
             else "/me/calendarView"
         )
         payload = await self._graph_request("GET", path, user_id, params=params)
-        conflicts = []
-        for item in payload.get("value", []):
-            conflicts.append(
-                {
-                    "id": item.get("id"),
-                    "summary": item.get("subject"),
-                    "start": item.get("start", {}).get("dateTime"),
-                    "end": item.get("end", {}).get("dateTime"),
-                    "htmlLink": item.get("webLink"),
-                }
-            )
-        return conflicts
+        return [
+            {
+                "id": item.get("id"),
+                "summary": item.get("subject"),
+                "start": item.get("start", {}).get("dateTime"),
+                "end": item.get("end", {}).get("dateTime"),
+                "htmlLink": item.get("webLink"),
+            }
+            for item in payload.get("value", [])
+        ]
+
+    async def get_categories(self, user_id: Optional[str] = None) -> List[Dict]:
+        """The mailbox's category names and colours.
+
+        Outlook has no per-event colour: an event carries category names, and
+        the colour comes from the mailbox's master category list.
+        """
+        payload = await self._graph_request("GET", "/me/outlook/masterCategories", user_id)
+        return [
+            {"name": item.get("displayName"), "color": item.get("color")}
+            for item in payload.get("value", [])
+            if item.get("displayName")
+        ]

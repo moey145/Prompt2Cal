@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from backend import main
 from backend.models.event_models import MAX_EVENT_TEXT_CHARS, ParsedEvent
-from backend.services.rate_limit import SlidingWindowRateLimiter, client_ip
+from backend.services.rate_limit import DailyCounter, SlidingWindowRateLimiter, client_ip
 
 
 class TestSlidingWindow:
@@ -35,6 +35,15 @@ class TestSlidingWindow:
         assert client_ip(Req()) == "203.0.113.9"
 
 
+class TestDailyCeiling:
+    def test_stops_at_the_limit_and_resets_the_next_day(self):
+        counter = DailyCounter(limit=2)
+        assert [counter.hit("2026-10-01") for _ in range(3)] == [True, True, False]
+        assert counter.used_today == 2
+        assert counter.hit("2026-10-02") is True
+        assert counter.used_today == 1
+
+
 @pytest.fixture
 def client(monkeypatch):
     async def fake_single(text, tz_name=None):
@@ -46,6 +55,7 @@ def client(monkeypatch):
     monkeypatch.setattr(main.event_parser, "parse_event_text", fake_single)
     monkeypatch.setattr(main.event_parser, "is_multiple_events", fake_is_multiple)
     monkeypatch.setattr(main, "parse_rate_limiter", SlidingWindowRateLimiter(limit=3, window_seconds=60))
+    monkeypatch.setattr(main, "daily_parse_counter", DailyCounter(limit=1000))
     return TestClient(main.app)
 
 
@@ -71,3 +81,9 @@ class TestParseEndpoint:
 
         # A different caller is unaffected.
         assert parse(client, ip="198.51.100.7").status_code == 200
+
+    def test_the_days_ceiling_stops_everyone(self, client, monkeypatch):
+        monkeypatch.setattr(main, "daily_parse_counter", DailyCounter(limit=1))
+        assert parse(client, ip="203.0.113.10").status_code == 200
+        # A fresh caller, within its own per-minute allowance, is still refused.
+        assert parse(client, ip="203.0.113.11").status_code == 429

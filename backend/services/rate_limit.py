@@ -51,6 +51,34 @@ class SlidingWindowRateLimiter:
             del self._hits[key]
 
 
+class DailyCounter:
+    """A ceiling on how many paid calls the service makes in one UTC day.
+
+    The per-caller limit does not stop abuse spread across many addresses, so
+    this caps the total. It resets at midnight UTC and, like the rate limiter,
+    counts per instance.
+    """
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+        self._day: Optional[str] = None
+        self._count = 0
+
+    def hit(self, today: Optional[str] = None) -> bool:
+        """Record a call. Returns False once the day's ceiling is reached."""
+        day = today or time.strftime("%Y-%m-%d", time.gmtime())
+        if day != self._day:
+            self._day, self._count = day, 0
+        if self._count >= self.limit:
+            return False
+        self._count += 1
+        return True
+
+    @property
+    def used_today(self) -> int:
+        return self._count
+
+
 def client_ip(request) -> str:
     """The caller's address, taken from the proxy header Cloud Run sets."""
     forwarded = request.headers.get("x-forwarded-for", "")

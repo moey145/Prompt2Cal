@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
+from datetime import datetime, timedelta, timezone
 import os
 from dotenv import load_dotenv
 import logging
@@ -12,7 +13,8 @@ from backend.services.calendar_service import CalendarService
 from backend.services.microsoft_calendar_service import MicrosoftCalendarService
 from backend.services.confidence import attach_confidence
 from backend.services import token_store
-from backend.services.rate_limit import SlidingWindowRateLimiter, client_ip
+from backend.services.rate_limit import DailyCounter, SlidingWindowRateLimiter, client_ip
+from backend.services import availability
 from backend.services.log_safety import safe
 from backend.models.event_models import EventRequest, EventResponse, ParsedEvent
 
@@ -79,6 +81,11 @@ parse_rate_limiter = SlidingWindowRateLimiter(
 )
 
 
+# A ceiling on the whole day's parsing, which the per-caller limit cannot give:
+# abuse spread across many addresses stays under that limit but still costs.
+daily_parse_counter = DailyCounter(limit=int(os.getenv("DAILY_PARSE_LIMIT", "5000")))
+
+
 def _enforce_parse_rate_limit(http_request: Request) -> None:
     retry_after = parse_rate_limiter.hit(client_ip(http_request))
     if retry_after is not None:
@@ -87,6 +94,50 @@ def _enforce_parse_rate_limit(http_request: Request) -> None:
             detail="Too many requests. Please wait a moment and try again.",
             headers={"Retry-After": str(retry_after)},
         )
+    if not daily_parse_counter.hit():
+        logger.error("Daily parse ceiling of %s reached", daily_parse_counter.limit)
+        raise HTTPException(
+            status_code=429,
+            detail="The service is busy today. Please try again tomorrow.",
+        )
+
+
+def _parse_moment(value: Optional[str]) -> Optional[datetime]:
+    """Read an ISO timestamp, treating one without an offset as UTC."""
+    if not value:
+        return None
+    text_value = str(value)
+    if text_value.endswith("Z"):
+        text_value = text_value[:-1] + "+00:00"
+    try:
+        moment = datetime.fromisoformat(text_value)
+    except ValueError:
+        return None
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+async def _busy_blocks(provider, user_id, window_start, window_end, calendar_id):
+    """Busy periods from either provider, in the window's own timezone."""
+    service = _calendar_service_for(provider)
+    events = await service.get_events_in_range(
+        window_start, window_end, user_id=user_id, calendar_id=calendar_id
+    )
+    zone = window_start.tzinfo or timezone.utc
+    blocks = []
+    for event in events or []:
+        start, end = event.get("start"), event.get("end")
+        # Google returns {"dateTime"/"date"}; the Outlook service returns strings.
+        if isinstance(start, dict):
+            # All-day entries carry only a date and do not block a time slot.
+            if not start.get("dateTime"):
+                continue
+            start = start.get("dateTime")
+        if isinstance(end, dict):
+            end = end.get("dateTime")
+        start_dt, end_dt = _parse_moment(start), _parse_moment(end)
+        if start_dt and end_dt:
+            blocks.append((start_dt.astimezone(zone), end_dt.astimezone(zone)))
+    return blocks
 
 
 def _require_session(user_id: Optional[str]) -> None:
@@ -492,46 +543,108 @@ async def microsoft_auth_callback(code: str = None, state: str = None, error: st
 @app.post("/find_meeting_slots")
 async def find_meeting_slots(request: dict):
     """
-    Find available meeting slots in a given time range.
+    Find free slots of a given length in a date range, on either calendar.
     """
     user_id = request.get("user_id")
     _require_session(user_id)
+    provider = _normalize_provider(request.get("calendar_provider") or request.get("provider"))
+    window_start = _parse_moment(request.get("start_date"))
+    window_end = _parse_moment(request.get("end_date"))
+    if not window_start or not window_end:
+        raise HTTPException(status_code=400, detail="start_date and end_date are required")
+
+    duration_minutes = int(request.get("duration_minutes") or 60)
+    working_hours = request.get("working_hours") or [9, 17]
+    buffer_minutes = int(request.get("buffer_minutes", 15))
+    calendar_id = request.get("calendar_id")
+
     try:
-        # Parse request parameters
-        duration_minutes = request.get("duration_minutes", 60)
-        start_date_str = request.get("start_date")
-        end_date_str = request.get("end_date")
-        working_hours = request.get("working_hours", [9, 17])
-        buffer_minutes = request.get("buffer_minutes", 15)
-        
-        if not start_date_str or not end_date_str:
-            raise HTTPException(status_code=400, detail="start_date and end_date are required")
-        
-        # Parse dates
-        from datetime import datetime
-        start_date = datetime.fromisoformat(start_date_str)
-        end_date = datetime.fromisoformat(end_date_str)
-        
-        # Find available slots
-        available_slots = await calendar_service.find_available_slots(
-            duration_minutes=duration_minutes,
-            start_date=start_date,
-            end_date=end_date,
+        busy = await _busy_blocks(provider, user_id, window_start, window_end, calendar_id)
+        slots = availability.free_slots(
+            busy,
+            window_start,
+            window_end,
+            duration_minutes,
             working_hours=tuple(working_hours),
             buffer_minutes=buffer_minutes,
-            user_id=user_id
         )
-        
+        available_slots = [availability.describe(slot) for slot in slots]
         return {
             "success": True,
+            "provider": provider,
             "available_slots": available_slots,
             "total_slots": len(available_slots),
-            "message": f"Found {len(available_slots)} available slots"
+            "message": f"Found {len(available_slots)} available slots",
         }
-        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error finding meeting slots: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Failed to find meeting slots: {str(e)}")
+
+@app.post("/suggest_alternatives")
+async def suggest_alternatives(request: dict):
+    """
+    Suggest the nearest free slots either side of a clashing time.
+    """
+    user_id = request.get("user_id")
+    _require_session(user_id)
+    provider = _normalize_provider(request.get("calendar_provider") or request.get("provider"))
+    start_time = _parse_moment(request.get("start_time"))
+    end_time = _parse_moment(request.get("end_time"))
+    if not start_time or not end_time:
+        raise HTTPException(status_code=400, detail="start_time and end_time are required")
+
+    duration_minutes = int(
+        request.get("duration_minutes") or max(15, (end_time - start_time).total_seconds() // 60)
+    )
+    search_hours = int(request.get("search_hours", 3))
+    buffer_minutes = int(request.get("buffer_minutes", 0))
+    calendar_id = request.get("calendar_id")
+
+    try:
+        window = timedelta(hours=search_hours) + timedelta(minutes=duration_minutes)
+        busy = await _busy_blocks(
+            provider, user_id, start_time - window, start_time + window, calendar_id
+        )
+        slots = availability.nearest_alternatives(
+            busy,
+            start_time,
+            duration_minutes,
+            search_hours=search_hours,
+            buffer_minutes=buffer_minutes,
+        )
+        alternatives = [availability.describe(slot, proposed_start=start_time) for slot in slots]
+        return {
+            "success": True,
+            "provider": provider,
+            "alternatives": alternatives,
+            "message": (
+                f"Found {len(alternatives)} nearby free slot(s)"
+                if alternatives
+                else "No free slots nearby"
+            ),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error suggesting alternatives: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to suggest alternatives: {str(e)}")
+
+@app.get("/calendar_categories")
+async def calendar_categories(user_id: str = None, provider: str = None):
+    """
+    Outlook's category names and colours; empty for Google, which has none.
+    """
+    _require_session(user_id)
+    if _normalize_provider(provider) != "microsoft":
+        return {"success": True, "provider": "google", "categories": []}
+    try:
+        categories = await microsoft_calendar_service.get_categories(user_id=user_id)
+        return {"success": True, "provider": "microsoft", "categories": categories}
+    except Exception as e:
+        logger.error(f"Error fetching categories: {str(e)}")
+        return {"success": False, "provider": "microsoft", "categories": [], "message": str(e)}
 
 @app.post("/check_conflicts")
 async def check_conflicts(request: dict):
