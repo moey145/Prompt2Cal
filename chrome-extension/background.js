@@ -108,7 +108,8 @@ class Prompt2CalBackground {
         prompt2cal_auth_error: error.message || "Sign-in failed. Please try again.",
       });
     } finally {
-      await chrome.storage.local.remove(["waitingForAuth"]);
+      // Clearing this releases the "Connecting..." state on the popup's button.
+      await chrome.storage.local.remove(["waitingForAuth", "authStartedAt"]);
     }
   }
 

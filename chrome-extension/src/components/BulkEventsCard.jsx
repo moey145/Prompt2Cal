@@ -29,6 +29,7 @@ export const BulkEventsCard = ({
   loading,
   loadingSingle,
   eventConflicts,
+  calendarProvider = "google",
 }) => {
   if (!parsedEvents || parsedEvents.length === 0) return null;
 
@@ -208,7 +209,9 @@ export const BulkEventsCard = ({
                 <div className="event-time-row-confirm">
                   <Video className="event-time-icon-confirm" />
                   <div className="event-location-info-confirm">
-                    Google Meet link will be generated
+                    {calendarProvider === "microsoft"
+                      ? "Teams meeting link will be generated"
+                      : "Google Meet link will be generated"}
                   </div>
                 </div>
               )}

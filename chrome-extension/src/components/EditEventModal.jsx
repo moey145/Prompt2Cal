@@ -24,8 +24,18 @@ export const EditEventModal = ({
   onSave,
   onCancel,
   loading,
+  calendarProvider = "google",
 }) => {
   if (!event) return null;
+
+  // The two calendars do not offer the same options: Outlook creates Teams
+  // meetings, and Microsoft Graph has no per-event colour (it uses named
+  // categories instead), so that row is Google-only.
+  const isOutlook = calendarProvider === "microsoft";
+  const meetingLabel = isOutlook ? "Teams meeting" : "Google Meet";
+  const meetingCheckboxLabel = isOutlook
+    ? "Add Teams meeting link"
+    : "Add Google Meet link";
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -157,7 +167,7 @@ export const EditEventModal = ({
               )}
             </div>
             <div className="detail-row editable-row">
-              <strong>Google Meet:</strong>
+              <strong>{meetingLabel}:</strong>
               <label className="checkbox-inline">
                 <input
                   type="checkbox"
@@ -166,22 +176,24 @@ export const EditEventModal = ({
                     onFieldChange("add_conference", e.target.checked)
                   }
                 />
-                <span>Add Google Meet link</span>
+                <span>{meetingCheckboxLabel}</span>
               </label>
             </div>
-            <div className="detail-row">
-              <strong>Color:</strong>
-              <div className="color-presets">
-                {EVENT_COLORS.map((c) => (
-                  <div
-                    key={c}
-                    className={`color-preset ${selectedColor === c ? "selected" : ""}`}
-                    style={{ backgroundColor: c }}
-                    onClick={() => setSelectedColor(c)}
-                  />
-                ))}
+            {!isOutlook && (
+              <div className="detail-row">
+                <strong>Color:</strong>
+                <div className="color-presets">
+                  {EVENT_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      className={`color-preset ${selectedColor === c ? "selected" : ""}`}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setSelectedColor(c)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <div className="detail-row">
               <strong>Reminders:</strong>
               <div className="reminder-controls">

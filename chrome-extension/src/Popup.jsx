@@ -34,7 +34,6 @@ const Popup = () => {
   const [selectedReminder, setSelectedReminder] = useState(DEFAULT_REMINDER);
   const [darkMode, setDarkMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [authPending, setAuthPending] = useState(false);
 
   // Single event edit state
   const [singleAttendees, setSingleAttendees] = useState([]);
@@ -188,31 +187,12 @@ const Popup = () => {
       setUserId(userIdValue);
       await checkForSelectedText();
 
-      const authState = await chrome.storage.local.get(["waitingForAuth"]);
-      if (authState.waitingForAuth) {
-        setAuthPending(true);
-        await chrome.storage.local.remove(["waitingForAuth"]);
-        setTimeout(async () => {
-          const authenticated = await checkAuthStatus(userIdValue);
-          if (authenticated) {
-            const stored = await chrome.storage.local.get(["calendar_provider"]);
-            await fetchCalendars(
-              userIdValue,
-              stored.calendar_provider || "google"
-            );
-          }
-          setAuthPending(false);
-        }, 500);
-      } else {
-        const authenticated = await checkAuthStatus(userIdValue);
-        if (authenticated) {
-          const stored = await chrome.storage.local.get(["calendar_provider"]);
-          await fetchCalendars(
-            userIdValue,
-            stored.calendar_provider || "google"
-          );
-        }
-        setAuthPending(false);
+      // A sign-in still in progress keeps its button on "Connecting...", so the
+      // connect buttons stay on screen rather than being hidden while waiting.
+      const authenticated = await checkAuthStatus(userIdValue);
+      if (authenticated) {
+        const stored = await chrome.storage.local.get(["calendar_provider"]);
+        await fetchCalendars(userIdValue, stored.calendar_provider || "google");
       }
     } catch (error) {
       console.error("Error initializing user:", error);
@@ -905,7 +885,7 @@ const Popup = () => {
         </div>
       </div>
 
-      {!isCheckingAuth && !isAuthenticated && !authPending && (
+      {!isCheckingAuth && !isAuthenticated && (
         <AuthSection
           onGoogleAuth={handleGoogleAuth}
           onMicrosoftAuth={handleMicrosoftAuth}
@@ -940,6 +920,7 @@ const Popup = () => {
             loadingSingle={loadingSingle}
             conflicts={conflicts}
             checkingConflicts={checkingConflicts}
+            calendarProvider={calendarProvider}
           />
         )}
 
@@ -963,6 +944,7 @@ const Popup = () => {
             onSave={handleSaveSingleEdit}
             onCancel={handleCancelSingleEdit}
             loading={loading}
+            calendarProvider={calendarProvider}
           />
         )}
 
@@ -976,6 +958,7 @@ const Popup = () => {
             loading={loading}
             loadingSingle={loadingSingle}
             eventConflicts={bulkEventConflicts}
+            calendarProvider={calendarProvider}
           />
         )}
 
@@ -1003,6 +986,7 @@ const Popup = () => {
             onSave={saveEditedEvent}
             onCancel={closeEditModal}
             loading={loading}
+            calendarProvider={calendarProvider}
           />
         )}
 

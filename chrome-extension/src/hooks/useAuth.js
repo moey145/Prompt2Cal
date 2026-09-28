@@ -3,6 +3,10 @@ import { useState, useEffect } from "react";
 import { makeApiCall } from "../utils/api";
 import { API_BASE } from "../utils/constants";
 
+// A sign-in left open this long is treated as abandoned, so a button cannot
+// stay stuck on "Connecting..." if the background worker never reports back.
+const SIGN_IN_TIMEOUT_MS = 5 * 60 * 1000;
+
 const hasChromeStorage = () =>
   typeof chrome !== "undefined" &&
   chrome.storage &&
@@ -77,6 +81,47 @@ export const useAuth = (userId) => {
     };
   }, []);
 
+  // The sign-in runs in the background worker and outlives this popup, so the
+  // clicked button keeps its spinner until that flow reports back.
+  useEffect(() => {
+    let isMounted = true;
+
+    const restorePendingSignIn = async () => {
+      if (!hasChromeStorage()) return;
+      const { waitingForAuth, authStartedAt } = await chrome.storage.local.get([
+        "waitingForAuth",
+        "authStartedAt",
+      ]);
+      if (!waitingForAuth) return;
+      if (!authStartedAt || Date.now() - authStartedAt > SIGN_IN_TIMEOUT_MS) {
+        await chrome.storage.local.remove(["waitingForAuth", "authStartedAt"]);
+        return;
+      }
+      if (!isMounted) return;
+      if (waitingForAuth === "microsoft") {
+        setLoadingMicrosoftAuth(true);
+      } else {
+        setLoadingAuth(true);
+      }
+    };
+
+    restorePendingSignIn();
+
+    const handleStorageChange = (changes, area) => {
+      if (area !== "local" || !("waitingForAuth" in changes)) return;
+      if (!changes.waitingForAuth.newValue) {
+        setLoadingAuth(false);
+        setLoadingMicrosoftAuth(false);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      isMounted = false;
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
+
   const checkAuthStatus = async (userIdValue, preferredProvider) => {
     try {
       const stored = await chrome.storage.local.get(["calendar_provider"]);
@@ -120,13 +165,15 @@ export const useAuth = (userId) => {
       setLoading(true);
 
       await chrome.storage.local.set({
-        waitingForAuth: true,
+        waitingForAuth: provider,
+        authStartedAt: Date.now(),
         calendar_provider: provider,
       });
       await chrome.storage.local.remove(["prompt2cal_auth_error"]);
       setCalendarProvider(provider);
       // The background worker runs the sign-in window and stores the new
-      // session; this popup closes when that window opens.
+      // session; this popup closes when that window opens. The button stays on
+      // "Connecting..." until the worker clears waitingForAuth.
       await chrome.runtime.sendMessage({
         action: "startOAuth",
         provider,
@@ -135,9 +182,9 @@ export const useAuth = (userId) => {
       });
     } catch (error) {
       console.error("Auth error:", error);
-      throw error;
-    } finally {
       setLoading(false);
+      await chrome.storage.local.remove(["waitingForAuth", "authStartedAt"]);
+      throw error;
     }
   };
 

@@ -26,6 +26,7 @@ export const SingleEventCard = ({
   loadingSingle,
   conflicts,
   checkingConflicts,
+  calendarProvider = "google",
 }) => {
   if (!parsedEvent) return null;
 
@@ -172,7 +173,9 @@ export const SingleEventCard = ({
           <div className="event-time-row-confirm">
             <Video className="event-time-icon-confirm" />
             <div className="event-location-info-confirm">
-              Google Meet link will be generated
+              {calendarProvider === "microsoft"
+                ? "Teams meeting link will be generated"
+                : "Google Meet link will be generated"}
             </div>
           </div>
         )}
