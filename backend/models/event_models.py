@@ -10,8 +10,17 @@ class RecurrenceType(str, Enum):
     MONTHLY = "monthly"
     YEARLY = "yearly"
 
+# Far longer than any real event description, but short enough that a single
+# request cannot send an expensive amount of text to the LLM.
+MAX_EVENT_TEXT_CHARS = 2000
+
+
 class EventRequest(BaseModel):
-    text: str = Field(..., description="Natural language description of the event")
+    text: str = Field(
+        ...,
+        max_length=MAX_EVENT_TEXT_CHARS,
+        description="Natural language description of the event",
+    )
     timezone: Optional[str] = Field(None, description="Client IANA timezone, e.g., 'America/New_York'")
     user_id: Optional[str] = Field(None, description="User ID for authentication")
     force_multiple: Optional[bool] = Field(

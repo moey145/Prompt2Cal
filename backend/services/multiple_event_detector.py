@@ -9,6 +9,8 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+from .log_safety import safe
+
 CLAUSE_SPLIT_PATTERN = re.compile(r"[,;]|\.\s+|\s(?:then|also|plus|and)\s")
 CLAUSE_TIME_PATTERN = re.compile(r"\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b")
 CLAUSE_RECURRENCE_PATTERN = re.compile(r"\b(?:every|daily|weekly|monthly|yearly|each)\b")
@@ -97,8 +99,8 @@ class MultipleEventDetector:
             day_count = sum(text_lower.count(day) for day in day_indicators)
             
             # Debug logging
-            logger.info(f"Multiple events check for: '{text}'")
-            logger.info(f"Indicators found: {[ind for ind in indicators if ind in text_lower]}")
+            logger.info(f"Multiple events check for: {safe(text)}")
+            logger.info(f"Indicators found: {len([ind for ind in indicators if ind in text_lower])}")
             logger.info(f"Time count: {time_count}, Day count: {day_count}")
             
             # Check for explicit separators first, but filter out "and" when it's part of duration/time descriptions

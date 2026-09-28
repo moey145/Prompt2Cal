@@ -16,6 +16,8 @@ from ..models.event_models import ParsedEvent, RecurrenceType
 
 logger = logging.getLogger(__name__)
 
+from .log_safety import safe
+
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
 MAX_CACHE_SIZE = 100
@@ -125,13 +127,13 @@ class IntelligentEventParser:
             result = json.loads(raw_content)
             events = result.get("events", [])
             
-            logger.info(f"Intelligent parser found {len(events)} events from: '{sanitized}'")
+            logger.info(f"Intelligent parser found {len(events)} events from: {safe(sanitized)}")
             
             # Convert to ParsedEvent objects
             parsed_events = []
             for event_data in events:
                 # Log what LLM returned for debugging
-                logger.info(f"LLM returned - title: '{event_data.get('title')}', start_time: '{event_data.get('start_time')}'")
+                logger.info(f"LLM returned - title: {safe(event_data.get('title'))}, start_time: {safe(event_data.get('start_time'))}")
                 # Convert recurrence_type string to enum
                 recurrence_str = event_data.get("recurrence_type", "none")
                 recurrence_enum = RecurrenceType(recurrence_str) if recurrence_str else RecurrenceType.NONE
@@ -289,7 +291,7 @@ class IntelligentEventParser:
             new_start_time = f"{event.start_time} at {time_str}"
             # Remove time from title
             new_title = re.sub(r'\s*\d{1,2}(?::\d{2})?\s*[ap]m\s*', ' ', event.title, flags=re.IGNORECASE).strip()
-            logger.info(f"Extracted time from title: '{time_str}', updated start_time to: '{new_start_time}', cleaned title to: '{new_title}'")
+            logger.info("Extracted time from title, updated start_time and cleaned the title")
             
             # Create updated event
             if hasattr(event, 'model_copy'):
@@ -309,7 +311,7 @@ class IntelligentEventParser:
             ampm = time_in_text.group(3)
             time_str = f"{hour}{':' + minute if minute else ''}{ampm}"
             new_start_time = f"{event.start_time} at {time_str}"
-            logger.info(f"Extracted time from original text: '{time_str}', updated start_time to: '{new_start_time}'")
+            logger.info("Extracted time from original text and updated start_time")
             
             # Create updated event
             if hasattr(event, 'model_copy'):
@@ -336,7 +338,7 @@ class IntelligentEventParser:
             if has_quarterly:
                 # Convert quarterly to monthly with interval=3
                 recurrence_type = "monthly"
-                logger.info(f"Detected quarterly pattern, converting to monthly with interval=3: '{original_text}'")
+                logger.info(f"Detected quarterly pattern, converting to monthly with interval=3: {safe(original_text)}")
 
             # Derive recurrence_type from notes if missing
             if recurrence_type == "none" and event.notes:
@@ -375,7 +377,7 @@ class IntelligentEventParser:
                     (recurrence_count is None or recurrence_count <= 0 or not event.end_date)):
 
                 # Include original input text to catch patterns like "for 6 weeks", "for the next 3 months", "for next 3 months"
-                source_text = f"{original_text} {event.notes or ''} {event.title} {event.start_time}".lower()
+                source_text = f"{safe(original_text)} {event.notes or ''} {event.title} {event.start_time}".lower()
                 duration_match = re.search(r'(for\s+(?:the\s+)?(?:next\s+)?|next\s+)?(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?)', source_text)
                 if duration_match:
                     number_word = duration_match.group(2)
@@ -464,7 +466,7 @@ class IntelligentEventParser:
             recurrence_enum = RecurrenceType(recurrence_type) if recurrence_type else RecurrenceType.NONE
 
             # Log for debugging
-            logger.info(f"Before indefinite check: recurrence_enum={recurrence_enum}, recurrence_count={recurrence_count}, end_date={event.end_date}, original_text='{original_text}'")
+            logger.info(f"Before indefinite check: recurrence_enum={recurrence_enum}, recurrence_count={recurrence_count}, end_date={event.end_date}, original_text={safe(original_text)}")
 
             # First, check for quarterly patterns and adjust start_time if needed
             # Then check for month range patterns and adjust start_time if needed
@@ -475,14 +477,14 @@ class IntelligentEventParser:
                 # Check for quarterly patterns (e.g., "first Monday of every quarter")
                 has_quarterly_check = bool(re.search(r'\b(every|each)\s+quarter\b', text_lower_check))
                 if has_quarterly_check and recurrence_enum != RecurrenceType.NONE:
-                    logger.info(f"Quarterly pattern detected, adjusting start_time: '{original_text}'")
+                    logger.info(f"Quarterly pattern detected, adjusting start_time: {safe(original_text)}")
                     import dateparser
                     import calendar
                     from datetime import datetime as _dt, timedelta, timezone
                     # Determine target weekday from original text
                     weekday_match = re.search(r'\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b', text_lower_check)
                     weekday = weekday_match.group(1) if weekday_match else None
-                    logger.info(f"Extracted weekday for quarterly: {weekday} from text: '{original_text}'")
+                    logger.info(f"Extracted weekday for quarterly: {weekday} from text: {safe(original_text)}")
                     
                     if weekday:
                         # Find the first Monday of the next quarter
@@ -599,14 +601,14 @@ class IntelligentEventParser:
                                          (isinstance(event.end_date, str) and bool(re.search(r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b', event.end_date.lower())))
                 
                 if has_month_range_check and recurrence_enum != RecurrenceType.NONE:
-                    logger.info(f"Month range pattern detected, adjusting start_time: '{original_text}'")
+                    logger.info(f"Month range pattern detected, adjusting start_time: {safe(original_text)}")
                     import dateparser
                     import calendar
                     from datetime import datetime as _dt
                     # Determine target weekday from original text
                     weekday_match = re.search(r'\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b', text_lower_check)
                     weekday = weekday_match.group(1) if weekday_match else None
-                    logger.info(f"Extracted weekday: {weekday} from text: '{original_text}'")
+                    logger.info(f"Extracted weekday: {weekday} from text: {safe(original_text)}")
 
                     # Determine target month from end_date or text
                     month = None
@@ -734,19 +736,19 @@ class IntelligentEventParser:
                     has_finite_pattern = bool(re.search(r'\b(this|next)\s+(week|weekend)', text_lower))
                     
                     # Log for debugging
-                    logger.info(f"Checking indefinite recurring event: text='{original_text}', has_indefinite={has_indefinite_pattern}, has_explicit={has_explicit_count}, has_until={has_until}, has_finite={has_finite_pattern}, has_month_range={has_month_range}, count={recurrence_count}, end_date={event.end_date}")
+                    logger.info(f"Checking indefinite recurring event: text={safe(original_text)}, has_indefinite={has_indefinite_pattern}, has_explicit={has_explicit_count}, has_until={has_until}, has_finite={has_finite_pattern}, has_month_range={has_month_range}, count={recurrence_count}, end_date={event.end_date}")
                     
                     # If it has an explicit count/duration (like "for the next 3 months"), preserve the count - it's NOT indefinite
                     if has_explicit_count:
-                        logger.info(f"Preserving recurrence_count for explicit duration: '{original_text}' (count={recurrence_count})")
+                        logger.info(f"Preserving recurrence_count for explicit duration: {safe(original_text)} (count={recurrence_count})")
                         # Don't modify recurrence_count - it should be expanded into multiple events
                     # If it's a finite pattern (like "this week"), preserve the count - don't make it indefinite
                     elif has_finite_pattern:
-                        logger.info(f"Preserving recurrence_count for finite pattern: '{original_text}' (count={recurrence_count})")
+                        logger.info(f"Preserving recurrence_count for finite pattern: {safe(original_text)} (count={recurrence_count})")
                         # Don't modify recurrence_count for finite patterns
                     # If it has a month range pattern (like "for the whole of December"), it's NOT indefinite
                     elif has_month_range:
-                        logger.info(f"Month range pattern detected, ensuring end_date is set: '{original_text}'")
+                        logger.info(f"Month range pattern detected, ensuring end_date is set: {safe(original_text)}")
                         # If LLM didn't set end_date, try to set it based on the pattern
                         if event.end_date is None:
                             # Check for "for next month" or "for this month" patterns
@@ -783,21 +785,21 @@ class IntelligentEventParser:
                                     else:
                                         event = event.copy(update={"end_date": end_date_str})
                             else:
-                                logger.warning(f"Month range pattern detected but end_date is None - LLM should have set it: '{original_text}'")
+                                logger.warning(f"Month range pattern detected but end_date is None - LLM should have set it: {safe(original_text)}")
                         # Note: start_time adjustment is now handled above, before this block
                     # If it looks like indefinite recurring event, ensure count is None
                     # This handles both cases: when LLM incorrectly sets a count, or when count is already None
                     elif has_indefinite_pattern and not has_explicit_count and not has_until and not has_month_range:
                         if recurrence_count is not None:
-                            logger.info(f"Stripping recurrence_count for indefinite recurring event: '{original_text}' (was {recurrence_count})")
+                            logger.info(f"Stripping recurrence_count for indefinite recurring event: {safe(original_text)} (was {recurrence_count})")
                         else:
-                            logger.info(f"Confirming indefinite recurring event (count already None): '{original_text}'")
+                            logger.info(f"Confirming indefinite recurring event (count already None): {safe(original_text)}")
                         recurrence_count = None
                     # Also check: if no explicit count or until mentioned, and pattern suggests indefinite, make it indefinite
                     elif not has_explicit_count and not has_until and not has_month_range and recurrence_count is not None:
                         # If no explicit count/until but LLM set a count, check if it's a simple recurring pattern
                         if has_indefinite_pattern or bool(re.search(r'\bevery\b|\beach\b', text_lower)):
-                            logger.info(f"Removing count for indefinite recurring event pattern: '{original_text}' (was {recurrence_count})")
+                            logger.info(f"Removing count for indefinite recurring event pattern: {safe(original_text)} (was {recurrence_count})")
                             recurrence_count = None
             except Exception as e:
                 logger.error(f"Error checking indefinite recurring event: {e}", exc_info=True)
@@ -828,7 +830,7 @@ class IntelligentEventParser:
         for event in events:
             # Check required fields
             if not event.title or len(event.title.strip()) < 2:
-                logger.error(f"Invalid title: {event.title}")
+                logger.error(f"Invalid title: {safe(event.title)}")
                 return False
             
             if not event.start_time:

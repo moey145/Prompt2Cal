@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
@@ -12,6 +12,8 @@ from backend.services.calendar_service import CalendarService
 from backend.services.microsoft_calendar_service import MicrosoftCalendarService
 from backend.services.confidence import attach_confidence
 from backend.services import token_store
+from backend.services.rate_limit import SlidingWindowRateLimiter, client_ip
+from backend.services.log_safety import safe
 from backend.models.event_models import EventRequest, EventResponse, ParsedEvent
 
 # Load environment variables
@@ -67,6 +69,24 @@ def _calendar_service_for(provider: Optional[str]):
         if _normalize_provider(provider) == "microsoft"
         else calendar_service
     )
+
+
+# Parsing calls an LLM and needs no sign-in, so it is capped per caller to keep
+# a script pointed at the public URL from running up the bill.
+parse_rate_limiter = SlidingWindowRateLimiter(
+    limit=int(os.getenv("PARSE_RATE_LIMIT_PER_MINUTE", "30")),
+    window_seconds=60,
+)
+
+
+def _enforce_parse_rate_limit(http_request: Request) -> None:
+    retry_after = parse_rate_limiter.hit(client_ip(http_request))
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please wait a moment and try again.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 def _require_session(user_id: Optional[str]) -> None:
@@ -137,17 +157,18 @@ async def get_calendars(user_id: str = None, provider: str = None):
         }
 
 @app.post("/create_event", response_model=EventResponse)
-async def create_event(request: EventRequest):
+async def create_event(request: EventRequest, http_request: Request):
     """
     Create a calendar event from natural language input.
-    
+
     Process:
     1. Parse natural language into structured data
     2. Convert dates to ISO 8601 format
     3. Return parsed details for confirmation
     """
+    _enforce_parse_rate_limit(http_request)
     try:
-        logger.info(f"Processing event request: {request.text} (force_multiple: {request.force_multiple})")
+        logger.info(f"Processing event request: {safe(request.text)} (force_multiple: {request.force_multiple})")
         
         # If force_multiple is explicitly set (True or False), use that instead of detection
         if request.force_multiple is True:
@@ -272,7 +293,7 @@ async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):
     _require_session(user_id)
     try:
         provider = _normalize_provider(getattr(parsed_event, "calendar_provider", None))
-        logger.info(f"Confirming event: {parsed_event.title} via {provider}")
+        logger.info(f"Confirming event: {safe(parsed_event.title)} via {provider}")
 
         service = _calendar_service_for(provider)
         event_link = await service.create_calendar_event(
@@ -323,7 +344,7 @@ async def confirm_bulk_events(events: List[ParsedEvent], user_id: str = Query(No
                 created_count += 1
             except Exception as e:
                 error_msg = str(e)
-                logger.error(f"Failed to create event '{event.title}': {error_msg}")
+                logger.error(f"Failed to create event {safe(event.title)}: {error_msg}")
                 failed_count += 1
                 failed_events.append({
                     "title": event.title,

@@ -19,6 +19,7 @@ from .date_parser import DateParser
 from .event_expander import EventExpander
 from .multiple_event_detector import MultipleEventDetector
 from .confidence import duration_minutes_from_source, source_states_end_or_duration
+from .log_safety import safe
 
 load_dotenv()
 
@@ -127,7 +128,7 @@ class EventParser:
             else:
                 local_tz = pytz.timezone('UTC')
             
-            logger.info(f"Parsing multiple events from: {text}")
+            logger.info(f"Parsing multiple events from: {safe(text)}")
             
             # For multiple events, skip rules parser and go directly to intelligent parser
             # Rules parser is not designed to handle multiple events separated by "and"
@@ -303,14 +304,14 @@ class EventParser:
                         recurrence_str = str(event.recurrence_type).lower() if event.recurrence_type else "none"
                         recurrence_count = getattr(event, 'recurrence_count', None)
                         end_date = getattr(event, 'end_date', None)
-                        logger.info(f"Checking event '{event.title}' for recurrence: type={recurrence_str}, count={recurrence_count}")
+                        logger.info(f"Checking event {safe(event.title)} for recurrence: type={recurrence_str}, count={recurrence_count}")
                         
                         if recurrence_str and recurrence_str != "none" and recurrence_str != "recurrencetype.none":
                             # Keep finite and indefinite series as one calendar RRULE event.
                             # Expanding into many one-offs drops end_date from the UI.
                             logger.info(
                                 "Keeping recurring series as one event in multi path: "
-                                f"{event.title}, type={recurrence_str}, count={recurrence_count}, "
+                                f"{safe(event.title)}, type={recurrence_str}, count={recurrence_count}, "
                                 f"end_date={end_date}"
                             )
                             parsed_events.append(event)
