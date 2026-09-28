@@ -26,6 +26,15 @@ export const EventInputSection = ({
             rows="5"
             value={eventInput}
             onChange={(e) => setEventInput(e.target.value)}
+            onKeyDown={(e) => {
+              // Enter parses; Shift+Enter still starts a new line.
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!loadingSingle && eventInput.trim()) {
+                  onParse(null);
+                }
+              }
+            }}
           />
           <button
             id="voiceButton"

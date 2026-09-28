@@ -78,6 +78,11 @@ export const BulkEventsCard = ({
               : "";
           const hasUngrounded =
             Object.values(confidence).includes("ungrounded");
+          // A bare weekday can resolve to earlier today; flag it before creating.
+          const startsInThePast =
+            !isRecurring &&
+            event.start_time &&
+            new Date(event.start_time) < new Date();
 
           return (
             <div key={index} className="event-item-confirm">
@@ -89,6 +94,13 @@ export const BulkEventsCard = ({
                       size={14}
                       className="confidence-flag-confirm"
                       title="Some details were not found in your text"
+                    />
+                  )}
+                  {startsInThePast && (
+                    <AlertTriangle
+                      size={14}
+                      className="confidence-flag-confirm"
+                      title="This time has already passed"
                     />
                   )}
                 </div>

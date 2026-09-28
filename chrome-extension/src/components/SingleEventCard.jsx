@@ -45,6 +45,13 @@ export const SingleEventCard = ({
     isUngrounded(field) ? " field-ungrounded-confirm" : "";
   const hasUngrounded = Object.values(confidence).includes("ungrounded");
 
+  // A bare weekday ("Dentist Thursday 10am") can resolve to earlier today, so
+  // say so before the event is created rather than after.
+  const startsInThePast =
+    !isRecurring &&
+    parsedEvent.start_time &&
+    new Date(parsedEvent.start_time) < new Date();
+
   return (
     <div className="event-card-confirm">
       <div className="event-card-header-confirm">
@@ -177,6 +184,15 @@ export const SingleEventCard = ({
                 ? "Teams meeting link will be generated"
                 : "Google Meet link will be generated"}
             </div>
+          </div>
+        )}
+        {startsInThePast && (
+          <div className="confidence-hint-confirm">
+            <AlertTriangle size={14} className="confidence-hint-icon-confirm" />
+            <span>
+              This time has already passed. Did you mean the same day next
+              week? Edit the event to change it.
+            </span>
           </div>
         )}
         {hasUngrounded && (

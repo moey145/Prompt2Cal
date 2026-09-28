@@ -1,5 +1,5 @@
 // Edit event modal component (shared for single and bulk events)
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Edit, X, Check } from "lucide-react";
 import { formatDateTime, toDateTimeLocal } from "../utils/dateFormatters";
 import { EVENT_COLORS, REMINDER_OPTIONS } from "../utils/constants";
@@ -26,6 +26,30 @@ export const EditEventModal = ({
   loading,
   calendarProvider = "google",
 }) => {
+  const titleInputRef = useRef(null);
+  const openerRef = useRef(null);
+
+  // Escape closes the dialog, the title starts focused, and focus goes back to
+  // whatever opened it so keyboard users do not land on nothing.
+  useEffect(() => {
+    openerRef.current = document.activeElement;
+    titleInputRef.current?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      if (openerRef.current instanceof HTMLElement) {
+        openerRef.current.focus();
+      }
+    };
+  }, [onCancel]);
+
   if (!event) return null;
 
   // The two calendars do not offer the same options: Outlook creates Teams
@@ -48,6 +72,7 @@ export const EditEventModal = ({
             <div className="detail-row editable-row">
               <strong>Title:</strong>
               <input
+                ref={titleInputRef}
                 className="text-input"
                 type="text"
                 value={event.title || ""}
