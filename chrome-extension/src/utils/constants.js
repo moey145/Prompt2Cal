@@ -2,8 +2,8 @@
 // Backend URL - set via environment variable VITE_API_BASE or default to Cloud Run for production
 // Local backend while developing Microsoft Calendar + confidence features.
 // For production/store builds, set VITE_API_BASE to your Cloud Run URL.
-export const API_BASE =
-  import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const viteEnv = typeof import.meta.env === "object" ? import.meta.env : {};
+export const API_BASE = viteEnv.VITE_API_BASE || "http://localhost:8000";
 
 // Sessions are issued by the backend when a calendar sign-in completes.
 export const SESSION_PATTERN = /^s_[A-Za-z0-9_-]{43}$/;

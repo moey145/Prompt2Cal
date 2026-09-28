@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { formatDateTimeShort, formatTimeShort, formatDateOnly } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
+import { startsInThePast } from "../utils/eventTiming";
+import { meetingLabels } from "../utils/providerOptions";
 import { ConflictWarning } from "./ConflictWarning";
 
 const recurrenceEndLabel = (event) =>
@@ -79,10 +81,7 @@ export const BulkEventsCard = ({
           const hasUngrounded =
             Object.values(confidence).includes("ungrounded");
           // A bare weekday can resolve to earlier today; flag it before creating.
-          const startsInThePast =
-            !isRecurring &&
-            event.start_time &&
-            new Date(event.start_time) < new Date();
+          const eventStartsInThePast = startsInThePast(event);
 
           return (
             <div key={index} className="event-item-confirm">
@@ -96,7 +95,7 @@ export const BulkEventsCard = ({
                       title="Some details were not found in your text"
                     />
                   )}
-                  {startsInThePast && (
+                  {eventStartsInThePast && (
                     <AlertTriangle
                       size={14}
                       className="confidence-flag-confirm"
@@ -221,9 +220,7 @@ export const BulkEventsCard = ({
                 <div className="event-time-row-confirm">
                   <Video className="event-time-icon-confirm" />
                   <div className="event-location-info-confirm">
-                    {calendarProvider === "microsoft"
-                      ? "Teams meeting link will be generated"
-                      : "Google Meet link will be generated"}
+                    {meetingLabels(calendarProvider).generated}
                   </div>
                 </div>
               )}

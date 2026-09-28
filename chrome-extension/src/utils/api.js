@@ -1,5 +1,5 @@
 // API utility functions
-import { API_BASE } from "./constants";
+import { API_BASE } from "./constants.js";
 
 export const makeApiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE}${endpoint}`;

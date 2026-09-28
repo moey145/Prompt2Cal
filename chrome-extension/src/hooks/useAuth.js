@@ -2,10 +2,7 @@
 import { useState, useEffect } from "react";
 import { makeApiCall } from "../utils/api";
 import { API_BASE } from "../utils/constants";
-
-// A sign-in left open this long is treated as abandoned, so a button cannot
-// stay stuck on "Connecting..." if the background worker never reports back.
-const SIGN_IN_TIMEOUT_MS = 5 * 60 * 1000;
+import { pendingSignInProvider } from "../utils/signInState";
 
 const hasChromeStorage = () =>
   typeof chrome !== "undefined" &&
@@ -92,13 +89,15 @@ export const useAuth = (userId) => {
         "waitingForAuth",
         "authStartedAt",
       ]);
-      if (!waitingForAuth) return;
-      if (!authStartedAt || Date.now() - authStartedAt > SIGN_IN_TIMEOUT_MS) {
-        await chrome.storage.local.remove(["waitingForAuth", "authStartedAt"]);
+      const pending = pendingSignInProvider({ waitingForAuth, authStartedAt });
+      if (!pending) {
+        if (waitingForAuth) {
+          await chrome.storage.local.remove(["waitingForAuth", "authStartedAt"]);
+        }
         return;
       }
       if (!isMounted) return;
-      if (waitingForAuth === "microsoft") {
+      if (pending === "microsoft") {
         setLoadingMicrosoftAuth(true);
       } else {
         setLoadingAuth(true);

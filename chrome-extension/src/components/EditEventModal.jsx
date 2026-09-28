@@ -7,15 +7,19 @@ import {
   RECURRENCE_OPTIONS,
   REMINDER_OPTIONS,
 } from "../utils/constants";
+import {
+  fieldsForEndMode,
+  fieldsForRecurrenceType,
+  intervalUnitLabel,
+  isRecurring as isRecurringEvent,
+  recurrenceEndMode,
+} from "../utils/recurrence";
+import {
+  meetingLabels,
+  supportsCategories,
+  supportsEventColour,
+} from "../utils/providerOptions";
 import { parseAttendeeInput, ensureUniqueEmails } from "../utils/emailUtils";
-
-// Three months out, so "Ends: on…" starts somewhere sensible.
-const defaultEndDate = (startTime) => {
-  const start = startTime ? new Date(startTime) : new Date();
-  const end = new Date(start);
-  end.setMonth(end.getMonth() + 3);
-  return end.toISOString().slice(0, 10);
-};
 
 export const EditEventModal = ({
   event,
@@ -68,25 +72,14 @@ export const EditEventModal = ({
   // The two calendars do not offer the same options: Outlook creates Teams
   // meetings, and Microsoft Graph has no per-event colour (it uses named
   // categories instead), so that row is Google-only.
-  const isOutlook = calendarProvider === "microsoft";
-  const meetingLabel = isOutlook ? "Teams meeting" : "Google Meet";
-  const meetingCheckboxLabel = isOutlook
-    ? "Add Teams meeting link"
-    : "Add Google Meet link";
+  const labels = meetingLabels(calendarProvider);
+  const showCategories = supportsCategories(calendarProvider);
+  const showColour = supportsEventColour(calendarProvider);
 
   const recurrenceType = event.recurrence_type || "none";
-  const isRecurring = recurrenceType !== "none";
-  const intervalUnit = {
-    daily: "day(s)",
-    weekly: "week(s)",
-    monthly: "month(s)",
-    yearly: "year(s)",
-  }[recurrenceType];
-  const endMode = event.recurrence_count
-    ? "count"
-    : event.end_date
-    ? "date"
-    : "never";
+  const isRecurring = isRecurringEvent(event);
+  const intervalUnit = intervalUnitLabel(recurrenceType);
+  const endMode = recurrenceEndMode(event);
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -219,7 +212,7 @@ export const EditEventModal = ({
               )}
             </div>
             <div className="detail-row editable-row">
-              <strong>{meetingLabel}:</strong>
+              <strong>{labels.field}:</strong>
               <label className="checkbox-inline">
                 <input
                   type="checkbox"
@@ -228,7 +221,7 @@ export const EditEventModal = ({
                     onFieldChange("add_conference", e.target.checked)
                   }
                 />
-                <span>{meetingCheckboxLabel}</span>
+                <span>{labels.checkbox}</span>
               </label>
             </div>
             <div className="detail-row editable-row">
@@ -237,16 +230,11 @@ export const EditEventModal = ({
                 <select
                   className="reminder-select"
                   value={recurrenceType}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    onFieldChange("recurrence_type", next);
-                    if (next === "none") {
-                      // Clear the settings that only apply to a series.
-                      onFieldChange("recurrence_count", null);
-                      onFieldChange("end_date", null);
-                      onFieldChange("recurrence_interval", 1);
-                    }
-                  }}
+                  onChange={(e) =>
+                    Object.entries(fieldsForRecurrenceType(e.target.value)).forEach(
+                      ([field, value]) => onFieldChange(field, value)
+                    )
+                  }
                 >
                   {RECURRENCE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -278,22 +266,11 @@ export const EditEventModal = ({
                     <select
                       className="reminder-select"
                       value={endMode}
-                      onChange={(e) => {
-                        const mode = e.target.value;
-                        if (mode === "never") {
-                          onFieldChange("recurrence_count", null);
-                          onFieldChange("end_date", null);
-                        } else if (mode === "count") {
-                          onFieldChange("end_date", null);
-                          onFieldChange("recurrence_count", event.recurrence_count || 5);
-                        } else {
-                          onFieldChange("recurrence_count", null);
-                          onFieldChange(
-                            "end_date",
-                            event.end_date || defaultEndDate(event.start_time)
-                          );
-                        }
-                      }}
+                      onChange={(e) =>
+                        Object.entries(fieldsForEndMode(e.target.value, event)).forEach(
+                          ([field, value]) => onFieldChange(field, value)
+                        )
+                      }
                     >
                       <option value="never">Ends: never</option>
                       <option value="count">Ends: after…</option>
@@ -331,7 +308,7 @@ export const EditEventModal = ({
                 )}
               </div>
             </div>
-            {isOutlook ? (
+            {showCategories ? (
               <div className="detail-row">
                 <strong>Category:</strong>
                 <select

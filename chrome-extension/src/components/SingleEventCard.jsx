@@ -16,6 +16,8 @@ import {
 import { formatDateTimeShort, formatTimeShort, formatDateOnly } from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
 import { ConflictWarning } from "./ConflictWarning";
+import { startsInThePast } from "../utils/eventTiming";
+import { meetingLabels } from "../utils/providerOptions";
 
 export const SingleEventCard = ({
   parsedEvent,
@@ -50,10 +52,7 @@ export const SingleEventCard = ({
 
   // A bare weekday ("Dentist Thursday 10am") can resolve to earlier today, so
   // say so before the event is created rather than after.
-  const startsInThePast =
-    !isRecurring &&
-    parsedEvent.start_time &&
-    new Date(parsedEvent.start_time) < new Date();
+  const eventStartsInThePast = startsInThePast(parsedEvent);
 
   return (
     <div className="event-card-confirm">
@@ -183,13 +182,11 @@ export const SingleEventCard = ({
           <div className="event-time-row-confirm">
             <Video className="event-time-icon-confirm" />
             <div className="event-location-info-confirm">
-              {calendarProvider === "microsoft"
-                ? "Teams meeting link will be generated"
-                : "Google Meet link will be generated"}
+              {meetingLabels(calendarProvider).generated}
             </div>
           </div>
         )}
-        {startsInThePast && (
+        {eventStartsInThePast && (
           <div className="confidence-hint-confirm">
             <AlertTriangle size={14} className="confidence-hint-icon-confirm" />
             <span>

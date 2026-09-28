@@ -8,7 +8,8 @@ import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { makeApiCall } from "./utils/api";
 import { normalizeEventPayload } from "./utils/eventNormalizers";
 import { parseAttendeeInput, ensureUniqueEmails } from "./utils/emailUtils";
-import { DEFAULT_COLOR, DEFAULT_REMINDER, SESSION_PATTERN } from "./utils/constants";
+import { DEFAULT_COLOR, DEFAULT_REMINDER } from "./utils/constants";
+import { isIssuedSession } from "./utils/signInState";
 import { SettingsDropdown } from "./components/SettingsDropdown";
 import { AuthSection } from "./components/AuthSection";
 import { EventInputSection } from "./components/EventInputSection";
@@ -104,7 +105,7 @@ const Popup = () => {
     const handleStorageChange = async (changes, area) => {
       if (area !== "local") return;
       const session = changes.prompt2cal_user_id?.newValue;
-      if (session && SESSION_PATTERN.test(session)) {
+      if (isIssuedSession(session)) {
         setUserId(session);
         const authenticated = await checkAuthStatus(session);
         if (authenticated) {
@@ -181,7 +182,7 @@ const Popup = () => {
       // versions of the extension are no longer accepted, so those users
       // connect their calendar again.
       let userIdValue = null;
-      if (SESSION_PATTERN.test(result.prompt2cal_user_id || "")) {
+      if (isIssuedSession(result.prompt2cal_user_id)) {
         userIdValue = result.prompt2cal_user_id;
       } else if (result.prompt2cal_user_id) {
         await chrome.storage.local.remove(["prompt2cal_user_id"]);
