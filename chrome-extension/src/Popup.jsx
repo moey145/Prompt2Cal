@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Sun, Moon, Settings } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { useCalendars } from "./hooks/useCalendars";
+import { useCategories } from "./hooks/useCategories";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { makeApiCall } from "./utils/api";
 import { normalizeEventPayload } from "./utils/eventNormalizers";
@@ -15,6 +16,7 @@ import { SingleEventCard } from "./components/SingleEventCard";
 import { BulkEventsCard } from "./components/BulkEventsCard";
 import { EditEventModal } from "./components/EditEventModal";
 import { ConflictWarning } from "./components/ConflictWarning";
+import { FindSlotPanel } from "./components/FindSlotPanel";
 import { ToastContainer } from "./components/Toast";
 
 const Popup = () => {
@@ -54,6 +56,9 @@ const Popup = () => {
   // Conflict detection state
   const [conflicts, setConflicts] = useState([]);
   const [checkingConflicts, setCheckingConflicts] = useState(false);
+  const [alternatives, setAlternatives] = useState([]);
+  const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+  const [showFindSlot, setShowFindSlot] = useState(false);
   const [bulkEventConflicts, setBulkEventConflicts] = useState({}); // Map of event index to conflicts
 
   // Custom hooks
@@ -79,6 +84,8 @@ const Popup = () => {
     fetchCalendars,
     updateSelectedCalendar,
   } = useCalendars(userId, isAuthenticated, calendarProvider);
+
+  const { categories } = useCategories(userId, isAuthenticated, calendarProvider);
 
   const { isListening, toggleVoiceRecognition } = useVoiceRecognition();
   const eventInputHydrated = useRef(false);
@@ -737,7 +744,13 @@ const Popup = () => {
       });
 
       if (response.success) {
-        setConflicts(response.conflicts || []);
+        const foundConflicts = response.conflicts || [];
+        setConflicts(foundConflicts);
+        if (foundConflicts.length > 0) {
+          loadAlternatives(event);
+        } else {
+          setAlternatives([]);
+        }
       }
     } catch (error) {
       console.error("Error checking conflicts:", error);
@@ -745,6 +758,92 @@ const Popup = () => {
     } finally {
       setCheckingConflicts(false);
     }
+  };
+
+  // When something clashes, offer the nearest free times rather than only
+  // reporting the problem.
+  const loadAlternatives = async (event) => {
+    try {
+      setLoadingAlternatives(true);
+      setAlternatives([]);
+      const response = await makeApiCall("/suggest_alternatives", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          duration_minutes: event.duration_minutes || 60,
+          calendar_id: selectedCalendarId,
+          calendar_provider: calendarProvider,
+        }),
+      });
+      if (response.success) {
+        setAlternatives(response.alternatives || []);
+      }
+    } catch (error) {
+      console.error("Error loading alternatives:", error);
+    } finally {
+      setLoadingAlternatives(false);
+    }
+  };
+
+  const handlePickAlternative = (slot) => {
+    if (!parsedEvent) return;
+    const moved = {
+      ...parsedEvent,
+      start_time: slot.start,
+      end_time: slot.end,
+      end_time_assumed: parsedEvent.end_time_assumed,
+    };
+    setParsedEvent(moved);
+    setAlternatives([]);
+    showMessage(`Moved to ${slot.formatted_time}`, "success");
+    checkEventConflicts(moved);
+  };
+
+  const handleFindSlots = async ({ durationMinutes, days }) => {
+    const now = new Date();
+    const end = new Date(now);
+    end.setDate(end.getDate() + days);
+    try {
+      const response = await makeApiCall("/find_meeting_slots", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          start_date: now.toISOString(),
+          end_date: end.toISOString(),
+          duration_minutes: durationMinutes,
+          working_hours: [9, 17],
+          buffer_minutes: 15,
+          calendar_id: selectedCalendarId,
+          calendar_provider: calendarProvider,
+        }),
+      });
+      return response.success ? response.available_slots || [] : [];
+    } catch (error) {
+      showMessage(`Could not find slots: ${error.message}`, "error");
+      return [];
+    }
+  };
+
+  const handlePickSlot = (slot) => {
+    const draft = {
+      title: "New event",
+      start_time: slot.start,
+      end_time: slot.end,
+      duration_minutes: slot.duration_minutes,
+      recurrence_type: "none",
+      attendees: [],
+      calendar_provider: calendarProvider,
+    };
+    setShowFindSlot(false);
+    setParsedEvents([]);
+    setShowBulkEvents(false);
+    setParsedEvent(draft);
+    setShowParsedEvent(true);
+    setConflicts([]);
+    setAlternatives([]);
+    showMessage("Give the event a name, then create it", "info");
   };
 
 
@@ -910,6 +1009,26 @@ const Popup = () => {
               }}
         />
 
+        {isAuthenticated && !showParsedEvent && !showBulkEvents && (
+          <>
+            {showFindSlot ? (
+              <FindSlotPanel
+                onFindSlots={handleFindSlots}
+                onPickSlot={handlePickSlot}
+                onClose={() => setShowFindSlot(false)}
+              />
+            ) : (
+              <button
+                type="button"
+                className="find-slot-open"
+                onClick={() => setShowFindSlot(true)}
+              >
+                Don't know when? Find a free slot
+              </button>
+            )}
+          </>
+        )}
+
         {showParsedEvent && parsedEvent && (
           <SingleEventCard
             parsedEvent={parsedEvent}
@@ -921,6 +1040,9 @@ const Popup = () => {
             conflicts={conflicts}
             checkingConflicts={checkingConflicts}
             calendarProvider={calendarProvider}
+            alternatives={alternatives}
+            loadingAlternatives={loadingAlternatives}
+            onPickAlternative={handlePickAlternative}
           />
         )}
 
@@ -945,6 +1067,7 @@ const Popup = () => {
             onCancel={handleCancelSingleEdit}
             loading={loading}
             calendarProvider={calendarProvider}
+            categories={categories}
           />
         )}
 
@@ -987,6 +1110,7 @@ const Popup = () => {
             onCancel={closeEditModal}
             loading={loading}
             calendarProvider={calendarProvider}
+            categories={categories}
           />
         )}
 

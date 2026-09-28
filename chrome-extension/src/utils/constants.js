@@ -8,6 +8,22 @@ export const API_BASE =
 // Sessions are issued by the backend when a calendar sign-in completes.
 export const SESSION_PATTERN = /^s_[A-Za-z0-9_-]{43}$/;
 
+export const RECURRENCE_OPTIONS = [
+  { value: "none", label: "Does not repeat" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
+
+export const SLOT_DURATION_OPTIONS = [
+  { value: 30, label: "30 minutes" },
+  { value: 45, label: "45 minutes" },
+  { value: 60, label: "1 hour" },
+  { value: 90, label: "1.5 hours" },
+  { value: 120, label: "2 hours" },
+];
+
 export const EVENT_COLORS = [
   "#d50000", // Tomato (11)
   "#e67c73", // Flamingo (4)

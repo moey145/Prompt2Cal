@@ -548,3 +548,102 @@
 .dark-mode .confidence-flag-confirm {
   color: #fbbf24;
 }
+
+/* Free times offered when the proposed slot clashes */
+.conflict-alternatives {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.conflict-alternatives-label {
+  font-weight: 600;
+}
+
+.conflict-alternative-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-dark);
+  border-radius: 999px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.conflict-alternative-button:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Find a free slot */
+.find-slot-open {
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.find-slot-panel {
+  margin-top: 12px;
+}
+
+.find-slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.find-slot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.find-slot-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.find-slot-empty {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Repeat settings in the edit dialog */
+.recurrence-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.recurrence-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.recurrence-interval {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}

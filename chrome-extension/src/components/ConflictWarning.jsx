@@ -42,6 +42,9 @@ export const ConflictWarning = ({
   conflicts,
   eventStartTime,
   eventEndTime,
+  alternatives = [],
+  loadingAlternatives = false,
+  onPickAlternative,
 }) => {
   if (!conflicts || conflicts.length === 0) {
     return null;
@@ -87,6 +90,26 @@ export const ConflictWarning = ({
           </div>
         ))}
       </div>
+      {loadingAlternatives && (
+        <div className="conflict-alternatives">Looking for a free time…</div>
+      )}
+      {!loadingAlternatives && alternatives.length > 0 && (
+        <div className="conflict-alternatives">
+          <div className="conflict-alternatives-label">Free nearby:</div>
+          {alternatives.map((slot) => (
+            <button
+              key={slot.start}
+              type="button"
+              className="conflict-alternative-button"
+              onClick={() => onPickAlternative && onPickAlternative(slot)}
+              title="Move the event to this time"
+            >
+              <Clock size={14} />
+              {slot.formatted_time}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -27,6 +27,9 @@ export const SingleEventCard = ({
   conflicts,
   checkingConflicts,
   calendarProvider = "google",
+  alternatives = [],
+  loadingAlternatives = false,
+  onPickAlternative,
 }) => {
   if (!parsedEvent) return null;
 
@@ -209,6 +212,9 @@ export const SingleEventCard = ({
             conflicts={conflicts}
             eventStartTime={parsedEvent.start_time}
             eventEndTime={parsedEvent.end_time}
+            alternatives={alternatives}
+            loadingAlternatives={loadingAlternatives}
+            onPickAlternative={onPickAlternative}
           />
         )}
       </div>

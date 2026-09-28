@@ -2,8 +2,20 @@
 import React, { useEffect, useRef } from "react";
 import { Edit, X, Check } from "lucide-react";
 import { formatDateTime, toDateTimeLocal } from "../utils/dateFormatters";
-import { EVENT_COLORS, REMINDER_OPTIONS } from "../utils/constants";
+import {
+  EVENT_COLORS,
+  RECURRENCE_OPTIONS,
+  REMINDER_OPTIONS,
+} from "../utils/constants";
 import { parseAttendeeInput, ensureUniqueEmails } from "../utils/emailUtils";
+
+// Three months out, so "Ends: on…" starts somewhere sensible.
+const defaultEndDate = (startTime) => {
+  const start = startTime ? new Date(startTime) : new Date();
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 3);
+  return end.toISOString().slice(0, 10);
+};
 
 export const EditEventModal = ({
   event,
@@ -25,6 +37,7 @@ export const EditEventModal = ({
   onCancel,
   loading,
   calendarProvider = "google",
+  categories = [],
 }) => {
   const titleInputRef = useRef(null);
   const openerRef = useRef(null);
@@ -60,6 +73,20 @@ export const EditEventModal = ({
   const meetingCheckboxLabel = isOutlook
     ? "Add Teams meeting link"
     : "Add Google Meet link";
+
+  const recurrenceType = event.recurrence_type || "none";
+  const isRecurring = recurrenceType !== "none";
+  const intervalUnit = {
+    daily: "day(s)",
+    weekly: "week(s)",
+    monthly: "month(s)",
+    yearly: "year(s)",
+  }[recurrenceType];
+  const endMode = event.recurrence_count
+    ? "count"
+    : event.end_date
+    ? "date"
+    : "never";
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -204,7 +231,128 @@ export const EditEventModal = ({
                 <span>{meetingCheckboxLabel}</span>
               </label>
             </div>
-            {!isOutlook && (
+            <div className="detail-row editable-row">
+              <strong>Repeats:</strong>
+              <div className="recurrence-controls">
+                <select
+                  className="reminder-select"
+                  value={recurrenceType}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    onFieldChange("recurrence_type", next);
+                    if (next === "none") {
+                      // Clear the settings that only apply to a series.
+                      onFieldChange("recurrence_count", null);
+                      onFieldChange("end_date", null);
+                      onFieldChange("recurrence_interval", 1);
+                    }
+                  }}
+                >
+                  {RECURRENCE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                {isRecurring && (
+                  <>
+                    <label className="recurrence-inline">
+                      Every
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        className="recurrence-interval"
+                        value={event.recurrence_interval || 1}
+                        onChange={(e) =>
+                          onFieldChange(
+                            "recurrence_interval",
+                            Math.max(1, parseInt(e.target.value, 10) || 1)
+                          )
+                        }
+                      />
+                      {intervalUnit}
+                    </label>
+
+                    <select
+                      className="reminder-select"
+                      value={endMode}
+                      onChange={(e) => {
+                        const mode = e.target.value;
+                        if (mode === "never") {
+                          onFieldChange("recurrence_count", null);
+                          onFieldChange("end_date", null);
+                        } else if (mode === "count") {
+                          onFieldChange("end_date", null);
+                          onFieldChange("recurrence_count", event.recurrence_count || 5);
+                        } else {
+                          onFieldChange("recurrence_count", null);
+                          onFieldChange(
+                            "end_date",
+                            event.end_date || defaultEndDate(event.start_time)
+                          );
+                        }
+                      }}
+                    >
+                      <option value="never">Ends: never</option>
+                      <option value="count">Ends: after…</option>
+                      <option value="date">Ends: on…</option>
+                    </select>
+
+                    {endMode === "count" && (
+                      <label className="recurrence-inline">
+                        <input
+                          type="number"
+                          min="1"
+                          max="365"
+                          className="recurrence-interval"
+                          value={event.recurrence_count || 1}
+                          onChange={(e) =>
+                            onFieldChange(
+                              "recurrence_count",
+                              Math.max(1, parseInt(e.target.value, 10) || 1)
+                            )
+                          }
+                        />
+                        times
+                      </label>
+                    )}
+
+                    {endMode === "date" && (
+                      <input
+                        type="date"
+                        className="datetime-input"
+                        value={(event.end_date || "").slice(0, 10)}
+                        onChange={(e) => onFieldChange("end_date", e.target.value)}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+            {isOutlook ? (
+              <div className="detail-row">
+                <strong>Category:</strong>
+                <select
+                  className="reminder-select"
+                  value={event.category || ""}
+                  onChange={(e) => onFieldChange("category", e.target.value || null)}
+                  disabled={categories.length === 0}
+                >
+                  <option value="">
+                    {categories.length === 0
+                      ? "No categories in your mailbox"
+                      : "No category"}
+                  </option>
+                  {categories.map((category) => (
+                    <option key={category.name} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
               <div className="detail-row">
                 <strong>Color:</strong>
                 <div className="color-presets">
