@@ -8,7 +8,7 @@ function PrivacyPolicy() {
         <Link to="/" className="back-link">← Back to Home</Link>
         
         <h1>Prompt2Cal Privacy Policy</h1>
-        <p className="last-updated">Last updated: January 15, 2025</p>
+        <p className="last-updated">Last updated: September 28, 2026</p>
 
         <p>
           <strong>Prompt2Cal</strong> ("we", "our", "us", or "the application") is a Google Chrome extension 
@@ -61,8 +61,8 @@ function PrivacyPolicy() {
         </p>
         <ul>
           <li>
-            Parse your input text with our event parsing service (which may call
-            OpenAI's API) and return structured event details.
+            Parse your input text with our event parsing service (which calls
+            Anthropic's Claude API) and return structured event details.
           </li>
           <li>
             Check for scheduling conflicts and suggest alternatives when you
@@ -92,13 +92,14 @@ function PrivacyPolicy() {
             storage so that the service can act on your behalf.
           </li>
           <li>
-            Event parsing requests sent to OpenAI are transient and not retained
-            beyond the session needed to fulfill the request, according to OpenAI
-            API policies.
+            Event parsing requests sent to Anthropic are transient and not
+            retained beyond the session needed to fulfill the request, according
+            to the Anthropic API policies.
           </li>
           <li>
-            Logs omit sensitive content and are retained temporarily for
-            diagnostics before automatic deletion.
+            Logs record the size and outcome of a request, not the text of your
+            events, and are retained temporarily for diagnostics before
+            automatic deletion.
           </li>
         </ul>
 
@@ -113,8 +114,8 @@ function PrivacyPolicy() {
             events on your calendars.
           </li>
           <li>
-            <strong>OpenAI API.</strong> When parsing event text (your input text
-            is transmitted to OpenAI for processing).
+            <strong>Anthropic (Claude) API.</strong> When parsing event text
+            (your input text is transmitted to Anthropic for processing).
           </li>
           <li>
             <strong>Service providers.</strong> If you deploy the backend on
@@ -143,8 +144,10 @@ function PrivacyPolicy() {
             page.
           </li>
           <li>
-            You can delete OAuth tokens stored by the backend service by running
-            the provided cleanup script or deleting the user token files.
+            You can delete the OAuth tokens the backend holds for you at any
+            time by choosing Disconnect in the extension. They are also deleted
+            automatically 14 days after you connect, at which point you sign in
+            again.
           </li>
           <li>
             You may remove the extension from Chrome to stop all data collection
