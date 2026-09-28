@@ -270,6 +270,19 @@ class MicrosoftCalendarService:
         if getattr(parsed_event, "add_conference", False):
             body["isOnlineMeeting"] = True
             body["onlineMeetingProvider"] = "teamsForBusiness"
+        # Outlook takes a single lead time, unlike Google's list of overrides.
+        reminder = getattr(parsed_event, "reminder", None)
+        reminder_minutes = None
+        if reminder not in (None, "", "none"):
+            try:
+                reminder_minutes = int(reminder)
+            except (TypeError, ValueError):
+                logger.warning("Ignoring unrecognised reminder value: %s", reminder)
+        if reminder_minutes is not None and reminder_minutes >= 0:
+            body["isReminderOn"] = True
+            body["reminderMinutesBeforeStart"] = reminder_minutes
+        else:
+            body["isReminderOn"] = False
         recurrence = self._build_recurrence(parsed_event)
         if recurrence:
             body["recurrence"] = recurrence
