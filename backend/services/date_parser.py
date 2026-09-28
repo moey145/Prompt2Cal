@@ -13,6 +13,17 @@ import dateparser
 
 logger = logging.getLogger(__name__)
 
+
+class _LooseTimeMatch:
+    """Presents a bare "10am" match with the group numbers the weekday branch expects."""
+
+    def __init__(self, match):
+        self._groups = (None, None, match.group(1), match.group(2), match.group(3))
+
+    def group(self, index):
+        return self._groups[index]
+
+
 class DateParser:
     """Handles parsing of dates and times from natural language."""
     
@@ -772,13 +783,23 @@ class DateParser:
                 
                 target_date = now + timedelta(days=days_ahead)
                 target_date = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
-                
-                # Extract time if present
-                if standalone_weekday_match.group(2):
-                    hour = int(standalone_weekday_match.group(2))
-                    minute = int(standalone_weekday_match.group(3)) if standalone_weekday_match.group(3) else 0
-                    ampm = standalone_weekday_match.group(4)
-                    
+
+                # Extract time if present. "Thursday at 10am" states it after
+                # "at"; "Thursday 10am" does not, so fall back to any am/pm
+                # time in the string rather than dropping it.
+                time_match = standalone_weekday_match
+                if not time_match.group(2):
+                    loose_time = re.search(
+                        r'(\d{1,2})(?::(\d{2}))?\s*([ap]m)', date_string_lower, re.IGNORECASE
+                    )
+                    if loose_time:
+                        time_match = _LooseTimeMatch(loose_time)
+
+                if time_match.group(2):
+                    hour = int(time_match.group(2))
+                    minute = int(time_match.group(3)) if time_match.group(3) else 0
+                    ampm = time_match.group(4)
+
                     logger.info(f"Extracted time: hour={hour}, minute={minute}, ampm={ampm}")
                     
                     # Convert to 24-hour format
@@ -796,7 +817,12 @@ class DateParser:
                 else:
                     # Default to 2pm if no time specified
                     target_date = target_date.replace(hour=14, minute=0, second=0, microsecond=0)
-                
+
+                # A bare weekday means the upcoming one. If today is that day
+                # but the time has gone, the upcoming occurrence is next week.
+                if days_ahead == 0 and target_date <= now:
+                    target_date += timedelta(days=7)
+
                 logger.info(f"Manual parse result for standalone weekday '{original_string}': {target_date}")
                 return target_date
             

@@ -869,6 +869,10 @@ CRITICAL RULES:
 4. For recurring events, ALWAYS set recurrence_type correctly
 5. Time ranges MUST use "at [start] - [end]" format and ensure end >= start
 6. If unclear, return empty events array
+7. A weekday the user did not call "next" means the SOONEST one: write it as
+   "[Weekday] at [time]", never "next [Weekday]". This includes the start of a
+   repeating series: "every Monday at 9am" starts "Monday at 9am". Only write
+   "next [Weekday]" when the user actually said "next"
 
 You understand:
 - Single events: "Lunch with Sarah next Tuesday at 1pm"
