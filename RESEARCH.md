@@ -1,6 +1,12 @@
-a# Prompt2Cal — Research reproduction guide
+# Prompt2Cal — Research reproduction guide
 
 This document is for **capstone markers, supervisors, and researchers** who need to understand or reproduce the benchmark evaluation reported in the final report. The product-facing guide remains in [README.md](README.md).
+
+> **Reproducing the reported figures.** The results in the final report are stored under `benchmark/` and were committed, with the harness that produced them, at tag `capstone-results`. Everything in the "Verification from stored artefacts" section below works on any later commit, because it only reads those files. Re-running the LLM benchmark is different: later commits changed the parser the harness uses (bare weekdays such as "Thursday 10am" lost their time, and a weekday whose time had passed resolved to today), so a fresh run from `main` will not reproduce the reported numbers. Check out the tag first:
+>
+> ```bash
+> git checkout capstone-results
+> ```
 
 ## Overview
 
