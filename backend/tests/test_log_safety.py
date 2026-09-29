@@ -24,6 +24,20 @@ def test_content_can_be_restored_for_local_debugging(monkeypatch):
     assert safe("Dentist Thursday 10am") == "Dentist Thursday 10am"
 
 
+def test_redaction_never_reaches_the_parsing_logic():
+    # Redaction is for log lines only. The recurrence rules read the user's own
+    # words ("for the next 4 weeks"); fed "<55 chars>" they lose the series end.
+    from backend.models.event_models import ParsedEvent
+    from backend.services.intelligent_parser import IntelligentEventParser
+
+    parser = IntelligentEventParser("test-key")
+    event = ParsedEvent(title="Weekly 1:1", start_time="Wednesday at 3pm", recurrence_type="weekly")
+    result = parser._normalize_recurrence(
+        event, "Weekly 1:1 every Wednesday at 3pm for the next 4 weeks"
+    )
+    assert result.recurrence_count == 4
+
+
 def test_detector_does_not_log_the_users_text(caplog):
     text = "Lunch with Dr Okonkwo about the biopsy results Thursday 10am"
     import asyncio

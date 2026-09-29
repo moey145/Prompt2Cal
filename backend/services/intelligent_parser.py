@@ -369,15 +369,15 @@ class IntelligentEventParser:
             ):
                 recurrence_type = "weekly"
                 logger.info(
-                    "Inferred weekly recurrence from weekday + next-N duration: '%s'",
-                    original_text,
+                    "Inferred weekly recurrence from weekday + next-N duration: %s",
+                    safe(original_text),
                 )
 
             if (recurrence_type in {"weekly", "daily", "monthly"} and
                     (recurrence_count is None or recurrence_count <= 0 or not event.end_date)):
 
                 # Include original input text to catch patterns like "for 6 weeks", "for the next 3 months", "for next 3 months"
-                source_text = f"{safe(original_text)} {event.notes or ''} {event.title} {event.start_time}".lower()
+                source_text = f"{original_text} {event.notes or ''} {event.title} {event.start_time}".lower()
                 duration_match = re.search(r'(for\s+(?:the\s+)?(?:next\s+)?|next\s+)?(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+(weeks?|months?|days?)', source_text)
                 if duration_match:
                     number_word = duration_match.group(2)
@@ -869,10 +869,6 @@ CRITICAL RULES:
 4. For recurring events, ALWAYS set recurrence_type correctly
 5. Time ranges MUST use "at [start] - [end]" format and ensure end >= start
 6. If unclear, return empty events array
-7. A weekday the user did not call "next" means the SOONEST one: write it as
-   "[Weekday] at [time]", never "next [Weekday]". This includes the start of a
-   repeating series: "every Monday at 9am" starts "Monday at 9am". Only write
-   "next [Weekday]" when the user actually said "next"
 
 You understand:
 - Single events: "Lunch with Sarah next Tuesday at 1pm"
