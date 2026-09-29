@@ -1,103 +1,121 @@
 // Find a free slot in the next few days and start an event from it.
-import React, { useState } from "react";
-import { CalendarSearch, Clock, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { CalendarSearch, X } from "lucide-react";
 import { SLOT_DURATION_OPTIONS } from "../utils/constants";
+import { groupSlotsByDay } from "../utils/slotGroups";
 
 const RANGE_OPTIONS = [
   { value: 1, label: "Today" },
-  { value: 3, label: "Next 3 days" },
-  { value: 7, label: "Next 7 days" },
+  { value: 3, label: "3 days" },
+  { value: 7, label: "7 days" },
 ];
+
+const ChipGroup = ({ label, options, value, onChange }) => (
+  <div className="find-slot-row">
+    <span className="find-slot-row-label">{label}</span>
+    <div className="find-slot-chips" role="radiogroup" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          className={`find-slot-chip ${value === option.value ? "selected" : ""}`}
+          onClick={() => onChange(option.value)}
+        >
+          {option.short || option.label}
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
 export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [days, setDays] = useState(3);
   const [slots, setSlots] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [error, setError] = useState(null);
+  const latestRequest = useRef(0);
 
-  const search = async () => {
+  // Search as soon as the panel opens and whenever a choice changes; only the
+  // newest request may update the list.
+  useEffect(() => {
+    const request = ++latestRequest.current;
     setSearching(true);
-    try {
-      setSlots(await onFindSlots({ durationMinutes, days }));
-    } finally {
-      setSearching(false);
-    }
-  };
+    onFindSlots({ durationMinutes, days })
+      .then((found) => {
+        if (request !== latestRequest.current) return;
+        setSlots(found);
+        setError(null);
+      })
+      .catch((failure) => {
+        if (request !== latestRequest.current) return;
+        setSlots(null);
+        setError(failure.message);
+      })
+      .finally(() => {
+        if (request === latestRequest.current) setSearching(false);
+      });
+  }, [durationMinutes, days]);
+
+  const groups = slots ? groupSlotsByDay(slots) : [];
 
   return (
     <div className="event-card find-slot-panel">
       <div className="find-slot-header">
-        <span className="input-label">
-          <CalendarSearch size={18} className="inline-icon" /> Find a free slot
+        <span className="input-label find-slot-title">
+          <CalendarSearch size={18} className="inline-icon" /> Find a free time
         </span>
         <button
           type="button"
-          className="attendee-chip-remove"
+          className="find-slot-close"
           aria-label="Close free slot search"
           onClick={onClose}
         >
-          <X size={14} />
+          <X size={16} />
         </button>
       </div>
 
-      <div className="find-slot-controls">
-        <select
-          className="reminder-select"
-          value={durationMinutes}
-          onChange={(e) => setDurationMinutes(Number(e.target.value))}
-          aria-label="Meeting length"
-        >
-          {SLOT_DURATION_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="reminder-select"
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-          aria-label="Search range"
-        >
-          {RANGE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="action-button action-single"
-          onClick={search}
-          disabled={searching}
-        >
-          {searching ? "Searching…" : "Search"}
-        </button>
-      </div>
+      <ChipGroup
+        label="Length"
+        options={SLOT_DURATION_OPTIONS}
+        value={durationMinutes}
+        onChange={setDurationMinutes}
+      />
+      <ChipGroup label="Within" options={RANGE_OPTIONS} value={days} onChange={setDays} />
 
-      {slots !== null && !searching && (
-        <div className="find-slot-results">
-          {slots.length === 0 ? (
-            <div className="find-slot-empty">
-              No free slots in working hours for that length. Try a shorter
-              meeting or a wider range.
+      <div className={`find-slot-results ${searching ? "is-searching" : ""}`}>
+        {searching && slots === null ? (
+          <div className="find-slot-status">Checking your calendar…</div>
+        ) : error ? (
+          <div className="find-slot-status">{error}</div>
+        ) : groups.length === 0 ? (
+          <div className="find-slot-status">
+            No free time between 9am and 5pm for that length. Try a shorter
+            length or a longer range.
+          </div>
+        ) : (
+          groups.map((group) => (
+            <div key={group.label} className="find-slot-day">
+              <div className="find-slot-day-label">{group.label}</div>
+              <div className="find-slot-times">
+                {group.slots.map((slot) => (
+                  <button
+                    key={slot.start}
+                    type="button"
+                    className="find-slot-time"
+                    onClick={() => onPickSlot(slot)}
+                    title={`Start an event at ${slot.formatted_start}`}
+                  >
+                    {slot.time}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            slots.map((slot) => (
-              <button
-                key={slot.start}
-                type="button"
-                className="conflict-alternative-button"
-                onClick={() => onPickSlot(slot)}
-                title="Start an event at this time"
-              >
-                <Clock size={14} />
-                {slot.formatted_start}
-              </button>
-            ))
-          )}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };

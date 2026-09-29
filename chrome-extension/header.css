@@ -39,6 +39,9 @@
   top: 16px;
   left: 16px;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .settings-container {
@@ -62,6 +65,11 @@
   background: var(--bg-tertiary);
   transform: scale(1.05);
   color: var(--text-primary);
+}
+
+.settings-button.active {
+  background: var(--bg-tertiary);
+  color: #3b82f6;
 }
 
 .settings-dropdown {

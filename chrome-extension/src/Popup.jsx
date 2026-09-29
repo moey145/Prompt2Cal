@@ -1,6 +1,6 @@
 // Refactored Popup component using extracted components and hooks
 import React, { useState, useEffect, useRef } from "react";
-import { Sun, Moon, Settings } from "lucide-react";
+import { Sun, Moon, Settings, CalendarSearch } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { useCalendars } from "./hooks/useCalendars";
 import { useCategories } from "./hooks/useCategories";
@@ -18,6 +18,8 @@ import { BulkEventsCard } from "./components/BulkEventsCard";
 import { EditEventModal } from "./components/EditEventModal";
 import { ConflictWarning } from "./components/ConflictWarning";
 import { FindSlotPanel } from "./components/FindSlotPanel";
+import { useSlotFinder } from "./hooks/useSlotFinder";
+import { slotSearchErrorMessage } from "./utils/slotFinder";
 import { ToastContainer } from "./components/Toast";
 
 const Popup = () => {
@@ -87,6 +89,12 @@ const Popup = () => {
   } = useCalendars(userId, isAuthenticated, calendarProvider);
 
   const { categories } = useCategories(userId, isAuthenticated, calendarProvider);
+  const slotFinderAvailable = useSlotFinder(isAuthenticated, calendarProvider);
+
+  // Close the slot finder if the provider changes to one it cannot search.
+  useEffect(() => {
+    if (!slotFinderAvailable) setShowFindSlot(false);
+  }, [slotFinderAvailable]);
 
   const { isListening, toggleVoiceRecognition } = useVoiceRecognition();
   const eventInputHydrated = useRef(false);
@@ -820,10 +828,11 @@ const Popup = () => {
           calendar_provider: calendarProvider,
         }),
       });
-      return response.success ? response.available_slots || [] : [];
+      if (!response.success) throw new Error("Slot search did not succeed");
+      return response.available_slots || [];
     } catch (error) {
-      showMessage(`Could not find slots: ${error.message}`, "error");
-      return [];
+      console.error("Free slot search failed:", error);
+      throw new Error(slotSearchErrorMessage(error, calendarProvider));
     }
   };
 
@@ -955,6 +964,18 @@ const Popup = () => {
               />
             </div>
           )}
+          {slotFinderAvailable && (
+            <button
+              type="button"
+              className={`settings-button ${showFindSlot ? "active" : ""}`}
+              onClick={() => setShowFindSlot(!showFindSlot)}
+              title="Find a free time"
+              aria-label="Find a free time"
+              aria-pressed={showFindSlot}
+            >
+              <CalendarSearch size={18} />
+            </button>
+          )}
         </div>
         <button
           id="themeToggle"
@@ -995,6 +1016,14 @@ const Popup = () => {
       )}
 
       <div className="main-section" id="mainSection">
+        {showFindSlot ? (
+          <FindSlotPanel
+            onFindSlots={handleFindSlots}
+            onPickSlot={handlePickSlot}
+            onClose={() => setShowFindSlot(false)}
+          />
+        ) : (
+        <>
         <EventInputSection
           eventInput={eventInput}
           setEventInput={setEventInput}
@@ -1009,26 +1038,6 @@ const Popup = () => {
                 setShowSelectedText(false);
               }}
         />
-
-        {isAuthenticated && !showParsedEvent && !showBulkEvents && (
-          <>
-            {showFindSlot ? (
-              <FindSlotPanel
-                onFindSlots={handleFindSlots}
-                onPickSlot={handlePickSlot}
-                onClose={() => setShowFindSlot(false)}
-              />
-            ) : (
-              <button
-                type="button"
-                className="find-slot-open"
-                onClick={() => setShowFindSlot(true)}
-              >
-                Don't know when? Find a free slot
-              </button>
-            )}
-          </>
-        )}
 
         {showParsedEvent && parsedEvent && (
           <SingleEventCard
@@ -1113,6 +1122,8 @@ const Popup = () => {
             calendarProvider={calendarProvider}
             categories={categories}
           />
+        )}
+        </>
         )}
 
         <ToastContainer toasts={toasts} onClose={removeToast} />

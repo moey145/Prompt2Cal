@@ -34,9 +34,11 @@ export const makeApiCall = async (endpoint, options = {}) => {
 const handleResponse = async (response) => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(
+    const error = new Error(
       errorData.detail || `HTTP ${response.status}: ${response.statusText}`
     );
+    error.status = response.status;
+    throw error;
   }
 
   return await response.json();

@@ -582,45 +582,133 @@
 }
 
 /* Find a free slot */
-.find-slot-open {
-  margin-top: 10px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--text-secondary);
-  font-size: 12px;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.find-slot-panel {
-  margin-top: 12px;
-}
-
 .find-slot-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.find-slot-controls {
+.find-slot-title {
+  margin-bottom: 0;
+}
+
+.find-slot-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.find-slot-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.find-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.find-slot-row-label {
+  width: 52px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.find-slot-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 6px;
+}
+
+.find-slot-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: 999px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.find-slot-chip:hover {
+  border-color: #3b82f6;
+}
+
+.find-slot-chip.selected {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
 }
 
 .find-slot-results {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  max-height: 240px;
+  overflow-y: auto;
+  transition: opacity 0.15s ease;
 }
 
-.find-slot-empty {
+.find-slot-results.is-searching {
+  opacity: 0.5;
+}
+
+.find-slot-day + .find-slot-day {
+  margin-top: 12px;
+}
+
+.find-slot-day-label {
+  margin-bottom: 6px;
   font-size: 12px;
+  font-weight: 600;
   color: var(--text-secondary);
+}
+
+.find-slot-times {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.find-slot-time {
+  padding: 7px 0;
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.find-slot-time:hover {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.find-slot-status {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 8px 0;
 }
 
 /* Repeat settings in the edit dialog */
