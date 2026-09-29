@@ -56,7 +56,7 @@ All evaluation runs use the dataset timezone **`Australia/Sydney`** (stored in `
 
 ## Single command: full benchmark re-run
 
-Section 3.5 (*Evaluation procedure*) of the final report states that the full benchmark can be re-executed from one documented command. From the repository root:
+Section 4.5 (*Evaluation procedure*) of the final report states that the full benchmark can be re-executed from one documented command. From the repository root:
 
 ### Claude Sonnet 4.6 (live product model)
 
@@ -169,6 +169,14 @@ Compares a fresh re-run against stored artefacts (Regex byte-identical; Claude s
 python scripts/check_reproducibility.py
 ```
 
+### Measurement artefacts (consistency and hallucination)
+
+Recomputes consistency with start and end times truncated to the minute (a model answer of "now" resolves to each run's own clock time, so identical answers otherwise score as disagreements), and breaks down where the fabricated fields on the missing-fields subset came from: pipeline defaults (a 60-minute end time, a clock-filled start), fields of events that failed title alignment, notes, or clock times the model chose. Writes `benchmark/measurement_artefacts.json`.
+
+```bash
+python scripts/analyse_measurement_artefacts.py
+```
+
 ---
 
 ## Where outputs land
@@ -181,6 +189,7 @@ python scripts/check_reproducibility.py
 | `benchmark/verifier_results.json` | Verifier confusion matrices |
 | `benchmark/sensitivity_results.json` | Threshold sensitivity table |
 | `benchmark/failure_taxonomy.json` | Failure-mode counts per extractor |
+| `benchmark/measurement_artefacts.json` | Consistency to the minute; sources of missing-field fabrications |
 | `benchmark/APPENDIX_dataset.md` | Human-readable dataset appendix |
 | `benchmark/APPENDIX_dataset.tex` | LaTeX appendix table |
 

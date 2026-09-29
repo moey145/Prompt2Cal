@@ -1,0 +1,102 @@
+{
+  "gpt-5": {
+    "consistency": {
+      "reported": {
+        "overall": 0.707,
+        "by_category": {
+          "ambiguous": 0.633,
+          "clean": 0.833,
+          "missing_fields": 0.4,
+          "typos": 0.867,
+          "voice_to_text": 0.8
+        }
+      },
+      "to_the_minute": {
+        "overall": 0.787,
+        "by_category": {
+          "ambiguous": 0.667,
+          "clean": 0.833,
+          "missing_fields": 0.717,
+          "typos": 0.867,
+          "voice_to_text": 0.85
+        }
+      }
+    },
+    "missing_fields_fabrication_sources": {
+      "opportunities": 250,
+      "fabrications": 137,
+      "sources": {
+        "unmatched_event_fields": {
+          "count": 68,
+          "share": 0.496
+        },
+        "default_end_time": {
+          "count": 43,
+          "share": 0.314
+        },
+        "clock_filled_start": {
+          "count": 19,
+          "share": 0.139
+        },
+        "model_chosen_start": {
+          "count": 6,
+          "share": 0.044
+        },
+        "notes": {
+          "count": 1,
+          "share": 0.007
+        }
+      }
+    }
+  },
+  "claude-sonnet-4-6": {
+    "consistency": {
+      "reported": {
+        "overall": 0.733,
+        "by_category": {
+          "ambiguous": 0.583,
+          "clean": 0.967,
+          "missing_fields": 0.3,
+          "typos": 0.933,
+          "voice_to_text": 0.883
+        }
+      },
+      "to_the_minute": {
+        "overall": 0.83,
+        "by_category": {
+          "ambiguous": 0.633,
+          "clean": 0.967,
+          "missing_fields": 0.683,
+          "typos": 0.933,
+          "voice_to_text": 0.933
+        }
+      }
+    },
+    "missing_fields_fabrication_sources": {
+      "opportunities": 216,
+      "fabrications": 136,
+      "sources": {
+        "default_end_time": {
+          "count": 52,
+          "share": 0.382
+        },
+        "clock_filled_start": {
+          "count": 36,
+          "share": 0.265
+        },
+        "notes": {
+          "count": 34,
+          "share": 0.25
+        },
+        "other_end_time": {
+          "count": 8,
+          "share": 0.059
+        },
+        "model_chosen_start": {
+          "count": 6,
+          "share": 0.044
+        }
+      }
+    }
+  }
+}
