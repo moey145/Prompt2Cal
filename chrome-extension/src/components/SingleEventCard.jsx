@@ -186,23 +186,20 @@ export const SingleEventCard = ({
             </div>
           </div>
         )}
-        {eventStartsInThePast && (
+        {/* One short note at most: the fields themselves are already
+            highlighted, so stacking warnings only adds noise. */}
+        {eventStartsInThePast ? (
           <div className="confidence-hint-confirm">
             <AlertTriangle size={14} className="confidence-hint-icon-confirm" />
-            <span>
-              This time has already passed. Did you mean the same day next
-              week? Edit the event to change it.
-            </span>
+            <span>This time has already passed.</span>
           </div>
-        )}
-        {hasUngrounded && (
-          <div className="confidence-hint-confirm">
-            <AlertTriangle size={14} className="confidence-hint-icon-confirm" />
-            <span>
-              Highlighted details were not found in your text. Please check
-              them before creating the event.
-            </span>
-          </div>
+        ) : (
+          hasUngrounded && (
+            <div className="confidence-hint-confirm">
+              <AlertTriangle size={14} className="confidence-hint-icon-confirm" />
+              <span>Highlighted details weren't in your text.</span>
+            </div>
+          )
         )}
         {!checkingConflicts && conflicts && conflicts.length > 0 && (
           <ConflictWarning
