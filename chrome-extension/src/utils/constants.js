@@ -38,6 +38,21 @@ export const EVENT_COLORS = [
   "#616161", // Graphite (8)
 ];
 
+// Google Calendar's names for the colours above, in the same order.
+export const EVENT_COLOR_NAMES = {
+  "#d50000": "Tomato",
+  "#e67c73": "Flamingo",
+  "#f4511e": "Tangerine",
+  "#f6bf26": "Banana",
+  "#33b679": "Sage",
+  "#0b8043": "Basil",
+  "#039be5": "Peacock",
+  "#3f51b5": "Blueberry",
+  "#7986cb": "Lavender",
+  "#8e24aa": "Grape",
+  "#616161": "Graphite",
+};
+
 export const REMINDER_OPTIONS = [
   { value: "none", label: "No reminder" },
   { value: "5", label: "5 minutes before" },

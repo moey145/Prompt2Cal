@@ -655,6 +655,27 @@
   color: #ffffff;
 }
 
+.find-slot-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.find-slot-toggle input {
+  margin: 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.find-slot-summary {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
 .find-slot-results {
   margin-top: 14px;
   padding-top: 12px;

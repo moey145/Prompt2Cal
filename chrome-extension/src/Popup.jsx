@@ -45,16 +45,12 @@ const Popup = () => {
   const [singleAttendeeInput, setSingleAttendeeInput] = useState("");
   const [editedSingleEvent, setEditedSingleEvent] = useState(null);
   const [showEventEditForm, setShowEventEditForm] = useState(false);
-  const [editingStart, setEditingStart] = useState(false);
-  const [editingEnd, setEditingEnd] = useState(false);
 
   // Bulk event edit state
   const [editingEventIndex, setEditingEventIndex] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingAttendees, setEditingAttendees] = useState([]);
   const [editingAttendeeInput, setEditingAttendeeInput] = useState("");
-  const [editingStartBulk, setEditingStartBulk] = useState(false);
-  const [editingEndBulk, setEditingEndBulk] = useState(false);
 
   // Conflict detection state
   const [conflicts, setConflicts] = useState([]);
@@ -546,8 +542,6 @@ const Popup = () => {
     setEditingAttendeeInput("");
     setSelectedColor(current.color || DEFAULT_COLOR);
     setSelectedReminder(current.reminder ?? DEFAULT_REMINDER);
-    setEditingStartBulk(false);
-    setEditingEndBulk(false);
   };
 
   const closeEditModal = () => {
@@ -557,8 +551,6 @@ const Popup = () => {
     setEditingAttendeeInput("");
     setSelectedColor(DEFAULT_COLOR);
     setSelectedReminder(DEFAULT_REMINDER);
-    setEditingStartBulk(false);
-    setEditingEndBulk(false);
   };
 
   const saveEditedEvent = () => {
@@ -623,8 +615,10 @@ const Popup = () => {
     setEditingEvent((prev) => (prev ? { ...prev, attendees: filtered } : prev));
   };
 
-  const handleEditSingleEvent = () => {
-    const normalized = normalizeEventPayload(parsedEvent);
+  const handleEditSingleEvent = () => openSingleEditor(parsedEvent);
+
+  const openSingleEditor = (source) => {
+    const normalized = normalizeEventPayload(source);
     if (!normalized) return;
 
     const attendeeList = normalized.attendees || [];
@@ -633,13 +627,13 @@ const Popup = () => {
     setSelectedColor(normalized.color || DEFAULT_COLOR);
     setSelectedReminder(normalized.reminder ?? DEFAULT_REMINDER);
     setEditedSingleEvent({ ...normalized });
-    setEditingStart(false);
-    setEditingEnd(false);
     setShowEventEditForm(true);
   };
 
+  // Functional update: the dialog changes several fields in one go (start and
+  // end together), and each call must build on the one before it.
   const handleSingleEventFormChange = (field, value) => {
-    setEditedSingleEvent({ ...editedSingleEvent, [field]: value });
+    setEditedSingleEvent((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   const handleAddSingleAttendee = () => {
@@ -709,8 +703,6 @@ const Popup = () => {
     const normalized = normalizeEventPayload(parsedEvent);
     setSelectedColor(normalized?.color || DEFAULT_COLOR);
     setSelectedReminder(normalized?.reminder ?? DEFAULT_REMINDER);
-    setEditingStart(false);
-    setEditingEnd(false);
   };
 
   const handleToggleVoice = async () => {
@@ -810,9 +802,12 @@ const Popup = () => {
     checkEventConflicts(moved);
   };
 
-  const handleFindSlots = async ({ durationMinutes, days }) => {
+  const handleFindSlots = async ({ durationMinutes, days, includeWeekends }) => {
     const now = new Date();
+    // Midnight at the end of the last day, so "Today" stops at midnight
+    // rather than running into tomorrow morning.
     const end = new Date(now);
+    end.setHours(0, 0, 0, 0);
     end.setDate(end.getDate() + days);
     try {
       const response = await makeApiCall("/find_meeting_slots", {
@@ -824,6 +819,9 @@ const Popup = () => {
           duration_minutes: durationMinutes,
           working_hours: [9, 17],
           buffer_minutes: 15,
+          // Working hours are the user's, so the server needs their zone.
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          include_weekends: Boolean(includeWeekends),
           calendar_id: selectedCalendarId,
           calendar_provider: calendarProvider,
         }),
@@ -853,7 +851,7 @@ const Popup = () => {
     setShowParsedEvent(true);
     setConflicts([]);
     setAlternatives([]);
-    showMessage("Give the event a name, then create it", "info");
+    openSingleEditor(draft);
   };
 
 
@@ -925,8 +923,6 @@ const Popup = () => {
     setShowEventEditForm(false);
     setEditingEvent(null);
     setEditingEventIndex(null);
-    setEditingStart(false);
-    setEditingEnd(false);
     setConflicts([]);
     setBulkEventConflicts({});
   };
@@ -1068,10 +1064,6 @@ const Popup = () => {
             setSelectedColor={setSelectedColor}
             selectedReminder={selectedReminder}
             setSelectedReminder={setSelectedReminder}
-            editingStart={editingStart}
-            setEditingStart={setEditingStart}
-            editingEnd={editingEnd}
-            setEditingEnd={setEditingEnd}
             onFieldChange={handleSingleEventFormChange}
             onSave={handleSaveSingleEdit}
             onCancel={handleCancelSingleEdit}
@@ -1107,10 +1099,6 @@ const Popup = () => {
             setSelectedColor={setSelectedColor}
             selectedReminder={selectedReminder}
             setSelectedReminder={setSelectedReminder}
-            editingStart={editingStartBulk}
-            setEditingStart={setEditingStartBulk}
-            editingEnd={editingEndBulk}
-            setEditingEnd={setEditingEndBulk}
             onFieldChange={(field, value) => {
               setEditingEvent((prev) =>
                 prev ? { ...prev, [field]: value } : prev

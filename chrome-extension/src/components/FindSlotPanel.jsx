@@ -33,6 +33,7 @@ const ChipGroup = ({ label, options, value, onChange }) => (
 export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [days, setDays] = useState(3);
+  const [includeWeekends, setIncludeWeekends] = useState(false);
   const [slots, setSlots] = useState(null);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState(null);
@@ -43,7 +44,7 @@ export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
   useEffect(() => {
     const request = ++latestRequest.current;
     setSearching(true);
-    onFindSlots({ durationMinutes, days })
+    onFindSlots({ durationMinutes, days, includeWeekends })
       .then((found) => {
         if (request !== latestRequest.current) return;
         setSlots(found);
@@ -57,9 +58,10 @@ export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
       .finally(() => {
         if (request === latestRequest.current) setSearching(false);
       });
-  }, [durationMinutes, days]);
+  }, [durationMinutes, days, includeWeekends]);
 
   const groups = slots ? groupSlotsByDay(slots) : [];
+  const lengthLabel = SLOT_DURATION_OPTIONS.find((o) => o.value === durationMinutes)?.label;
 
   return (
     <div className="event-card find-slot-panel">
@@ -84,6 +86,17 @@ export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
         onChange={setDurationMinutes}
       />
       <ChipGroup label="Within" options={RANGE_OPTIONS} value={days} onChange={setDays} />
+      <div className="find-slot-row">
+        <span className="find-slot-row-label" />
+        <label className="find-slot-toggle">
+          <input
+            type="checkbox"
+            checked={includeWeekends}
+            onChange={(e) => setIncludeWeekends(e.target.checked)}
+          />
+          Include weekends
+        </label>
+      </div>
 
       <div className={`find-slot-results ${searching ? "is-searching" : ""}`}>
         {searching && slots === null ? (
@@ -92,11 +105,16 @@ export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
           <div className="find-slot-status">{error}</div>
         ) : groups.length === 0 ? (
           <div className="find-slot-status">
-            No free time between 9am and 5pm for that length. Try a shorter
-            length or a longer range.
+            No times with {lengthLabel} free between 9am and 5pm
+            {includeWeekends ? "" : " on weekdays"}. Try a shorter length or a
+            longer range.
           </div>
         ) : (
-          groups.map((group) => (
+          <>
+          <div className="find-slot-summary">
+            Times with {lengthLabel} free between 9am and 5pm. Pick one to start an event.
+          </div>
+          {groups.map((group) => (
             <div key={group.label} className="find-slot-day">
               <div className="find-slot-day-label">{group.label}</div>
               <div className="find-slot-times">
@@ -113,7 +131,8 @@ export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
                 ))}
               </div>
             </div>
-          ))
+          ))}
+          </>
         )}
       </div>
     </div>
