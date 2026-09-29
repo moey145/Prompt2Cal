@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import os
 from dotenv import load_dotenv
 import logging
@@ -144,6 +145,20 @@ async def _busy_blocks(provider, user_id, window_start, window_end, calendar_id)
 # Providers whose calendars the free-slot search can read. The extension reads
 # this from /health and hides the slot finder for any other provider.
 SLOT_FINDER_PROVIDERS = ["google", "microsoft"]
+# Slots start on the hour or half hour, and each day shows a handful spread
+# across it rather than one morning's worth.
+SLOT_STEP_MINUTES = 30
+SLOTS_PER_DAY = 8
+SLOT_SEARCH_LIMIT = 500
+
+
+def _zone_or_none(name: Optional[str]):
+    if not name:
+        return None
+    try:
+        return ZoneInfo(str(name))
+    except (ZoneInfoNotFoundError, ValueError):
+        return None
 
 
 def _provider_name(provider: str) -> str:
@@ -574,9 +589,16 @@ async def find_meeting_slots(request: dict):
     if not window_start or not window_end:
         raise HTTPException(status_code=400, detail="start_date and end_date are required")
 
+    # Working hours only mean anything in the user's own zone; a browser sends
+    # its window in UTC, so move it into the zone it names.
+    zone = _zone_or_none(request.get("timezone"))
+    if zone:
+        window_start, window_end = window_start.astimezone(zone), window_end.astimezone(zone)
+
     duration_minutes = int(request.get("duration_minutes") or 60)
     working_hours = request.get("working_hours") or [9, 17]
     buffer_minutes = int(request.get("buffer_minutes", 15))
+    include_weekends = bool(request.get("include_weekends", False))
     calendar_id = request.get("calendar_id")
 
     try:
@@ -588,7 +610,11 @@ async def find_meeting_slots(request: dict):
             duration_minutes,
             working_hours=tuple(working_hours),
             buffer_minutes=buffer_minutes,
+            step_minutes=SLOT_STEP_MINUTES,
+            limit=SLOT_SEARCH_LIMIT,
+            weekdays_only=not include_weekends,
         )
+        slots = availability.spread_by_day(slots, SLOTS_PER_DAY)
         available_slots = [availability.describe(slot) for slot in slots]
         return {
             "success": True,

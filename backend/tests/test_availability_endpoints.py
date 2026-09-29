@@ -131,6 +131,39 @@ class TestFindMeetingSlots:
         assert all(slot["duration_minutes"] == 60 for slot in slots)
         assert slots[0]["start"] == "2026-10-01T12:00:00+10:00"
 
+    def test_working_hours_follow_the_users_timezone(self, client, monkeypatch, session):
+        # The browser sends UTC; 9am in Sydney is 23:00 UTC the day before.
+        stub_events(monkeypatch, "google", [])
+        response = client.post(
+            "/find_meeting_slots",
+            json={
+                "user_id": session,
+                "calendar_provider": "google",
+                "start_date": "2026-09-30T20:00:00Z",
+                "end_date": "2026-10-01T14:00:00Z",
+                "timezone": "Australia/Sydney",
+                "duration_minutes": 60,
+            },
+        )
+        slots = response.json()["available_slots"]
+        assert slots[0]["start"] == "2026-10-01T09:00:00+10:00"
+        assert slots[-1]["end"] <= "2026-10-01T17:00:00+10:00"
+
+    def test_several_days_each_get_slots(self, client, monkeypatch, session):
+        stub_events(monkeypatch, "google", [])
+        response = client.post(
+            "/find_meeting_slots",
+            json={
+                "user_id": session,
+                "calendar_provider": "google",
+                "start_date": "2026-10-01T09:00:00+10:00",
+                "end_date": "2026-10-03T00:00:00+10:00",
+                "duration_minutes": 30,
+            },
+        )
+        days = {slot["start"][:10] for slot in response.json()["available_slots"]}
+        assert days == {"2026-10-01", "2026-10-02"}
+
 
 class TestCategories:
     def test_google_has_none(self, client, session):

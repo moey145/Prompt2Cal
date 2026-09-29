@@ -40,8 +40,13 @@ def free_slots(
     buffer_minutes: int = 0,
     step_minutes: int = DEFAULT_STEP_MINUTES,
     limit: int = 20,
+    weekdays_only: bool = False,
 ) -> List[Block]:
-    """Every slot of the given length that fits in the window without clashing."""
+    """Every slot of the given length that fits in the window without clashing.
+
+    Times are judged in the window's own timezone, so working hours mean the
+    user's working hours only when the window carries the user's zone.
+    """
     if duration_minutes <= 0 or window_end <= window_start:
         return []
 
@@ -57,12 +62,40 @@ def free_slots(
     cursor = _round_up(window_start, step_minutes)
     while cursor + duration <= window_end and len(slots) < limit:
         slot_end = cursor + duration
-        if _within_working_hours(cursor, slot_end, working_hours) and is_free(merged, cursor, slot_end):
+        if (
+            not (weekdays_only and cursor.weekday() >= 5)
+            and _within_working_hours(cursor, slot_end, working_hours)
+            and is_free(merged, cursor, slot_end)
+        ):
             slots.append((cursor, slot_end))
             cursor = slot_end
         else:
             cursor += step
     return slots
+
+
+def spread_by_day(slots: Sequence[Block], per_day: int) -> List[Block]:
+    """At most per_day slots for each day, spaced across the day.
+
+    Without this, a search over several days fills its limit with one
+    morning's back-to-back slots and never reaches the later days.
+    """
+    if per_day <= 0:
+        return []
+    by_day: dict = {}
+    for slot in slots:
+        by_day.setdefault(slot[0].date(), []).append(slot)
+    spread: List[Block] = []
+    for day_slots in by_day.values():
+        count = len(day_slots)
+        if count <= per_day:
+            spread.extend(day_slots)
+        elif per_day == 1:
+            spread.append(day_slots[0])
+        else:
+            picks = sorted({round(i * (count - 1) / (per_day - 1)) for i in range(per_day)})
+            spread.extend(day_slots[i] for i in picks)
+    return spread
 
 
 def nearest_alternatives(

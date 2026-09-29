@@ -8,6 +8,7 @@ from backend.services.availability import (
     is_free,
     merge_busy,
     nearest_alternatives,
+    spread_by_day,
 )
 
 
@@ -60,6 +61,27 @@ class TestFreeSlots:
 
     def test_no_room_means_no_slots(self):
         assert free_slots(busy(((9, 0), (17, 0))), at(9), at(17), 60) == []
+
+
+    def test_weekdays_only_skips_the_weekend(self):
+        # 1 October 2026 is a Thursday; the window runs to Wednesday morning.
+        slots = free_slots(
+            [], at(9), at(9) + timedelta(days=6), 60, working_hours=(9, 17),
+            limit=500, weekdays_only=True,
+        )
+        assert {slot[0].strftime("%a") for slot in slots} == {"Thu", "Fri", "Mon", "Tue"}
+
+
+class TestSpreadByDay:
+    def test_keeps_a_few_per_day_across_the_whole_day(self):
+        day_one = [(at(h), at(h + 1)) for h in range(9, 17)]
+        day_two = [(s + timedelta(days=1), e + timedelta(days=1)) for s, e in day_one]
+        spread = spread_by_day(day_one + day_two, 3)
+        assert [slot[0].hour for slot in spread] == [9, 13, 16, 9, 13, 16]
+
+    def test_leaves_short_days_alone(self):
+        slots = [(at(9), at(10)), (at(14), at(15))]
+        assert spread_by_day(slots, 8) == slots
 
 
 class TestNearestAlternatives:
