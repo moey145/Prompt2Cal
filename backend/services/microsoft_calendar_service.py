@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 from ..models.event_models import ParsedEvent
 from . import token_store
+from .calendar_errors import CalendarNotConnected
 
 load_dotenv()
 
@@ -118,7 +119,7 @@ class MicrosoftCalendarService:
     async def _ensure_access_token(self, user_id: Optional[str]) -> str:
         token_data = self._load_token(user_id)
         if not token_data or not token_data.get("access_token"):
-            raise Exception("Microsoft Calendar is not connected. Please authenticate first.")
+            raise CalendarNotConnected("Microsoft Calendar is not connected. Please authenticate first.")
 
         auth_timestamp = token_data.get("auth_timestamp")
         if auth_timestamp:
@@ -126,7 +127,7 @@ class MicrosoftCalendarService:
                 auth_date = datetime.fromisoformat(auth_timestamp.replace("Z", "+00:00"))
                 if datetime.now(timezone.utc) - auth_date >= timedelta(days=14):
                     os.remove(self._token_file(user_id))
-                    raise Exception(
+                    raise CalendarNotConnected(
                         "Microsoft authentication expired after 14 days. Please reconnect."
                     )
             except ValueError:
@@ -144,7 +145,7 @@ class MicrosoftCalendarService:
         if needs_refresh:
             refresh_token = token_data.get("refresh_token")
             if not refresh_token:
-                raise Exception("Microsoft session expired. Please reconnect Microsoft Calendar.")
+                raise CalendarNotConnected("Microsoft session expired. Please reconnect Microsoft Calendar.")
             self._require_client_config()
             data = {
                 "client_id": self.CLIENT_ID,
@@ -157,7 +158,7 @@ class MicrosoftCalendarService:
                 response = await client.post(f"{self._auth_base()}/token", data=data)
                 if response.status_code >= 400:
                     logger.error("Microsoft token refresh failed: %s", response.text)
-                    raise Exception("Failed to refresh Microsoft Calendar session. Please reconnect.")
+                    raise CalendarNotConnected("Failed to refresh Microsoft Calendar session. Please reconnect.")
                 refreshed = response.json()
 
             expires_in = int(refreshed.get("expires_in", 3600))

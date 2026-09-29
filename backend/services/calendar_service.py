@@ -14,6 +14,7 @@ from uuid import uuid4
 
 from ..models.event_models import ParsedEvent
 from . import token_store
+from .calendar_errors import CalendarNotConnected
 
 load_dotenv()
 
@@ -177,7 +178,7 @@ class CalendarService:
         """
         creds = self._load_credentials(user_id)
         if not creds:
-            raise Exception("Google Calendar is not connected. Please authenticate first.")
+            raise CalendarNotConnected("Google Calendar is not connected. Please authenticate first.")
         return build('calendar', 'v3', credentials=creds)
 
     async def get_calendars(self, user_id: Optional[str] = None, writable_only: bool = True) -> List[Dict]:
@@ -681,95 +682,6 @@ class CalendarService:
         except Exception as e:
             logger.error(f"Error getting calendar events: {str(e)}")
             raise Exception(f"Failed to get calendar events: {str(e)}")
-
-    async def find_available_slots(self, duration_minutes: int, start_date: datetime, end_date: datetime, 
-                                 working_hours: tuple = (9, 17), buffer_minutes: int = 15,
-                                 user_id: Optional[str] = None) -> List[Dict]:
-        """
-        Find available time slots for a meeting of specified duration.
-
-        Args:
-            duration_minutes: Duration of the meeting in minutes
-            start_date: Start of search range
-            end_date: End of search range
-            working_hours: Tuple of (start_hour, end_hour) for working hours
-            buffer_minutes: Buffer time around meetings
-            user_id: Session whose calendar to search
-        """
-        try:
-            # Get existing events in the range
-            existing_events = await self.get_events_in_range(start_date, end_date, user_id=user_id)
-            
-            # Parse existing events into time blocks
-            busy_blocks = []
-            for event in existing_events:
-                start = event.get('start', {})
-                end = event.get('end', {})
-                
-                # Handle both dateTime and date formats
-                if 'dateTime' in start:
-                    event_start = datetime.fromisoformat(start['dateTime'].replace('Z', '+00:00'))
-                    event_end = datetime.fromisoformat(end['dateTime'].replace('Z', '+00:00'))
-                elif 'date' in start:
-                    # All-day event
-                    event_start = datetime.fromisoformat(start['date'] + 'T00:00:00')
-                    event_end = datetime.fromisoformat(end['date'] + 'T23:59:59')
-                else:
-                    continue
-                
-                # Add buffer time
-                event_start = event_start - timedelta(minutes=buffer_minutes)
-                event_end = event_end + timedelta(minutes=buffer_minutes)
-                
-                busy_blocks.append((event_start, event_end))
-            
-            # Sort busy blocks by start time
-            busy_blocks.sort(key=lambda x: x[0])
-            
-            # Find available slots
-            available_slots = []
-            current_time = start_date.replace(hour=working_hours[0], minute=0, second=0, microsecond=0)
-            end_time = end_date.replace(hour=working_hours[1], minute=0, second=0, microsecond=0)
-            
-            while current_time < end_time:
-                # Skip weekends
-                if current_time.weekday() >= 5:  # Saturday = 5, Sunday = 6
-                    current_time = current_time.replace(hour=working_hours[0], minute=0) + timedelta(days=1)
-                    continue
-                
-                # Check if current time is within working hours
-                if current_time.hour < working_hours[0] or current_time.hour >= working_hours[1]:
-                    current_time = current_time.replace(hour=working_hours[0], minute=0) + timedelta(days=1)
-                    continue
-                
-                slot_end = current_time + timedelta(minutes=duration_minutes)
-                
-                # Check if this slot conflicts with any busy block
-                conflicts = False
-                for busy_start, busy_end in busy_blocks:
-                    if (current_time < busy_end and slot_end > busy_start):
-                        conflicts = True
-                        # Move to after this busy block
-                        current_time = busy_end
-                        break
-                
-                if not conflicts:
-                    available_slots.append({
-                        'start': current_time.isoformat(),
-                        'end': slot_end.isoformat(),
-                        'duration_minutes': duration_minutes,
-                        'formatted_time': current_time.strftime('%A, %B %d at %I:%M %p')
-                    })
-                    current_time += timedelta(minutes=30)  # Check every 30 minutes
-                else:
-                    current_time += timedelta(minutes=15)  # Check every 15 minutes if conflicted
-            
-            logger.info(f"Found {len(available_slots)} available slots")
-            return available_slots
-            
-        except Exception as e:
-            logger.error(f"Error finding available slots: {str(e)}")
-            raise Exception(f"Failed to find available slots: {str(e)}")
 
     async def check_conflicts(self, start_time: datetime, end_time: datetime, buffer_minutes: int = 15, calendar_id: Optional[str] = None, recurrence_type: Optional[str] = None, recurrence_count: Optional[int] = None, recurrence_interval: int = 1, end_date: Optional[str] = None, user_id: Optional[str] = None) -> List[Dict]:
         """

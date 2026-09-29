@@ -15,6 +15,7 @@ from backend.services.confidence import attach_confidence
 from backend.services import token_store
 from backend.services.rate_limit import DailyCounter, SlidingWindowRateLimiter, client_ip
 from backend.services import availability
+from backend.services.calendar_errors import CalendarNotConnected
 from backend.services.log_safety import safe
 from backend.models.event_models import EventRequest, EventResponse, ParsedEvent
 
@@ -140,6 +141,26 @@ async def _busy_blocks(provider, user_id, window_start, window_end, calendar_id)
     return blocks
 
 
+# Providers whose calendars the free-slot search can read. The extension reads
+# this from /health and hides the slot finder for any other provider.
+SLOT_FINDER_PROVIDERS = ["google", "microsoft"]
+
+
+def _provider_name(provider: str) -> str:
+    return "Outlook" if provider == "microsoft" else "Google"
+
+
+def _calendar_read_error(provider: str, error: Exception, task: str) -> HTTPException:
+    """One short message for the user; the technical detail goes to the log."""
+    logger.error(f"Error {task}: {error}")
+    if isinstance(error, CalendarNotConnected):
+        return HTTPException(
+            status_code=409,
+            detail=f"Connect {_provider_name(provider)} Calendar in Settings to find free slots.",
+        )
+    return HTTPException(status_code=502, detail="Couldn't read your calendar. Try again in a moment.")
+
+
 def _require_session(user_id: Optional[str]) -> None:
     """Reject calendar access without a session this server issued at sign-in."""
     if not token_store.is_valid_session(user_id):
@@ -148,7 +169,7 @@ def _require_session(user_id: Optional[str]) -> None:
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "slot_finder_providers": SLOT_FINDER_PROVIDERS}
 
 @app.get("/auth/status")
 async def auth_status(user_id: str = None, provider: str = None):
@@ -579,8 +600,7 @@ async def find_meeting_slots(request: dict):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error finding meeting slots: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to find meeting slots: {str(e)}")
+        raise _calendar_read_error(provider, e, "finding meeting slots")
 
 @app.post("/suggest_alternatives")
 async def suggest_alternatives(request: dict):
@@ -628,8 +648,7 @@ async def suggest_alternatives(request: dict):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error suggesting alternatives: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to suggest alternatives: {str(e)}")
+        raise _calendar_read_error(provider, e, "suggesting alternatives")
 
 @app.get("/calendar_categories")
 async def calendar_categories(user_id: str = None, provider: str = None):

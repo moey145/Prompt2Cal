@@ -151,6 +151,44 @@ class TestCategories:
         assert client.get("/calendar_categories").status_code == 401
 
 
+SLOT_REQUEST = {
+    "start_date": "2026-10-01T09:00:00+10:00",
+    "end_date": "2026-10-02T17:00:00+10:00",
+    "duration_minutes": 60,
+}
+
+
+class TestCalendarReadErrors:
+    @pytest.mark.parametrize(
+        "provider, name", [("google", "Google"), ("microsoft", "Outlook")]
+    )
+    def test_unconnected_calendar_gets_one_short_message(self, client, session, provider, name):
+        # A signed-in session with no token for this provider.
+        response = client.post(
+            "/find_meeting_slots",
+            json={"user_id": session, "calendar_provider": provider, **SLOT_REQUEST},
+        )
+        assert response.status_code == 409
+        assert response.json()["detail"] == (
+            f"Connect {name} Calendar in Settings to find free slots."
+        )
+
+    def test_other_failures_hide_the_technical_detail(self, client, monkeypatch, session):
+        async def broken(*args, **kwargs):
+            raise Exception("Failed to get calendar events: <HttpError 500 ...>")
+
+        monkeypatch.setattr(main.calendar_service, "get_events_in_range", broken)
+        response = client.post(
+            "/find_meeting_slots",
+            json={"user_id": session, "calendar_provider": "google", **SLOT_REQUEST},
+        )
+        assert response.status_code == 502
+        assert response.json()["detail"] == "Couldn't read your calendar. Try again in a moment."
+
+    def test_health_lists_the_providers_the_slot_finder_supports(self, client):
+        assert client.get("/health").json()["slot_finder_providers"] == ["google", "microsoft"]
+
+
 def _const(value):
     async def fake(*args, **kwargs):
         return value
