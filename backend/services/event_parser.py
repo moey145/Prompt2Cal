@@ -33,6 +33,23 @@ _NEXT_DURATION = (
 )
 
 
+_NEXT_WEEKDAY = re.compile(rf"\bnext\s+({_WEEKDAY})\b", re.IGNORECASE)
+
+
+def drop_unasked_next(start_time: str, source: str) -> str:
+    """Honour "next" only when the user actually wrote it.
+
+    The model tends to answer "every Monday at 9am" with "next Monday at 9am".
+    Said on a Thursday that skips the Monday three days away and starts the
+    series a week late.
+    """
+    if not start_time or not source:
+        return start_time
+    if re.search(r"\bnext\b", source, re.IGNORECASE):
+        return start_time
+    return _NEXT_WEEKDAY.sub(lambda match: match.group(1), start_time)
+
+
 def text_implies_recurring_series(text: str) -> bool:
     """True when the input describes a recurring series the rules parser often misses."""
     if not text:
@@ -87,7 +104,8 @@ class EventParser:
         source = source_text or getattr(event, "original_text", None) or ""
 
         if event.start_time and not str(event.start_time).startswith("20"):
-            start_datetime = self.date_parser.parse_start_time(str(event.start_time), local_tz)
+            start_text = drop_unasked_next(str(event.start_time), source)
+            start_datetime = self.date_parser.parse_start_time(start_text, local_tz)
             if start_datetime:
                 event.start_time = start_datetime.isoformat()
 
