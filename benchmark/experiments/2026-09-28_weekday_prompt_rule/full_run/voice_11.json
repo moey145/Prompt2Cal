@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_11",
+  "category": "voice_to_text",
+  "text": "birthday party november tenth at six pee em",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "birthday party",
+        "start_time": "2026-11-10T18:00:00+11:00",
+        "end_time": "2026-11-10T19:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "birthday party",
+        "start_time": "2026-11-10T18:00:00+11:00",
+        "end_time": "2026-11-10T19:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "birthday party",
+        "start_time": "2026-11-10T18:00:00+11:00",
+        "end_time": "2026-11-10T19:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "birthday party",
+      "start_time": "2026-11-10T18:00:00+11:00",
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.9090909090909091,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

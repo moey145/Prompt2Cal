@@ -1,0 +1,55 @@
+{
+  "input_id": "voice_14",
+  "category": "voice_to_text",
+  "text": "vacation from december twentieth two january fifth",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "vacation",
+        "start_time": "2026-12-20T09:00:00+11:00",
+        "end_time": "2027-01-05T17:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "vacation",
+        "start_time": "2026-12-20T09:00:00+11:00",
+        "end_time": "2027-01-05T17:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "vacation",
+        "start_time": "2026-12-20T09:00:00+11:00",
+        "end_time": "2027-01-05T17:00:00+11:00",
+        "location": null,
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "vacation",
+      "start_time": "2026-12-20T14:00:00+11:00",
+      "end_time": "2027-01-05T14:00:00+11:00",
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

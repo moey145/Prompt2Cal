@@ -1,0 +1,56 @@
+{
+  "input_id": "missing_09",
+  "category": "missing_fields",
+  "text": "Workshop at the office (no time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "workshop",
+        "start_time": "2026-09-28T21:31:09.825038+10:00",
+        "end_time": "2026-09-28T22:31:09.820914+10:00",
+        "location": "the office",
+        "notes": "no time specified",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "workshop",
+        "start_time": "2026-09-28T21:31:13.365417+10:00",
+        "end_time": "2026-09-28T22:31:13.362097+10:00",
+        "location": "the office",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "workshop",
+        "start_time": "2026-09-28T21:31:16.541583+10:00",
+        "end_time": "2026-09-28T22:31:16.536169+10:00",
+        "location": "the office",
+        "notes": null,
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "workshop",
+      "start_time": null,
+      "end_time": null,
+      "location": "the office",
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0,
+    "llm_hallucination_rate": 1.0
+  }
+}

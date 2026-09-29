@@ -1,0 +1,35 @@
+{
+  "input_id": "ambiguous_07",
+  "category": "ambiguous",
+  "text": "Catch up with Sam when we can",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "catch up with sam",
+        "start_time": "2026-09-28T21:38:00.140218+10:00",
+        "end_time": "2026-09-28T22:38:00.126688+10:00",
+        "location": null,
+        "notes": "no specific time set - schedule when available",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "catch up with sam",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0
+  }
+}

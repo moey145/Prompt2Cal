@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_03",
+  "category": "ambiguous",
+  "text": "Lunch with Alex sometime next week",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "lunch with alex",
+        "start_time": "2026-10-07T12:00:00+10:00",
+        "end_time": "2026-10-07T14:00:00+11:00",
+        "location": null,
+        "notes": "scheduled for sometime next week - adjust day as needed",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch with alex",
+        "start_time": "2026-10-07T12:00:00+10:00",
+        "end_time": "2026-10-07T14:00:00+11:00",
+        "location": null,
+        "notes": "scheduled for sometime next week - adjust day as needed",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "lunch with alex",
+        "start_time": "2026-10-07T12:00:00+10:00",
+        "end_time": "2026-10-07T14:00:00+11:00",
+        "location": null,
+        "notes": "scheduled for sometime next week - adjust to preferred day",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "lunch with alex",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.3333333333333333
+  }
+}

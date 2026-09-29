@@ -1,0 +1,921 @@
+{
+  "generated_at": "2026-09-28T11:39:26.004608+00:00",
+  "dataset_version": "1.0",
+  "timezone": "Australia/Sydney",
+  "llm_runs": 1,
+  "llm_temperature": 0.0,
+  "regex_only": false,
+  "provider": "claude",
+  "model": "claude-sonnet-4-6",
+  "results": [
+    {
+      "input_id": "ambiguous_01",
+      "category": "ambiguous",
+      "text": "Dinner with Sarah next Thursday around 7ish",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "dinner with sarah",
+            "start_time": "2026-10-08T19:00:00+10:00",
+            "end_time": "2026-10-08T21:30:00+11:00",
+            "location": null,
+            "notes": "around 7ish",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "dinner with sarah",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6666666666666666,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_07",
+      "category": "ambiguous",
+      "text": "Catch up with Sam when we can",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "catch up with sam",
+            "start_time": "2026-09-28T21:38:00.140218+10:00",
+            "end_time": "2026-09-28T22:38:00.126688+10:00",
+            "location": null,
+            "notes": "no specific time set - schedule when available",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "catch up with sam",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6666666666666666,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_08",
+      "category": "ambiguous",
+      "text": "Party this weekend sometime",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "party",
+            "start_time": "2026-10-03T19:00:00+10:00",
+            "end_time": "2026-10-03T21:00:00+10:00",
+            "location": null,
+            "notes": "time not specified - defaulted to 7pm",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "party",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6666666666666666,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_09",
+      "category": "ambiguous",
+      "text": "Workout early morning tomorrow",
+      "regex_events": [
+        {
+          "title": "workout early morning",
+          "start_time": "2026-09-29T14:00:00+10:00",
+          "end_time": "2026-09-29T15:00:00+10:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "llm_runs": [
+        [
+          {
+            "title": "workout early morning",
+            "start_time": "2026-09-29T05:00:00+10:00",
+            "end_time": "2026-09-29T06:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "workout",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "ambiguous_15",
+      "category": "ambiguous",
+      "text": "Meeting after lunch next Tuesday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meeting after lunch",
+            "start_time": "2026-10-06T13:00:00+10:00",
+            "end_time": "2026-10-06T15:00:00+11:00",
+            "location": null,
+            "notes": "scheduled after lunch",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.0,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_02",
+      "category": "clean",
+      "text": "Coffee at 10am and code review at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-09-28T10:00:00+10:00",
+            "end_time": "2026-09-28T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-09-28T14:00:00+10:00",
+            "end_time": "2026-09-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-09-29T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "code review",
+          "start_time": "2026-09-29T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_12",
+      "category": "clean",
+      "text": "First Monday of each month board meeting at 9am",
+      "regex_events": [
+        {
+          "title": "board meeting",
+          "start_time": "2026-10-05T09:00:00+11:00",
+          "end_time": "2026-10-05T10:00:00+11:00",
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "llm_runs": [
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-10-05T09:00:00+10:00",
+            "end_time": "2026-10-05T11:00:00+11:00",
+            "location": null,
+            "notes": "first monday of each month",
+            "recurrence_type": "monthly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "board meeting",
+          "start_time": "2026-10-05T09:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.9090909090909091,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_13",
+      "category": "clean",
+      "text": "Parent-teacher meeting next Thursday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "parent-teacher meeting",
+            "start_time": "2026-10-08T14:00:00+10:00",
+            "end_time": "2026-10-08T16:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "parent-teacher meeting",
+          "start_time": "2026-10-08T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "clean_16",
+      "category": "clean",
+      "text": "Coffee at 10am and lunch at 12pm and gym at 6pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-09-28T10:00:00+10:00",
+            "end_time": "2026-09-28T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "lunch",
+            "start_time": "2026-09-28T12:00:00+10:00",
+            "end_time": "2026-09-28T13:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "gym",
+            "start_time": "2026-09-28T18:00:00+10:00",
+            "end_time": "2026-09-28T19:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-09-29T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "lunch",
+          "start_time": "2026-09-29T12:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "gym",
+          "start_time": "2026-09-29T18:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "missing_11",
+      "category": "missing_fields",
+      "text": "Conference call (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "conference call",
+            "start_time": "2026-09-28T21:38:31.379817+10:00",
+            "end_time": "2026-09-28T22:38:31.373271+10:00",
+            "location": null,
+            "notes": "no specific time provided",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "conference call",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6666666666666666,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.75
+      }
+    },
+    {
+      "input_id": "missing_15",
+      "category": "missing_fields",
+      "text": "Yoga at Bondi Gym (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "yoga",
+            "start_time": "2026-09-28T21:38:34.658774+10:00",
+            "end_time": "2026-09-28T22:38:34.652446+10:00",
+            "location": "bondi gym",
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "yoga",
+          "start_time": null,
+          "end_time": null,
+          "location": "bondi gym",
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.8,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.6666666666666666
+      }
+    },
+    {
+      "input_id": "missing_16",
+      "category": "missing_fields",
+      "text": "Flight to Melbourne (no date or time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "flight to melbourne",
+            "start_time": "2026-09-28T21:38:37.523467+10:00",
+            "end_time": "2026-09-28T22:38:37.517468+10:00",
+            "location": "melbourne",
+            "notes": "no date or time specified",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "flight to melbourne",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 1.0
+      }
+    },
+    {
+      "input_id": "missing_17",
+      "category": "missing_fields",
+      "text": "Code review (no time)",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "code review",
+            "start_time": "2026-09-28T21:38:40.704841+10:00",
+            "end_time": "2026-09-28T22:38:40.695607+10:00",
+            "location": null,
+            "notes": "no specific time set",
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "code review",
+          "start_time": null,
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6666666666666666,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0,
+        "llm_hallucination_rate": 0.75
+      }
+    },
+    {
+      "input_id": "typos_05",
+      "category": "typos",
+      "text": "Meting with Sarah next Tuesady at 1pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "meting with sarah",
+            "start_time": "2026-10-06T13:00:00+10:00",
+            "end_time": "2026-10-06T15:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "meeting with sarah",
+          "start_time": "2026-10-06T13:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_06",
+      "category": "typos",
+      "text": "Coffe at 10am and code reveiw at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffe",
+            "start_time": "2026-09-28T10:00:00+10:00",
+            "end_time": "2026-09-28T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code reveiw",
+            "start_time": "2026-09-28T14:00:00+10:00",
+            "end_time": "2026-09-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-09-29T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "code review",
+          "start_time": "2026-09-29T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5454545454545454,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_14",
+      "category": "typos",
+      "text": "Parent-techer meeting next Thrusday",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "parent-techer meeting",
+            "start_time": "2026-10-08T14:00:00+10:00",
+            "end_time": "2026-10-08T16:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "parent-teacher meeting",
+          "start_time": "2026-10-08T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_17",
+      "category": "typos",
+      "text": "Cofee at 10am and luch at 2pm",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "cofee",
+            "start_time": "2026-09-28T10:00:00+10:00",
+            "end_time": "2026-09-28T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "luch",
+            "start_time": "2026-09-28T14:00:00+10:00",
+            "end_time": "2026-09-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-09-29T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "lunch",
+          "start_time": "2026-09-29T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5454545454545454,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "typos_20",
+      "category": "typos",
+      "text": "Projet kickoff nex week at 10am",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "projet kickoff",
+            "start_time": "2026-10-05T14:00:00+10:00",
+            "end_time": "2026-10-05T16:00:00+11:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "project kickoff",
+          "start_time": "2026-10-05T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.5454545454545454,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_07",
+      "category": "voice_to_text",
+      "text": "coffee at ten am and code review at two pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "coffee",
+            "start_time": "2026-09-28T10:00:00+10:00",
+            "end_time": "2026-09-28T11:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          },
+          {
+            "title": "code review",
+            "start_time": "2026-09-28T14:00:00+10:00",
+            "end_time": "2026-09-28T15:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "none"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "coffee",
+          "start_time": "2026-09-29T10:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        },
+        {
+          "title": "code review",
+          "start_time": "2026-09-29T14:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "none"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.7272727272727272,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_08",
+      "category": "voice_to_text",
+      "text": "board meeting first monday of each month at nine ay em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "board meeting",
+            "start_time": "2026-10-05T09:00:00+10:00",
+            "end_time": "2026-10-05T11:00:00+11:00",
+            "location": null,
+            "notes": "first monday of each month",
+            "recurrence_type": "monthly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "board meeting",
+          "start_time": "2026-10-05T09:00:00+11:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "monthly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.6,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    },
+    {
+      "input_id": "voice_16",
+      "category": "voice_to_text",
+      "text": "mentoring every other tuesday at five pee em",
+      "regex_events": [],
+      "llm_runs": [
+        [
+          {
+            "title": "mentoring",
+            "start_time": "2026-09-29T17:00:00+10:00",
+            "end_time": "2026-09-29T18:00:00+10:00",
+            "location": null,
+            "notes": null,
+            "recurrence_type": "weekly"
+          }
+        ]
+      ],
+      "ground_truth": [
+        {
+          "title": "mentoring",
+          "start_time": "2026-09-29T17:00:00+10:00",
+          "end_time": null,
+          "location": null,
+          "notes": null,
+          "recurrence_type": "weekly"
+        }
+      ],
+      "metrics": {
+        "regex_f1": 0.0,
+        "regex_fully_correct": false,
+        "llm_f1": 0.9090909090909091,
+        "llm_fully_correct": false,
+        "llm_pairwise_consistency": 1.0
+      }
+    }
+  ],
+  "summary": {
+    "accuracy": {
+      "llm_mean_f1": 0.6154401154401152,
+      "llm_std_f1": 0.2311068602723128,
+      "regex_mean_f1": 0.04329004329004329,
+      "regex_std_f1": 0.1983799002145385
+    },
+    "robustness": {
+      "llm_drop": 0.10122699386503077,
+      "regex_drop": 1.0
+    },
+    "consistency": {
+      "llm_pairwise_agreement_mean": 1.0,
+      "llm_pairwise_agreement_std": 0.0
+    },
+    "hallucination": {
+      "llm_rate_mean": 0.7916666666666666,
+      "llm_rate_std": 0.14433756729740643,
+      "regex_rate_mean": 0.0,
+      "regex_rate_std": 0.0
+    },
+    "statistics": {
+      "mcnemar": {
+        "statistic": 0.0,
+        "p_value": 1.0,
+        "llm_only_correct": 0.0,
+        "regex_only_correct": 0.0
+      },
+      "wilcoxon_by_category": {
+        "statistic": 0.0,
+        "p_value": 0.0625
+      },
+      "category_mean_f1": {
+        "ambiguous": [
+          0.4,
+          0.0
+        ],
+        "clean": [
+          0.7409090909090909,
+          0.22727272727272727
+        ],
+        "missing_fields": [
+          0.6583333333333333,
+          0.0
+        ],
+        "typos": [
+          0.618181818181818,
+          0.0
+        ],
+        "voice_to_text": [
+          0.7454545454545455,
+          0.0
+        ]
+      }
+    }
+  }
+}

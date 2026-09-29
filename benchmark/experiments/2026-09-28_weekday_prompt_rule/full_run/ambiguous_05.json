@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_05",
+  "category": "ambiguous",
+  "text": "Coffee soon with Jamie",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "coffee with jamie",
+        "start_time": "2026-09-28T21:23:46.434594+10:00",
+        "end_time": "2026-09-28T21:53:46.427493+10:00",
+        "location": null,
+        "notes": "scheduled as soon as possible",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee with jamie",
+        "start_time": "2026-09-28T21:23:49.605018+10:00",
+        "end_time": "2026-09-28T21:53:49.599676+10:00",
+        "location": null,
+        "notes": "time to be confirmed with jamie",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee with jamie",
+        "start_time": "2026-09-28T21:23:52.374296+10:00",
+        "end_time": "2026-09-28T21:53:52.365327+10:00",
+        "location": null,
+        "notes": "scheduled as soon as possible",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "coffee with jamie",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

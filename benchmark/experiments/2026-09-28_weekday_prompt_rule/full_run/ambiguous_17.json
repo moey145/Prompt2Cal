@@ -1,0 +1,55 @@
+{
+  "input_id": "ambiguous_17",
+  "category": "ambiguous",
+  "text": "Coffee with mentor sometime Thursday",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "coffee with mentor",
+        "start_time": "2026-10-01T14:00:00+10:00",
+        "end_time": "2026-10-01T15:00:00+10:00",
+        "location": null,
+        "notes": "time flexible - scheduled for sometime thursday",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee with mentor",
+        "start_time": "2026-10-01T10:00:00+10:00",
+        "end_time": "2026-10-01T11:00:00+10:00",
+        "location": null,
+        "notes": "time not specified \u2014 scheduled for mid-morning by default",
+        "recurrence_type": "none"
+      }
+    ],
+    [
+      {
+        "title": "coffee with mentor",
+        "start_time": "2026-10-01T14:00:00+10:00",
+        "end_time": "2026-10-01T15:00:00+10:00",
+        "location": null,
+        "notes": "no specific time requested \u2014 schedule sometime during the day",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "coffee with mentor",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.6666666666666666,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 0.0
+  }
+}

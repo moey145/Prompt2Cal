@@ -1,0 +1,36 @@
+{
+  "input_id": "missing_16",
+  "category": "missing_fields",
+  "text": "Flight to Melbourne (no date or time)",
+  "regex_events": [],
+  "llm_runs": [
+    [
+      {
+        "title": "flight to melbourne",
+        "start_time": "2026-09-28T21:38:37.523467+10:00",
+        "end_time": "2026-09-28T22:38:37.517468+10:00",
+        "location": "melbourne",
+        "notes": "no date or time specified",
+        "recurrence_type": "none"
+      }
+    ]
+  ],
+  "ground_truth": [
+    {
+      "title": "flight to melbourne",
+      "start_time": null,
+      "end_time": null,
+      "location": null,
+      "notes": null,
+      "recurrence_type": "none"
+    }
+  ],
+  "metrics": {
+    "regex_f1": 0.0,
+    "regex_fully_correct": false,
+    "llm_f1": 0.5,
+    "llm_fully_correct": false,
+    "llm_pairwise_consistency": 1.0,
+    "llm_hallucination_rate": 1.0
+  }
+}
