@@ -22,11 +22,9 @@ const manifestPath = join(__dirname, 'manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
 // Remove localhost and add production URL
-manifest.host_permissions = [
-  `${backendUrl}/*`,
-  'https://accounts.google.com/*',
-  'https://www.googleapis.com/*'
-];
+// Only the backend: sign-in runs through it and chrome.identity, which needs
+// no host permission, and the store rejects permissions that are not used.
+manifest.host_permissions = [`${backendUrl}/*`];
 
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
 console.log('✓ Updated manifest.json host_permissions');

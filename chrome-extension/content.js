@@ -1,7 +1,6 @@
 // Prompt2Cal Chrome Extension - Content Script
 // This script runs on all web pages to detect text selection
 
-console.log("Prompt2Cal content script loaded on:", window.location.href);
 
 class Prompt2CalContentScript {
   constructor() {
@@ -17,13 +16,8 @@ class Prompt2CalContentScript {
   setupEventListeners() {
     // Listen for messages from popup
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      console.log("Content script: Received message:", request);
       if (request.action === "getSelectedText") {
         this.getSelectedText();
-        console.log(
-          "Content script: Sending selected text:",
-          this.selectedText
-        );
         sendResponse({ selectedText: this.selectedText });
         return true; // Indicate that we will send a response
       }
@@ -43,18 +37,11 @@ class Prompt2CalContentScript {
     const selection = window.getSelection();
     const text = selection.toString().trim();
 
-    console.log("Content script: Text selection changed:", {
-      text,
-      length: text.length,
-      previousText: this.selectedText,
-    });
 
     if (text && text !== this.selectedText && text.length > 5) {
       this.selectedText = text;
-      console.log("Content script: Text selected:", text);
     } else if (!text) {
       this.selectedText = "";
-      console.log("Content script: No text selected");
     }
   }
 
@@ -67,9 +54,6 @@ class Prompt2CalContentScript {
 
 // Initialize content script only if not already initialized
 if (!window.prompt2calContentScript) {
-  console.log("Prompt2Cal content script initializing...");
   window.prompt2calContentScript = new Prompt2CalContentScript();
-  console.log("Prompt2Cal content script initialized successfully");
 } else {
-  console.log("Prompt2Cal content script already initialized");
 }
