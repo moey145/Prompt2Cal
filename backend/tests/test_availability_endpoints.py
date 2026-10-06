@@ -157,6 +157,29 @@ class TestFindMeetingSlots:
         )
         assert response.status_code == 400
 
+    def test_rejects_an_impossible_length_or_range(self, client, session):
+        base = {"user_id": session, "calendar_provider": "google", **SLOT_REQUEST}
+        assert client.post("/find_meeting_slots", json={**base, "duration_minutes": 2}).status_code == 400
+        too_long = {**base, "end_date": "2026-12-01T00:00:00+10:00"}
+        assert client.post("/find_meeting_slots", json=too_long).status_code == 400
+
+    def test_a_month_of_all_day_slots_reaches_the_last_day(self, client, monkeypatch, session):
+        stub_events(monkeypatch, "google", [])
+        response = client.post(
+            "/find_meeting_slots",
+            json={
+                "user_id": session,
+                "calendar_provider": "google",
+                "start_date": "2026-10-01T00:00:00+10:00",
+                "end_date": "2026-10-31T00:00:00+10:00",
+                "duration_minutes": 30,
+                "working_hours": [0, 24],
+                "include_weekends": True,
+            },
+        )
+        days = {slot["start"][:10] for slot in response.json()["available_slots"]}
+        assert "2026-10-30" in days
+
     def test_several_days_each_get_slots(self, client, monkeypatch, session):
         stub_events(monkeypatch, "google", [])
         response = client.post(

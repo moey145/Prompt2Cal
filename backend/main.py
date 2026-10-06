@@ -149,7 +149,11 @@ SLOT_FINDER_PROVIDERS = ["google", "microsoft"]
 # across it rather than one morning's worth.
 SLOT_STEP_MINUTES = 30
 SLOTS_PER_DAY = 8
-SLOT_SEARCH_LIMIT = 500
+# Enough for every slot of a month-long, all-day search before it is thinned
+# to SLOTS_PER_DAY; the walk itself is cheap (one step per half hour).
+SLOT_SEARCH_LIMIT = 5000
+MAX_SLOT_MINUTES = 24 * 60
+MAX_SLOT_SEARCH_DAYS = 31
 
 
 def _working_hours(value) -> tuple:
@@ -611,7 +615,16 @@ async def find_meeting_slots(request: dict):
     if zone:
         window_start, window_end = window_start.astimezone(zone), window_end.astimezone(zone)
 
-    duration_minutes = int(request.get("duration_minutes") or 60)
+    try:
+        duration_minutes = int(request.get("duration_minutes") or 60)
+    except (TypeError, ValueError):
+        duration_minutes = 0
+    if not 5 <= duration_minutes <= MAX_SLOT_MINUTES:
+        raise HTTPException(status_code=400, detail="duration_minutes must be from 5 to 1440.")
+    if window_end - window_start > timedelta(days=MAX_SLOT_SEARCH_DAYS):
+        raise HTTPException(
+            status_code=400, detail=f"Search at most {MAX_SLOT_SEARCH_DAYS} days at a time."
+        )
     working_hours = _working_hours(request.get("working_hours"))
     buffer_minutes = int(request.get("buffer_minutes", 15))
     include_weekends = bool(request.get("include_weekends", False))

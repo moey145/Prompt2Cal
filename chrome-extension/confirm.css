@@ -686,6 +686,36 @@
   color: #ffffff;
 }
 
+.find-slot-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.find-slot-number {
+  width: 64px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.find-slot-number:focus,
+.find-slot-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.dark-mode .find-slot-number {
+  color-scheme: dark;
+}
+
 .find-slot-hours {
   display: flex;
   align-items: center;

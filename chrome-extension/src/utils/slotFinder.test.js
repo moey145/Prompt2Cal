@@ -2,7 +2,12 @@ import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import {
   DEFAULT_SLOT_HOURS,
+  clampDays,
+  clampLength,
   formatHour,
+  lengthWords,
+  rangeWords,
+  validSlotPrefs,
   slotFinderSupported,
   slotSearchErrorMessage,
   validSlotHours,
@@ -71,5 +76,37 @@ describe("validSlotHours", () => {
     for (const bad of [undefined, [17, 9], [9, 25], ["9", 17], [9]]) {
       assert.deepEqual(validSlotHours(bad), DEFAULT_SLOT_HOURS);
     }
+  });
+});
+
+describe("custom length and range", () => {
+  it("keeps the length between 5 minutes and 12 hours", () => {
+    assert.equal(clampLength(90), 90);
+    assert.equal(clampLength(1), 5);
+    assert.equal(clampLength(10000), 720);
+    assert.equal(clampLength("abc"), 60);
+  });
+
+  it("keeps the range between 1 and 30 days", () => {
+    assert.equal(clampDays(10), 10);
+    assert.equal(clampDays(0), 1);
+    assert.equal(clampDays(99), 30);
+  });
+
+  it("restores saved choices, repairing bad ones", () => {
+    assert.deepEqual(validSlotPrefs({ durationMinutes: 150, days: 14, includeWeekends: true }), {
+      durationMinutes: 150,
+      days: 14,
+      includeWeekends: true,
+    });
+    assert.deepEqual(validSlotPrefs(undefined), { durationMinutes: 60, days: 3, includeWeekends: false });
+  });
+
+  it("describes them in words", () => {
+    assert.equal(lengthWords(45), "45 minutes");
+    assert.equal(lengthWords(60), "1 hour");
+    assert.equal(lengthWords(150), "2 hours 30 minutes");
+    assert.equal(rangeWords(1), "today");
+    assert.equal(rangeWords(10), "in the next 10 days");
   });
 });
