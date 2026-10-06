@@ -201,6 +201,12 @@ class IntelligentEventParser:
                 parsed_events.append(parsed_event)
             
             # Validate events
+            # No events is the model's answer for unclear text (prompt Rule 6),
+            # not a failure: the caller tells the user nothing was found.
+            if not parsed_events:
+                logger.info("The model found no events in the text")
+                return []
+
             if not self._validate_events(parsed_events):
                 logger.error("Validation failed for parsed events")
                 return self._failed(raise_on_failure, "the model's reply did not validate")
