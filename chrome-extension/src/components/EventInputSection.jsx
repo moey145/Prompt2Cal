@@ -24,6 +24,7 @@ export const EventInputSection = ({
             id="eventInput"
             placeholder="Type your event in plain language..."
             rows="5"
+            maxLength={2000}
             value={eventInput}
             onChange={(e) => setEventInput(e.target.value)}
             onKeyDown={(e) => {

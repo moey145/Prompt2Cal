@@ -2,6 +2,13 @@
 
 // Must match src/utils/parseJob.js.
 const PARSE_JOB_KEY = "prompt2cal_parse_job";
+// The popup records which backend it talks to, so a parse started from the
+// right-click menu (with no popup open) goes to the same one.
+const API_BASE_KEY = "prompt2cal_api_base";
+const DEFAULT_API_BASE = "https://prompt2cal-backend-139801429107.us-central1.run.app";
+const MENU_ID = "prompt2cal-add-selection";
+// Must match MAX_EVENT_TEXT_CHARS in backend/models/event_models.py.
+const MAX_TEXT_CHARS = 2000;
 
 class Prompt2CalBackground {
   constructor() {
@@ -14,6 +21,11 @@ class Prompt2CalBackground {
       this.handleInstallation(details);
     });
 
+    // Right-click on selected text: "Add to calendar with Prompt2Cal".
+    chrome.contextMenus.onClicked.addListener((info) => {
+      this.handleContextMenu(info);
+    });
+
     // Handle messages from content scripts and popup
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       this.handleMessage(request, sender, sendResponse);
@@ -22,6 +34,9 @@ class Prompt2CalBackground {
   }
 
   handleInstallation(details) {
+    // Menus persist once created, so they are (re)made on install and update.
+    this.createContextMenu();
+
     if (details.reason === "install") {
       console.log("Prompt2Cal extension installed");
 
@@ -57,7 +72,7 @@ class Prompt2CalBackground {
         case "parseEvent":
           // Runs here so the parse finishes even if the popup is closed; the
           // popup picks the result up from storage whenever it next opens.
-          await this.markParseStarted(request.jobId);
+          await this.markParseStarted(request.jobId, request.payload?.text);
           sendResponse({ started: true });
           await this.runParseJob(request);
           break;
@@ -124,14 +139,59 @@ class Prompt2CalBackground {
     }
   }
 
-  async markParseStarted(jobId) {
+  createContextMenu() {
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({
+        id: MENU_ID,
+        title: "Add to calendar with Prompt2Cal",
+        contexts: ["selection"],
+      });
+    });
+  }
+
+  async handleContextMenu(info) {
+    if (info.menuItemId !== MENU_ID) return;
+    const text = (info.selectionText || "").trim();
+    if (!text) return;
+
+    // Open the popup while Chrome still counts this as the user's click; it
+    // shows "Parsing..." and then the preview. Where Chrome does not allow
+    // it, the badge says when the result is ready.
+    if (chrome.action.openPopup) {
+      chrome.action.openPopup().catch(() => {});
+    }
+
+    const jobId = crypto.randomUUID();
+    await this.markParseStarted(jobId, text);
+    const stored = await chrome.storage.local.get([API_BASE_KEY, "prompt2cal_user_id"]);
+    await this.runParseJob({
+      jobId,
+      apiBase: stored[API_BASE_KEY] || DEFAULT_API_BASE,
+      payload: {
+        text,
+        user_id: stored.prompt2cal_user_id || null,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        force_multiple: null,
+      },
+    });
+  }
+
+  async markParseStarted(jobId, text) {
     await chrome.storage.local.set({
-      [PARSE_JOB_KEY]: { id: jobId, status: "pending", startedAt: Date.now() },
+      // The text goes with the job so the popup can show what is being read.
+      [PARSE_JOB_KEY]: { id: jobId, status: "pending", startedAt: Date.now(), text: text || "" },
     });
     await this.setBadge("…", "#6b7280");
   }
 
   async runParseJob({ jobId, apiBase, payload }) {
+    if ((payload?.text || "").length > MAX_TEXT_CHARS) {
+      await this.finishParseJob(jobId, {
+        status: "error",
+        error: `That text is too long. Use up to ${MAX_TEXT_CHARS.toLocaleString()} characters.`,
+      });
+      return;
+    }
     try {
       const response = await fetch(`${apiBase}/create_event`, {
         method: "POST",
@@ -140,7 +200,8 @@ class Prompt2CalBackground {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) {
-        throw new Error(data.detail || `HTTP ${response.status}`);
+        // Validation errors arrive as a list rather than a sentence.
+        throw new Error(typeof data.detail === "string" ? data.detail : "");
       }
       await this.finishParseJob(jobId, { status: "done", response: data });
     } catch (error) {

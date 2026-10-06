@@ -114,6 +114,8 @@ const Popup = () => {
     loadThemeFromStorage();
     loadDraftInput();
     loadSavedWork();
+    // The right-click menu parses with no popup open; it uses this address.
+    chrome.storage.local.set({ prompt2cal_api_base: API_BASE }).catch(() => {});
     // eslint-disable-next-line
   }, []);
 
@@ -247,6 +249,10 @@ const Popup = () => {
 
   const consumeParseJob = async (job) => {
     const state = parseJobState(job);
+    // A parse started from the right-click menu shows the text it read.
+    if (state !== "none" && typeof job.text === "string" && job.text) {
+      setEventInput(job.text);
+    }
     if (state === "pending") {
       setLoadingSingle(true);
       setShowParsedEvent(false);
