@@ -134,6 +134,141 @@ const thursday = daysUntil(4);
 const friday = daysUntil(5);
 const wednesday = daysUntil(3);
 
+// What each screen shows; the site reuses these on their own (site-* below).
+const VISUALS = {
+  input: () => (
+    <Popup>
+      <Input text="Dinner with Sarah next Thursday at 7pm at Nando's" />
+      <Card
+        parsedEvent={{
+          title: "Dinner with Sarah",
+          start_time: at(thursday, 19),
+          end_time: at(thursday, 20),
+          location: "Nando's",
+          recurrence_type: "none",
+        }}
+      />
+    </Popup>
+  ),
+
+  review: () => (
+    <Popup>
+      <Input text="Coffee with Alex on Friday" />
+      <Card
+        parsedEvent={{
+          title: "Coffee with Alex",
+          start_time: at(friday, 10),
+          end_time: at(friday, 11),
+          end_time_assumed: true,
+          recurrence_type: "none",
+          field_confidence: { title: "grounded", start_time: "ungrounded", end_time: "ungrounded" },
+        }}
+      />
+    </Popup>
+  ),
+
+  clash: () => (
+    <Popup>
+      <Card
+        parsedEvent={{
+          title: "Team planning session",
+          start_time: at(wednesday, 14),
+          end_time: at(wednesday, 15),
+          location: "Level 3 meeting room",
+          recurrence_type: "none",
+        }}
+        conflicts={[
+          {
+            title: "Client call with Northwind",
+            start: at(wednesday, 14, 30),
+            end: at(wednesday, 15),
+          },
+        ]}
+        alternatives={[
+          { start: at(wednesday, 12, 45), formatted_time: "12:45 PM - 1:45 PM" },
+          { start: at(wednesday, 15, 15), formatted_time: "3:15 PM - 4:15 PM" },
+        ]}
+      />
+    </Popup>
+  ),
+
+  slots: () => (
+    <Popup slotFinderActive>
+      <FindSlotPanel
+        onClose={noop}
+        onPickSlot={noop}
+        onFindSlots={async () => [
+          ...[
+            [0, 13],
+            [0, 15, 30],
+            [1, 9],
+            [1, 10, 30],
+            [1, 13],
+            [1, 14, 30],
+            [1, 16],
+            [2, 9, 30],
+            [2, 11],
+            [2, 15],
+          ].map(([day, hour, minute = 0]) => ({
+            start: at(day, hour, minute),
+            end: at(day, hour + 1, minute),
+            formatted_start: "",
+          })),
+        ]}
+      />
+    </Popup>
+  ),
+
+  rightclick: () => (
+    <div className="shot-browser">
+      <div className="shot-browser-bar">
+        <span className="shot-dot" />
+        <span className="shot-dot" />
+        <span className="shot-dot" />
+        <div className="shot-address">mail.example.com/inbox</div>
+        <div className="shot-toolbar-icon">
+          <img src={logoUrl} alt="" />
+          <span className="shot-badge">1</span>
+        </div>
+      </div>
+      <div className="shot-email">
+        <div className="shot-email-subject">Catch-up next week?</div>
+        <div className="shot-email-from">
+          <span className="shot-avatar">J</span>
+          <div>
+            <strong>Jess Taylor</strong>
+            <span>to me</span>
+          </div>
+        </div>
+        <p>Hey! It's been ages since we properly caught up.</p>
+        <p>
+          <span className="shot-selected">
+            Lunch next Wednesday at 12:30 at The Grounds of Alexandria?
+          </span>{" "}
+          Let me know if that works for you.
+        </p>
+        <p>Jess</p>
+        <div className="shot-menu">
+          <div className="shot-menu-item">
+            <Copy size={15} /> Copy
+          </div>
+          <div className="shot-menu-item">
+            <Globe size={15} /> Search Google for "Lunch next Wed…"
+          </div>
+          <div className="shot-menu-divider" />
+          <div className="shot-menu-item shot-menu-item-active">
+            <img src={logoUrl} alt="" /> Add to calendar with Prompt2Cal
+          </div>
+          <div className="shot-menu-divider" />
+          <div className="shot-menu-item">
+            <MousePointerClick size={15} /> Inspect
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+};
+
 const SCREENS = {
   1: () => (
     <Shot
@@ -148,18 +283,7 @@ const SCREENS = {
         ],
       }}
     >
-      <Popup>
-        <Input text="Dinner with Sarah next Thursday at 7pm at Nando's" />
-        <Card
-          parsedEvent={{
-            title: "Dinner with Sarah",
-            start_time: at(thursday, 19),
-            end_time: at(thursday, 20),
-            location: "Nando's",
-            recurrence_type: "none",
-          }}
-        />
-      </Popup>
+      {VISUALS.input()}
     </Shot>
   ),
 
@@ -176,19 +300,7 @@ const SCREENS = {
         ],
       }}
     >
-      <Popup>
-        <Input text="Coffee with Alex on Friday" />
-        <Card
-          parsedEvent={{
-            title: "Coffee with Alex",
-            start_time: at(friday, 10),
-            end_time: at(friday, 11),
-            end_time_assumed: true,
-            recurrence_type: "none",
-            field_confidence: { title: "grounded", start_time: "ungrounded", end_time: "ungrounded" },
-          }}
-        />
-      </Popup>
+      {VISUALS.review()}
     </Shot>
   ),
 
@@ -205,28 +317,7 @@ const SCREENS = {
         ],
       }}
     >
-      <Popup>
-        <Card
-          parsedEvent={{
-            title: "Team planning session",
-            start_time: at(wednesday, 14),
-            end_time: at(wednesday, 15),
-            location: "Level 3 meeting room",
-            recurrence_type: "none",
-          }}
-          conflicts={[
-            {
-              title: "Client call with Northwind",
-              start: at(wednesday, 14, 30),
-              end: at(wednesday, 15),
-            },
-          ]}
-          alternatives={[
-            { start: at(wednesday, 12, 45), formatted_time: "12:45 PM - 1:45 PM" },
-            { start: at(wednesday, 15, 15), formatted_time: "3:15 PM - 4:15 PM" },
-          ]}
-        />
-      </Popup>
+      {VISUALS.clash()}
     </Shot>
   ),
 
@@ -243,30 +334,7 @@ const SCREENS = {
         ],
       }}
     >
-      <Popup slotFinderActive>
-        <FindSlotPanel
-          onClose={noop}
-          onPickSlot={noop}
-          onFindSlots={async () => [
-            ...[
-              [0, 13],
-              [0, 15, 30],
-              [1, 9],
-              [1, 10, 30],
-              [1, 13],
-              [1, 14, 30],
-              [1, 16],
-              [2, 9, 30],
-              [2, 11],
-              [2, 15],
-            ].map(([day, hour, minute = 0]) => ({
-              start: at(day, hour, minute),
-              end: at(day, hour + 1, minute),
-              formatted_start: "",
-            })),
-          ]}
-        />
-      </Popup>
+      {VISUALS.slots()}
     </Shot>
   ),
 
@@ -283,52 +351,7 @@ const SCREENS = {
         ],
       }}
     >
-      <div className="shot-browser">
-        <div className="shot-browser-bar">
-          <span className="shot-dot" />
-          <span className="shot-dot" />
-          <span className="shot-dot" />
-          <div className="shot-address">mail.example.com/inbox</div>
-          <div className="shot-toolbar-icon">
-            <img src={logoUrl} alt="" />
-            <span className="shot-badge">1</span>
-          </div>
-        </div>
-        <div className="shot-email">
-          <div className="shot-email-subject">Catch-up next week?</div>
-          <div className="shot-email-from">
-            <span className="shot-avatar">J</span>
-            <div>
-              <strong>Jess Taylor</strong>
-              <span>to me</span>
-            </div>
-          </div>
-          <p>Hey! It's been ages since we properly caught up.</p>
-          <p>
-            <span className="shot-selected">
-              Lunch next Wednesday at 12:30 at The Grounds of Alexandria?
-            </span>{" "}
-            Let me know if that works for you.
-          </p>
-          <p>Jess</p>
-          <div className="shot-menu">
-            <div className="shot-menu-item">
-              <Copy size={15} /> Copy
-            </div>
-            <div className="shot-menu-item">
-              <Globe size={15} /> Search Google for "Lunch next Wed…"
-            </div>
-            <div className="shot-menu-divider" />
-            <div className="shot-menu-item shot-menu-item-active">
-              <img src={logoUrl} alt="" /> Add to calendar with Prompt2Cal
-            </div>
-            <div className="shot-menu-divider" />
-            <div className="shot-menu-item">
-              <MousePointerClick size={15} /> Inspect
-            </div>
-          </div>
-        </div>
-      </div>
+      {VISUALS.rightclick()}
     </Shot>
   ),
 };
@@ -380,6 +403,15 @@ SCREENS.marquee = () => (
     </div>
   </div>
 );
+
+// For prompt2cal.com: each visual alone on a transparent page, cropped by
+// capture.py.
+Object.keys(VISUALS).forEach((key) => {
+  SCREENS[`site-${key}`] = () => {
+    document.documentElement.classList.add("site-image");
+    return <div className="site-visual">{VISUALS[key]()}</div>;
+  };
+});
 
 const screen = SCREENS[window.location.hash.slice(1)] || SCREENS[1];
 ReactDOM.createRoot(document.getElementById("root")).render(screen());

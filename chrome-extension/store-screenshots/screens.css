@@ -385,3 +385,19 @@ body {
     0 30px 60px -12px rgba(15, 23, 42, 0.28),
     0 12px 24px -8px rgba(15, 23, 42, 0.12);
 }
+
+/* prompt2cal.com images: one visual on a transparent page, at full size. */
+html.site-image,
+html.site-image body {
+  background: transparent;
+}
+
+.site-visual {
+  display: inline-block;
+  /* Room for the whole shadow, which falls 30px down and blurs 60px. */
+  padding: 72px 96px 128px;
+}
+
+.site-visual .shot-popup {
+  zoom: 1;
+}

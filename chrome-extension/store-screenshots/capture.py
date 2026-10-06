@@ -6,7 +6,8 @@ Usage (from chrome-extension/):
 
 Builds the screenshot page (real extension components with sample data),
 serves it locally, photographs each screen with headless Chrome, and saves
-RGB PNGs. Needs Chrome, Node (for Vite) and Pillow.
+RGB PNGs. Also writes transparent WebP visuals for prompt2cal.com into
+docs/public/images. Needs Chrome, Node (for Vite) and Pillow.
 """
 
 import functools
@@ -22,6 +23,9 @@ from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 EXTENSION = HERE.parent
+SITE_IMAGES_DIR = EXTENSION.parent / "docs" / "public" / "images"
+# Visuals for prompt2cal.com: transparent, cropped, at 2x for sharp screens.
+SITE_IMAGES = ["input", "review", "clash", "slots", "rightclick"]
 BUILD = HERE / "build"
 # (file name, page hash, size): five screenshots and the two promo tiles.
 IMAGES = [(f"prompt2cal-screenshot-{n}", str(n), (1280, 800)) for n in range(1, 6)] + [
@@ -65,7 +69,7 @@ def serve(folder: Path) -> http.server.ThreadingHTTPServer:
     return server
 
 
-def capture(chrome: str, url: str, path: Path, size) -> None:
+def capture(chrome: str, url: str, path: Path, size, scale=1, transparent=False) -> None:
     with tempfile.TemporaryDirectory() as profile:
         subprocess.run(
             [
@@ -73,7 +77,8 @@ def capture(chrome: str, url: str, path: Path, size) -> None:
                 "--headless=new",
                 "--disable-gpu",
                 "--hide-scrollbars",
-                "--force-device-scale-factor=1",
+                f"--force-device-scale-factor={scale}",
+                *(["--default-background-color=00000000"] if transparent else []),
                 # US English, so times read "1:00 PM" like the rest of the popup.
                 "--lang=en-US",
                 f"--window-size={size[0]},{size[1]}",
@@ -110,6 +115,17 @@ def main() -> None:
             fresh.replace(final)
             raw.unlink()
             print(f"wrote {final} ({image.size[0]}x{image.size[1]}, {image.mode})")
+        SITE_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        for name in SITE_IMAGES:
+            raw = SITE_IMAGES_DIR / f"raw-{name}.png"
+            url = f"http://127.0.0.1:{port}/index.html#site-{name}"
+            capture(chrome, url, raw, (760, 1100), scale=2, transparent=True)
+            image = Image.open(raw).convert("RGBA")
+            image = image.crop(image.getchannel("A").getbbox())  # trim to the shadow's edge
+            final = SITE_IMAGES_DIR / f"{name}.webp"
+            image.save(final, "WEBP", quality=88, method=6)
+            raw.unlink()
+            print(f"wrote {final} ({image.size[0]}x{image.size[1]}, {final.stat().st_size // 1024} KB)")
     finally:
         server.shutdown()
 
