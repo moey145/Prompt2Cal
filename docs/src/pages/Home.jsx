@@ -46,10 +46,10 @@ const EXTRAS = [
 ];
 
 const STEPS = [
-  { icon: "sparkles", title: "Describe it", body: "Type, speak or right-click text." },
-  { icon: "eye", title: "Review it", body: "Guessed details are highlighted." },
-  { icon: "pencil", title: "Adjust it", body: "Change a time or add guests." },
-  { icon: "calendarCheck", title: "Add it", body: "One click and it's in your calendar." },
+  { title: "Describe it", body: "Type, speak or right-click text." },
+  { title: "Review it", body: "Guessed details are highlighted." },
+  { title: "Adjust it", body: "Change a time or add guests." },
+  { title: "Add it", body: "One click and it's in your calendar." },
 ];
 
 function Showcase() {
@@ -167,21 +167,13 @@ function Home() {
 
       <section className="section" id="how-it-works">
         <div className="section-inner">
-          <div className="section-head">
-            <span className="eyebrow">How it works</span>
-            <h2>From a sentence to an event, in four steps.</h2>
-          </div>
+          <h2 className="steps-title">How it works</h2>
           <ol className="steps">
             {STEPS.map((step, index) => (
               <li className="step" key={step.title}>
-                <span className="step-icon">
-                  <Icon name={step.icon} size={20} />
-                  <span className="step-number">{index + 1}</span>
-                </span>
-                <div>
-                  <h3>{step.title}</h3>
-                  <p>{step.body}</p>
-                </div>
+                <span className="step-number">{index + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
               </li>
             ))}
           </ol>
