@@ -124,9 +124,6 @@ function Home() {
               <li>
                 <Icon name="check" size={16} strokeWidth={3} /> Nothing added without your OK
               </li>
-              <li>
-                <Icon name="check" size={16} strokeWidth={3} /> Free
-              </li>
             </ul>
           </div>
           <div className="hero-visual">
