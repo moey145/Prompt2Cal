@@ -53,7 +53,6 @@ function SiteNav() {
         </Link>
         <nav className={`nav-links ${open ? "is-open" : ""}`} aria-label="Main">
           <Link to="/#features">Features</Link>
-          <Link to="/#how-it-works">How it works</Link>
           <NavLink to="/support">Support</NavLink>
           <AddToChrome className="nav-cta" />
         </nav>
@@ -83,7 +82,6 @@ function SiteFooter() {
           <div>
             <h3>Product</h3>
             <Link to="/#features">Features</Link>
-            <Link to="/#how-it-works">How it works</Link>
             <a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer">
               Chrome Web Store
             </a>

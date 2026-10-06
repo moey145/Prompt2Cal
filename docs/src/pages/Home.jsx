@@ -45,13 +45,6 @@ const EXTRAS = [
   { icon: "moon", title: "Light and dark", body: "Switch themes to match your browser." },
 ];
 
-const STEPS = [
-  { title: "Describe it", body: "Type, speak or right-click text." },
-  { title: "Review it", body: "Guessed details are highlighted." },
-  { title: "Adjust it", body: "Change a time or add guests." },
-  { title: "Add it", body: "One click and it's in your calendar." },
-];
-
 function Showcase() {
   const [active, setActive] = useState(0);
 
@@ -165,19 +158,8 @@ function Home() {
         </div>
       </section>
 
-      <section className="section" id="how-it-works">
+      <section className="section">
         <div className="section-inner">
-          <h2 className="steps-title">How it works</h2>
-          <ol className="steps">
-            {STEPS.map((step, index) => (
-              <li className="step" key={step.title}>
-                <span className="step-number">{index + 1}</span>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-              </li>
-            ))}
-          </ol>
-
           <div className="cta-band">
             <div>
               <h2>Stop clicking through calendar forms.</h2>
