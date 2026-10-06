@@ -1,288 +1,234 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import "./Home.css";
+import Icon from "../components/Icon";
+import { AddToChrome } from "../components/SiteLayout";
+
+// The popup images are made by chrome-extension/store-screenshots/capture.py
+// from the extension's real components, so they match what users see.
+const FEATURES = [
+  {
+    image: "/images/review.webp",
+    alt: "The confirm card, with a guessed time highlighted and the end time marked as assumed",
+    eyebrow: "Always in your control",
+    title: "Nothing is added until you say so.",
+    body: "Every event is shown for review first. Anything that wasn't in your text is highlighted, so a guessed time never slips in unnoticed.",
+    points: [
+      "Guessed details are highlighted",
+      "Default end times are labelled as assumed",
+      "Edit any field before creating",
+    ],
+  },
+  {
+    image: "/images/clash.webp",
+    alt: "A clash warning listing the overlapping event and two nearby free times",
+    eyebrow: "Clash check",
+    title: "Catch clashes before they happen.",
+    body: "Prompt2Cal checks your calendar as you go and offers the nearest free times, so moving an event takes one click.",
+    points: [
+      "Checks your Google or Outlook calendar",
+      "Suggests free times either side",
+      "Handles recurring events too",
+    ],
+  },
+  {
+    image: "/images/slots.webp",
+    alt: "The free-time finder with length, range and hours, and open times grouped by day",
+    eyebrow: "Find a free time",
+    title: "Not sure when? Let it find a gap.",
+    body: "Choose a length, how far ahead and which hours, and see the open times in your calendar. Pick one to start an event.",
+    points: [
+      "Any length, from 5 minutes to 12 hours",
+      "Your own hours, with or without weekends",
+      "Remembers your choices",
+    ],
+  },
+  {
+    image: "/images/rightclick.webp",
+    alt: "Text selected in an email, with Add to calendar with Prompt2Cal in the right-click menu",
+    eyebrow: "Right-click to add",
+    title: "Add events from any page.",
+    body: "Select the details in an email or website, right-click, and Prompt2Cal turns them into an event. It keeps working even if you close the popup.",
+    points: [
+      "Works on emails, chats and web pages",
+      "Keeps parsing with the popup closed",
+      "The toolbar badge shows when it's ready",
+    ],
+  },
+];
+
+const EXTRAS = [
+  { icon: "mic", title: "Voice input", body: "Say your event instead of typing it." },
+  {
+    icon: "layers",
+    title: "Several at once",
+    body: "\"Coffee at 10am and dentist at 3pm\" becomes two events you can accept one by one.",
+  },
+  {
+    icon: "repeat",
+    title: "Recurring events",
+    body: "\"Team meeting every Monday at 9am for 6 weeks\" becomes a single series.",
+  },
+  {
+    icon: "pencil",
+    title: "Edit anything first",
+    body: "Add guests, a Google Meet or Teams link, a colour or category, and a reminder.",
+  },
+  {
+    icon: "zap",
+    title: "Keeps working when closed",
+    body: "Close the popup mid-parse; the badge tells you when the event is ready.",
+  },
+  { icon: "moon", title: "Light and dark", body: "Switch themes from the popup to match your browser." },
+];
+
+const STEPS = [
+  { icon: "sparkles", title: "Describe it", body: "Type, speak or right-click text on a page." },
+  { icon: "eye", title: "Review it", body: "Check the details. Anything guessed is highlighted." },
+  { icon: "pencil", title: "Adjust it", body: "Change a time, add guests or set a reminder." },
+  { icon: "calendarCheck", title: "Add it", body: "Click Create Event and it's in your calendar." },
+];
+
+function CheckList({ points }) {
+  return (
+    <ul className="checklist">
+      {points.map((point) => (
+        <li key={point}>
+          <span className="checklist-mark">
+            <Icon name="check" size={14} strokeWidth={3} />
+          </span>
+          {point}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function Home() {
-  useEffect(() => {
-    const elements = document.querySelectorAll(".reveal-on-scroll");
-    if (!elements.length) return undefined;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -10% 0px",
-      }
-    );
-
-    elements.forEach((element) => observer.observe(element));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div className="home">
-      {/* Hero Section */}
+    <>
       <section className="hero">
-        <div className="hero-bg">
-          <div className="hero-glow hero-glow-1"></div>
-          <div className="hero-glow hero-glow-2"></div>
-          <div className="hero-grid"></div>
-        </div>
-        
-        <nav className="hero-nav">
-          <div className="nav-brand">
-            <img src="/logo.svg" alt="Prompt2Cal" className="nav-logo" />
-            <span className="nav-name">Prompt2Cal</span>
-          </div>
-          <div className="nav-links">
-            <a href="#features">Features</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="https://github.com/moey145/Prompt2Cal" target="_blank" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </nav>
-
-        <div className="hero-content">
-          <div className="hero-badge">
-            <span className="badge-icon">✨</span>
-            <span>AI-Powered Chrome Extension</span>
-          </div>
-          
-          <h1 className="hero-title">
-            Turn <span className="highlight">Natural Language</span> into Calendar Events
-          </h1>
-          
-          <p className="hero-description">
-            Stop clicking through forms. Just type or speak your event in plain English, 
-            and let AI create your Google Calendar events instantly.
-          </p>
-
-          <div className="hero-demo">
-            <div className="demo-input">
-              <span className="demo-icon">🎤</span>
-              <span className="demo-text">"Meeting with Sarah tomorrow at 3pm for coffee"</span>
-              <span className="demo-cursor"></span>
+        <div className="section-inner hero-inner">
+          <div className="hero-copy">
+            <span className="eyebrow">Chrome extension for Google Calendar &amp; Outlook</span>
+            <h1 className="hero-title">
+              Type it the way you'd say it. <span className="accent">It's in your calendar.</span>
+            </h1>
+            <p className="hero-lead">
+              Prompt2Cal turns plain-English plans into calendar events. Type, speak or right-click text on any page,
+              check the details, and add it in one click.
+            </p>
+            <div className="hero-actions">
+              <AddToChrome>
+                Add to Chrome <span className="button-note">it's free</span>
+              </AddToChrome>
+              <Link className="button button-secondary" to="/#how-it-works">
+                See how it works
+              </Link>
             </div>
-            <div className="demo-arrow">↓</div>
-            <div className="demo-output">
-              <div className="demo-event">
-                <span className="event-color"></span>
-                <div className="event-details">
-                  <span className="event-title">Meeting with Sarah</span>
-                  <span className="event-time">Tomorrow, 3:00 PM • Coffee</span>
-                </div>
-                <span className="event-check">✓</span>
-              </div>
-            </div>
+            <ul className="hero-facts">
+              <li>
+                <Icon name="check" size={16} strokeWidth={3} /> Google Calendar &amp; Outlook
+              </li>
+              <li>
+                <Icon name="check" size={16} strokeWidth={3} /> Nothing added without your OK
+              </li>
+              <li>
+                <Icon name="check" size={16} strokeWidth={3} /> Free
+              </li>
+            </ul>
           </div>
-
-          <div className="hero-cta">
-            <a
-              href="https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm"
-              className="cta-primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <svg className="chrome-icon" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="4" fill="currentColor"/>
-              </svg>
-              Install Free from Chrome Store
-            </a>
-            <a href="#features" className="cta-secondary">
-              Learn More
-              <span className="arrow">→</span>
-            </a>
-          </div>
-
-          <div className="hero-stats">
-            <div className="stat">
-              <span className="stat-value">4.9★</span>
-              <span className="stat-label">User Rating</span>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat">
-              <span className="stat-value">1000+</span>
-              <span className="stat-label">Active Users</span>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat">
-              <span className="stat-value">Free</span>
-              <span className="stat-label">Forever</span>
-            </div>
+          <div className="hero-visual">
+            <img
+              src="/images/input.webp"
+              alt="The Prompt2Cal popup turning that sentence into an event for Thursday at 7pm at Nando's"
+              width="552"
+              height="838"
+            />
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="container">
-        <main className="content">
-          <section className="section reveal-on-scroll" id="features">
-            <h2 className="features-title reveal-on-scroll" style={{ transitionDelay: "0ms" }}>Powerful Features</h2>
-            <p className="features-subtitle reveal-on-scroll" style={{ transitionDelay: "100ms" }}>Everything you need to manage your calendar effortlessly with the power of AI</p>
-            <div className="features">
-              <div className="feature reveal-on-scroll" style={{ transitionDelay: "0ms" }}>
-                <div className="feature-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                </div>
-                <div className="feature-content">
-                  <h3>Voice Input</h3>
-                  <p>Speak your events naturally using voice recognition. Just talk, and we'll capture every detail.</p>
-                </div>
+      <section className="section" id="features">
+        <div className="section-inner">
+          <div className="section-head">
+            <span className="eyebrow">Features</span>
+            <h2>Everything between a message and your calendar.</h2>
+            <p>From a quick note to a week of plans, Prompt2Cal reads it, checks it against your calendar and lets you decide.</p>
+          </div>
+
+          {FEATURES.map((feature, index) => (
+            <div className={`feature-row ${index % 2 ? "is-flipped" : ""}`} key={feature.title}>
+              <div className="feature-copy">
+                <span className="eyebrow">{feature.eyebrow}</span>
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+                <CheckList points={feature.points} />
               </div>
-              <div className="feature reveal-on-scroll" style={{ transitionDelay: "120ms" }}>
-                <div className="feature-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.4V11h3a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-1v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-3H6a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h3V9.4A4 4 0 0 1 12 2z"/>
-                    <circle cx="12" cy="6" r="1"/>
-                  </svg>
-                </div>
-                <div className="feature-content">
-                  <h3>AI-Powered Parsing</h3>
-                  <p>Advanced AI understands complex natural language. Dates, times, locations—it gets it all.</p>
-                </div>
-              </div>
-              <div className="feature reveal-on-scroll" style={{ transitionDelay: "240ms" }}>
-                <div className="feature-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                  </svg>
-                </div>
-                <div className="feature-content">
-                  <h3>Conflict Detection</h3>
-                  <p>Automatically checks for scheduling conflicts before creating events. Never double-book again.</p>
-                </div>
-              </div>
-              <div className="feature reveal-on-scroll" style={{ transitionDelay: "360ms" }}>
-                <div className="feature-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                    <line x1="12" y1="14" x2="12" y2="18"/>
-                    <line x1="10" y1="16" x2="14" y2="16"/>
-                  </svg>
-                </div>
-                <div className="feature-content">
-                  <h3>Bulk Events</h3>
-                  <p>Parse and create multiple events at once. Perfect for planning your entire week in seconds.</p>
-                </div>
+              <div className="feature-visual">
+                <img src={feature.image} alt={feature.alt} loading="lazy" />
               </div>
             </div>
-          </section>
+          ))}
+        </div>
+      </section>
 
-          <section className="section reveal-on-scroll" id="how-it-works">
-            <h2 className="how-it-works-title reveal-on-scroll" style={{ transitionDelay: "0ms" }}>How It Works</h2>
-            <div className="steps-container">
-              <div className="step reveal-on-scroll" style={{ transitionDelay: "80ms" }}>
-                <div className="step-icon-wrapper">
-                  <div className="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                  </div>
-                  <span className="step-number">1</span>
-                </div>
-                <h3 className="step-title">Type or Speak</h3>
-                <p className="step-desc">Type or speak your event in plain English</p>
-              </div>
-
-              <div className="step-divider"></div>
-
-              <div className="step reveal-on-scroll" style={{ transitionDelay: "180ms" }}>
-                <div className="step-icon-wrapper">
-                  <div className="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                  </div>
-                  <span className="step-number">2</span>
-                </div>
-                <h3 className="step-title">AI Parses</h3>
-                <p className="step-desc">AI parses your text into structured event details</p>
-              </div>
-
-              <div className="step-divider"></div>
-
-              <div className="step reveal-on-scroll" style={{ transitionDelay: "280ms" }}>
-                <div className="step-icon-wrapper">
-                  <div className="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                  </div>
-                  <span className="step-number">3</span>
-                </div>
-                <h3 className="step-title">Review & Edit</h3>
-                <p className="step-desc">Review and edit the parsed event (if needed)</p>
-              </div>
-
-              <div className="step-divider"></div>
-
-              <div className="step reveal-on-scroll" style={{ transitionDelay: "380ms" }}>
-                <div className="step-icon-wrapper">
-                  <div className="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  </div>
-                  <span className="step-number">4</span>
-                </div>
-                <h3 className="step-title">Confirm</h3>
-                <p className="step-desc">Confirm and it's added to your Google Calendar instantly</p>
-              </div>
-            </div>
-          </section>
-
-          <div className="cta reveal-on-scroll" style={{ transitionDelay: "120ms" }}>
-            <a
-              href="https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm"
-              className="cta-button"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Install from Chrome Web Store
-            </a>
+      <section className="section section-tint">
+        <div className="section-inner">
+          <div className="section-head">
+            <span className="eyebrow">And the little things</span>
+            <h2>Made for how people actually write plans.</h2>
           </div>
-        </main>
-      </div>
-
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-left">
-            <p>&copy; 2025 Prompt2Cal. All rights reserved.</p>
-            <p className="footer-subtle">Built for fast, reliable calendar event creation.</p>
-          </div>
-          <div className="footer-links">
-            <Link to="/privacy-policy">Privacy Policy</Link>
-            <a
-              href="https://github.com/moey145/Prompt2Cal"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub repo
-            </a>
+          <div className="card-grid">
+            {EXTRAS.map((extra) => (
+              <div className="card" key={extra.title}>
+                <span className="card-icon">
+                  <Icon name={extra.icon} size={22} />
+                </span>
+                <h3>{extra.title}</h3>
+                <p>{extra.body}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
-    </div>
+      </section>
+
+      <section className="section" id="how-it-works">
+        <div className="section-inner">
+          <div className="section-head">
+            <span className="eyebrow">How it works</span>
+            <h2>From a sentence to an event, in four steps.</h2>
+          </div>
+          <ol className="steps">
+            {STEPS.map((step, index) => (
+              <li className="step" key={step.title}>
+                <span className="step-icon">
+                  <Icon name={step.icon} size={22} />
+                  <span className="step-number">{index + 1}</span>
+                </span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-inner">
+          <div className="cta-band">
+            <div>
+              <h2>Stop clicking through calendar forms.</h2>
+              <p>Add Prompt2Cal to Chrome and type your next plan the way you'd say it.</p>
+            </div>
+            <div className="cta-band-actions">
+              <AddToChrome />
+              <Link className="button button-ghost" to="/support">
+                Get help
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
 

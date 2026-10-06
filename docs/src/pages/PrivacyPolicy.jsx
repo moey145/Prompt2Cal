@@ -1,19 +1,21 @@
-import { Link } from 'react-router-dom'
-import './PrivacyPolicy.css'
 
 function PrivacyPolicy() {
   return (
-    <div className="privacy-page">
-      <main className="privacy-container">
-        <Link to="/" className="back-link">← Back to Home</Link>
-        
-        <h1>Prompt2Cal Privacy Policy</h1>
-        <p className="last-updated">Last updated: September 28, 2026</p>
+    <>
+      <section className="page-hero page-hero-compact">
+        <div className="section-inner">
+          <span className="eyebrow">Legal</span>
+          <h1>Privacy policy</h1>
+          <p>Last updated: October 6, 2026</p>
+        </div>
+      </section>
+      <section className="section section-tight">
+      <article className="section-inner prose">
 
         <p>
           <strong>Prompt2Cal</strong> ("we", "our", "us", or "the application") is a Google Chrome extension 
           developed and operated by the Prompt2Cal development team. This application helps you turn natural 
-          language text into calendar events by integrating with Google Calendar. This privacy policy applies 
+          language text into calendar events by integrating with Google Calendar and Microsoft Outlook. This privacy policy applies 
           specifically to the Prompt2Cal Chrome extension and associated services.
         </p>
 
@@ -28,13 +30,16 @@ function PrivacyPolicy() {
         <ul>
           <li>
             <strong>User-provided event text.</strong> The text you type or paste
-            into the extension popup or capture via voice recognition so that we
-            can parse it into event details.
+            into the extension popup, capture via voice recognition, or select on
+            a web page and send with the "Add to calendar with Prompt2Cal"
+            right-click menu, so that we can parse it into event details. The
+            right-click menu only reads the text you have selected, and only
+            when you choose it.
           </li>
           <li>
             <strong>Calendar metadata.</strong> Names and identifiers of calendars
             you select when creating events, obtained through the Google Calendar
-            API with your permission.
+            API or the Microsoft Graph API (for Outlook) with your permission.
           </li>
           <li>
             <strong>Event details.</strong> Titles, times, recurrence rules,
@@ -43,7 +48,7 @@ function PrivacyPolicy() {
           </li>
           <li>
             <strong>Authentication tokens.</strong> OAuth tokens provided by
-            Google when you sign in, stored securely on your device (and on your
+            Google or Microsoft when you sign in, stored securely on your device (and on your
             account's backend workspace if you deploy and authenticate with the
             optional cloud service).
           </li>
@@ -69,8 +74,8 @@ function PrivacyPolicy() {
             request it.
           </li>
           <li>
-            Create, update, or delete events on your selected Google Calendar as
-            instructed.
+            Create, update, or delete events on your selected Google or Outlook
+            calendar as instructed.
           </li>
           <li>
             Generate notifications (toasts) within the extension UI about success
@@ -114,6 +119,10 @@ function PrivacyPolicy() {
             events on your calendars.
           </li>
           <li>
+            <strong>Microsoft Graph API.</strong> Required to create and manage
+            events on your Outlook calendars when you sign in with Microsoft.
+          </li>
+          <li>
             <strong>Anthropic (Claude) API.</strong> When parsing event text
             (your input text is transmitted to Anthropic for processing).
           </li>
@@ -132,14 +141,22 @@ function PrivacyPolicy() {
         <h2>Your Choices and Controls</h2>
         <ul>
           <li>
-            You can disconnect the extension from your Google account at any time
-            from the settings menu or via Google's{' '}
+            You can disconnect the extension from your Google or Microsoft
+            account at any time from the settings menu, via Google's{' '}
             <a
               href="https://myaccount.google.com/permissions"
               rel="noreferrer noopener"
               target="_blank"
             >
               Account Permissions
+            </a>{' '}
+            page, or via Microsoft's{' '}
+            <a
+              href="https://account.live.com/consent/Manage"
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              app permissions
             </a>{' '}
             page.
           </li>
@@ -200,8 +217,9 @@ function PrivacyPolicy() {
             github.com/moey145/Prompt2Cal
           </a>.
         </p>
-      </main>
-    </div>
+      </article>
+      </section>
+    </>
   )
 }
 
