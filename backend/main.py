@@ -152,6 +152,22 @@ SLOTS_PER_DAY = 8
 SLOT_SEARCH_LIMIT = 500
 
 
+def _working_hours(value) -> tuple:
+    """The (first, last) hours to search between; 24 means midnight."""
+    if value is None:
+        return (9, 17)
+    try:
+        first, last = (int(hour) for hour in value)
+    except (TypeError, ValueError):
+        first, last = -1, -1
+    if not 0 <= first < last <= 24:
+        raise HTTPException(
+            status_code=400,
+            detail="working_hours must be two hours from 0 to 24, the first before the second.",
+        )
+    return (first, last)
+
+
 def _zone_or_none(name: Optional[str]):
     if not name:
         return None
@@ -596,7 +612,7 @@ async def find_meeting_slots(request: dict):
         window_start, window_end = window_start.astimezone(zone), window_end.astimezone(zone)
 
     duration_minutes = int(request.get("duration_minutes") or 60)
-    working_hours = request.get("working_hours") or [9, 17]
+    working_hours = _working_hours(request.get("working_hours"))
     buffer_minutes = int(request.get("buffer_minutes", 15))
     include_weekends = bool(request.get("include_weekends", False))
     calendar_id = request.get("calendar_id")
@@ -608,7 +624,7 @@ async def find_meeting_slots(request: dict):
             window_start,
             window_end,
             duration_minutes,
-            working_hours=tuple(working_hours),
+            working_hours=working_hours,
             buffer_minutes=buffer_minutes,
             step_minutes=SLOT_STEP_MINUTES,
             limit=SLOT_SEARCH_LIMIT,

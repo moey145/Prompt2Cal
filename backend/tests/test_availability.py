@@ -63,6 +63,15 @@ class TestFreeSlots:
         assert free_slots(busy(((9, 0), (17, 0))), at(9), at(17), 60) == []
 
 
+    def test_hours_can_run_to_midnight(self):
+        slots = free_slots([], at(18), at(23) + timedelta(hours=1), 60, working_hours=(18, 24), limit=50)
+        assert slots[0] == (at(18), at(19))
+        assert slots[-1] == (at(23), at(23) + timedelta(hours=1))
+
+    def test_evening_hours_exclude_the_afternoon(self):
+        slots = free_slots([], at(9), at(23), 60, working_hours=(17, 22), limit=50)
+        assert [slot[0].hour for slot in slots] == [17, 18, 19, 20, 21]
+
     def test_weekdays_only_skips_the_weekend(self):
         # 1 October 2026 is a Thursday; the window runs to Wednesday morning.
         slots = free_slots(

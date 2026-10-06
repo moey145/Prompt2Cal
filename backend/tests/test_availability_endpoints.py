@@ -149,6 +149,14 @@ class TestFindMeetingSlots:
         assert slots[0]["start"] == "2026-10-01T09:00:00+10:00"
         assert slots[-1]["end"] <= "2026-10-01T17:00:00+10:00"
 
+    @pytest.mark.parametrize("hours", [[17, 9], [9, 25], ["x", 5], [9]])
+    def test_rejects_impossible_hours(self, client, session, hours):
+        response = client.post(
+            "/find_meeting_slots",
+            json={"user_id": session, "calendar_provider": "google", **SLOT_REQUEST, "working_hours": hours},
+        )
+        assert response.status_code == 400
+
     def test_several_days_each_get_slots(self, client, monkeypatch, session):
         stub_events(monkeypatch, "google", [])
         response = client.post(

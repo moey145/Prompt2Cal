@@ -7,7 +7,7 @@ provider can feed them whatever its API returns.
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 Block = Tuple[datetime, datetime]
@@ -165,6 +165,7 @@ def _within_working_hours(
     if not working_hours:
         return True
     first, last = working_hours
-    if start.date() != end.date():
-        return False
-    return start.time() >= time(hour=first) and end.time() <= time(hour=last)
+    # Hours from the start of the slot's day, so a closing hour of 24 means
+    # midnight (a datetime.time cannot say 24:00).
+    day_start = start.replace(hour=0, minute=0, second=0, microsecond=0)
+    return day_start + timedelta(hours=first) <= start and end <= day_start + timedelta(hours=last)
