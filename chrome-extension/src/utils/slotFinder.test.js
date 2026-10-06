@@ -1,6 +1,12 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { slotFinderSupported, slotSearchErrorMessage } from "./slotFinder.js";
+import {
+  DEFAULT_SLOT_HOURS,
+  formatHour,
+  slotFinderSupported,
+  slotSearchErrorMessage,
+  validSlotHours,
+} from "./slotFinder.js";
 
 describe("slotFinderSupported", () => {
   it("follows the backend's provider list", () => {
@@ -42,5 +48,28 @@ describe("slotSearchErrorMessage", () => {
     );
     assert.equal(slotSearchErrorMessage(raw, "google"), "Couldn't check your calendar. Try again in a moment.");
     assert.equal(slotSearchErrorMessage(new TypeError("Failed to fetch"), "google"), "Couldn't check your calendar. Try again in a moment.");
+  });
+});
+
+describe("formatHour", () => {
+  it("reads like a clock", () => {
+    assert.equal(formatHour(0), "midnight");
+    assert.equal(formatHour(9), "9am");
+    assert.equal(formatHour(12), "noon");
+    assert.equal(formatHour(17), "5pm");
+    assert.equal(formatHour(24), "midnight");
+  });
+});
+
+describe("validSlotHours", () => {
+  it("keeps sensible saved hours", () => {
+    assert.deepEqual(validSlotHours([7, 22]), [7, 22]);
+    assert.deepEqual(validSlotHours([18, 24]), [18, 24]);
+  });
+
+  it("falls back to 9 to 5 for anything else", () => {
+    for (const bad of [undefined, [17, 9], [9, 25], ["9", 17], [9]]) {
+      assert.deepEqual(validSlotHours(bad), DEFAULT_SLOT_HOURS);
+    }
   });
 });

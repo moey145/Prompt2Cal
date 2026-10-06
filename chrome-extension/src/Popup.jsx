@@ -894,7 +894,7 @@ const Popup = () => {
     checkEventConflicts(moved);
   };
 
-  const handleFindSlots = async ({ durationMinutes, days, includeWeekends }) => {
+  const handleFindSlots = async ({ durationMinutes, days, includeWeekends, workingHours }) => {
     const now = new Date();
     // Midnight at the end of the last day, so "Today" stops at midnight
     // rather than running into tomorrow morning.
@@ -909,7 +909,7 @@ const Popup = () => {
           start_date: now.toISOString(),
           end_date: end.toISOString(),
           duration_minutes: durationMinutes,
-          working_hours: [9, 17],
+          working_hours: workingHours,
           buffer_minutes: 15,
           // Working hours are the user's, so the server needs their zone.
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
