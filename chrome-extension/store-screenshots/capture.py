@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Make the Chrome Web Store screenshots: 1280x800, 24-bit PNG, no alpha.
+"""Make the Chrome Web Store screenshots and promo tiles: 24-bit PNG, no alpha.
 
 Usage (from chrome-extension/):
     python store-screenshots/capture.py [output folder]
@@ -23,8 +23,11 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 EXTENSION = HERE.parent
 BUILD = HERE / "build"
-SCREENS = 5
-SIZE = (1280, 800)
+# (file name, page hash, size): five screenshots and the two promo tiles.
+IMAGES = [(f"prompt2cal-screenshot-{n}", str(n), (1280, 800)) for n in range(1, 6)] + [
+    ("prompt2cal-promo-small", "small", (440, 280)),
+    ("prompt2cal-promo-marquee", "marquee", (1400, 560)),
+]
 CHROME_PATHS = [
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
@@ -62,7 +65,7 @@ def serve(folder: Path) -> http.server.ThreadingHTTPServer:
     return server
 
 
-def capture(chrome: str, url: str, path: Path) -> None:
+def capture(chrome: str, url: str, path: Path, size) -> None:
     with tempfile.TemporaryDirectory() as profile:
         subprocess.run(
             [
@@ -73,7 +76,7 @@ def capture(chrome: str, url: str, path: Path) -> None:
                 "--force-device-scale-factor=1",
                 # US English, so times read "1:00 PM" like the rest of the popup.
                 "--lang=en-US",
-                f"--window-size={SIZE[0]},{SIZE[1]}",
+                f"--window-size={size[0]},{size[1]}",
                 # Time for the web font and the slot finder's async render.
                 "--virtual-time-budget=6000",
                 f"--user-data-dir={profile}",
@@ -93,14 +96,18 @@ def main() -> None:
     server = serve(BUILD)
     port = server.server_address[1]
     try:
-        for number in range(1, SCREENS + 1):
-            raw = out / f"raw-{number}.png"
-            capture(chrome, f"http://127.0.0.1:{port}/index.html#{number}", raw)
+        for name, page, size in IMAGES:
+            raw = out / f"raw-{name}.png"
+            capture(chrome, f"http://127.0.0.1:{port}/index.html#{page}", raw, size)
             image = Image.open(raw).convert("RGB")  # the store wants no alpha
-            if image.size != SIZE:
-                image = image.crop((0, 0, *SIZE))
-            final = out / f"prompt2cal-screenshot-{number}.png"
-            image.save(final, "PNG")
+            if image.size != size:
+                image = image.crop((0, 0, *size))
+            final = out / f"{name}.png"
+            # Save beside it and swap in, so a viewer holding the old file
+            # open does not leave a half-written image.
+            fresh = out / f"new-{name}.png"
+            image.save(fresh, "PNG")
+            fresh.replace(final)
             raw.unlink()
             print(f"wrote {final} ({image.size[0]}x{image.size[1]}, {image.mode})")
     finally:

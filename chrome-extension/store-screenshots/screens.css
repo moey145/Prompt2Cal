@@ -3,8 +3,8 @@
 
 html,
 body {
-  width: 1280px;
-  height: 800px;
+  /* The popup's stylesheet fixes the body at its own 450px width. */
+  width: auto;
   margin: 0;
   overflow: hidden;
   background: #f4f7fd;
@@ -283,4 +283,105 @@ body {
   height: 1px;
   margin: 5px 0;
   background: #e2e8f0;
+}
+
+/* Promo tiles */
+.tile {
+  box-sizing: border-box;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(59, 130, 246, 0.28), transparent 50%),
+    radial-gradient(circle at 10% 100%, rgba(220, 38, 38, 0.12), transparent 45%),
+    linear-gradient(140deg, #f8fafc 0%, #e0e7ff 100%);
+  font-family: "Poppins", -apple-system, "Segoe UI", sans-serif;
+}
+
+.tile-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tile-wordmark .logo {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.tile-wordmark img {
+  width: 54px;
+  height: 54px;
+}
+
+.tile-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tile-chips span {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tile-small {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  width: 440px;
+  height: 280px;
+  padding: 0 36px;
+}
+
+.tile-small-line {
+  text-wrap: balance;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.tile-marquee {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  width: 1400px;
+  height: 560px;
+  padding: 0 96px;
+}
+
+.tile-marquee-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tile-marquee-title {
+  text-wrap: balance;
+  margin: 0;
+  color: #0f172a;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -1px;
+}
+
+.tile-marquee-card {
+  flex: 0 0 440px;
+  zoom: 0.95;
+}
+
+.tile-marquee-card .event-card-confirm {
+  margin: 0;
+  box-shadow:
+    0 30px 60px -12px rgba(15, 23, 42, 0.28),
+    0 12px 24px -8px rgba(15, 23, 42, 0.12);
 }

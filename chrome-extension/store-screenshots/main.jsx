@@ -333,6 +333,54 @@ const SCREENS = {
   ),
 };
 
+const Wordmark = () => (
+  <div className="tile-wordmark">
+    <img src={logoUrl} alt="" />
+    <span className="logo">
+      <span className="logo-black">Prompt2</span>
+      <span className="logo-red">Cal</span>
+    </span>
+  </div>
+);
+
+// Promo tiles: the small one is shown when the store features or lists the
+// extension, so it stays simple; the marquee is the wide banner.
+SCREENS.small = () => (
+  <div className="tile tile-small">
+    <Wordmark />
+    <div className="tile-small-line">Turn plain English into calendar events.</div>
+    <div className="tile-chips">
+      <span>Google Calendar</span>
+      <span>Outlook</span>
+    </div>
+  </div>
+);
+
+SCREENS.marquee = () => (
+  <div className="tile tile-marquee">
+    <div className="tile-marquee-copy">
+      <Wordmark />
+      <h1 className="tile-marquee-title">Type it the way you'd say it. Review it. Done.</h1>
+      <div className="tile-chips">
+        <span>Google Calendar</span>
+        <span>Outlook</span>
+        <span>Right-click any page</span>
+      </div>
+    </div>
+    <div className="tile-marquee-card">
+      <Card
+        parsedEvent={{
+          title: "Dinner with Sarah",
+          start_time: at(thursday, 19),
+          end_time: at(thursday, 20),
+          location: "Nando's",
+          recurrence_type: "none",
+        }}
+      />
+    </div>
+  </div>
+);
+
 const screen = SCREENS[window.location.hash.slice(1)] || SCREENS[1];
 ReactDOM.createRoot(document.getElementById("root")).render(screen());
 

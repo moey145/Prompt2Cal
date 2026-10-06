@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Prompt2Cal - Natural Language Calendar",
   "version": "1.2.0",
-  "description": "Convert natural language text to calendar events with AI-powered parsing and Google Calendar integration",
+  "description": "Turn plain-English plans into Google Calendar or Outlook events. Type, speak or right-click text, then review before it's added.",
   "permissions": [
     "activeTab",
     "identity",
