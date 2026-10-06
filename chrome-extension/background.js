@@ -1,5 +1,8 @@
 // Prompt2Cal Chrome Extension - Background Service Worker
 
+// Must match src/utils/parseJob.js.
+const PARSE_JOB_KEY = "prompt2cal_parse_job";
+
 class Prompt2CalBackground {
   constructor() {
     this.setupEventListeners();
@@ -49,6 +52,14 @@ class Prompt2CalBackground {
         case "updateSettings":
           await this.updateSettings(request.settings);
           sendResponse({ success: true });
+          break;
+
+        case "parseEvent":
+          // Runs here so the parse finishes even if the popup is closed; the
+          // popup picks the result up from storage whenever it next opens.
+          await this.markParseStarted(request.jobId);
+          sendResponse({ started: true });
+          await this.runParseJob(request);
           break;
 
         case "startOAuth":
@@ -110,6 +121,59 @@ class Prompt2CalBackground {
     } finally {
       // Clearing this releases the "Connecting..." state on the popup's button.
       await chrome.storage.local.remove(["waitingForAuth", "authStartedAt"]);
+    }
+  }
+
+  async markParseStarted(jobId) {
+    await chrome.storage.local.set({
+      [PARSE_JOB_KEY]: { id: jobId, status: "pending", startedAt: Date.now() },
+    });
+    await this.setBadge("…", "#6b7280");
+  }
+
+  async runParseJob({ jobId, apiBase, payload }) {
+    try {
+      const response = await fetch(`${apiBase}/create_event`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) {
+        throw new Error(data.detail || `HTTP ${response.status}`);
+      }
+      await this.finishParseJob(jobId, { status: "done", response: data });
+    } catch (error) {
+      console.error("Background parse failed:", error);
+      await this.finishParseJob(jobId, {
+        status: "error",
+        error: error.message || "Failed to parse event",
+      });
+    }
+  }
+
+  async finishParseJob(jobId, fields) {
+    const stored = await chrome.storage.local.get([PARSE_JOB_KEY]);
+    const current = stored[PARSE_JOB_KEY];
+    // A newer parse replaced this one; its result is no longer wanted.
+    if (!current || current.id !== jobId) return;
+    await chrome.storage.local.set({
+      [PARSE_JOB_KEY]: { ...current, ...fields, finishedAt: Date.now() },
+    });
+    // The popup clears this as soon as it shows the result.
+    if (fields.status === "done") {
+      await this.setBadge("1", "#16a34a");
+    } else {
+      await this.setBadge("!", "#dc2626");
+    }
+  }
+
+  async setBadge(text, colour) {
+    try {
+      await chrome.action.setBadgeBackgroundColor({ color: colour });
+      await chrome.action.setBadgeText({ text });
+    } catch (error) {
+      console.error("Could not set the badge:", error);
     }
   }
 

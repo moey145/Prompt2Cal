@@ -8,7 +8,14 @@ import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { makeApiCall } from "./utils/api";
 import { normalizeEventPayload } from "./utils/eventNormalizers";
 import { parseAttendeeInput, ensureUniqueEmails } from "./utils/emailUtils";
-import { DEFAULT_COLOR, DEFAULT_REMINDER } from "./utils/constants";
+import { API_BASE, DEFAULT_COLOR, DEFAULT_REMINDER } from "./utils/constants";
+import {
+  PARSE_JOB_KEY,
+  PREVIEW_KEY,
+  parseJobState,
+  previewToRestore,
+  previewToSave,
+} from "./utils/parseJob";
 import { isIssuedSession } from "./utils/signInState";
 import { SettingsDropdown } from "./components/SettingsDropdown";
 import { AuthSection } from "./components/AuthSection";
@@ -94,12 +101,19 @@ const Popup = () => {
 
   const { isListening, toggleVoiceRecognition } = useVoiceRecognition();
   const eventInputHydrated = useRef(false);
+  // Set once the saved preview has been read, so an empty first render does
+  // not wipe it from storage before it is restored.
+  const previewHydrated = useRef(false);
+  // A result that arrived before sign-in status was known still needs its
+  // clash check; the effect below runs it once the popup knows.
+  const needsConflictCheck = useRef(false);
 
   // Initialize on mount
   useEffect(() => {
     initializeUser();
     loadThemeFromStorage();
     loadDraftInput();
+    loadSavedWork();
     // eslint-disable-next-line
   }, []);
 
@@ -116,6 +130,10 @@ const Popup = () => {
           const stored = await chrome.storage.local.get(["calendar_provider"]);
           await fetchCalendars(session, stored.calendar_provider || "google");
         }
+      }
+      // A parse started earlier finished in the background worker.
+      if (changes[PARSE_JOB_KEY]?.newValue) {
+        consumeParseJob(changes[PARSE_JOB_KEY].newValue);
       }
       const authError = changes.prompt2cal_auth_error?.newValue;
       if (authError) {
@@ -134,6 +152,28 @@ const Popup = () => {
       .set({ prompt2cal_event_input: eventInput })
       .catch(() => {});
   }, [eventInput]);
+
+  // Keep the preview on screen in storage, so closing the popup does not lose
+  // it (or the edits made to it) before the event is created or cancelled.
+  useEffect(() => {
+    if (!previewHydrated.current) return;
+    const saved = previewToSave({ showParsedEvent, parsedEvent, showBulkEvents, parsedEvents });
+    (saved
+      ? chrome.storage.local.set({ [PREVIEW_KEY]: saved })
+      : chrome.storage.local.remove([PREVIEW_KEY])
+    ).catch(() => {});
+  }, [showParsedEvent, parsedEvent, showBulkEvents, parsedEvents]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !needsConflictCheck.current) return;
+    needsConflictCheck.current = false;
+    if (showParsedEvent && parsedEvent?.start_time && parsedEvent?.end_time) {
+      checkEventConflicts(parsedEvent);
+    } else if (showBulkEvents && parsedEvents.length) {
+      checkBulkEventConflicts(parsedEvents);
+    }
+    // eslint-disable-next-line
+  }, [isAuthenticated, showParsedEvent, parsedEvent, showBulkEvents, parsedEvents]);
 
   // Close settings dropdown when clicking outside
   useEffect(() => {
@@ -167,6 +207,88 @@ const Popup = () => {
     } finally {
       eventInputHydrated.current = true;
     }
+  };
+
+  // Bring back a preview left open last time, then pick up a parse that ran
+  // (or is still running) while the popup was closed.
+  const loadSavedWork = async () => {
+    try {
+      const stored = await chrome.storage.local.get([PREVIEW_KEY, PARSE_JOB_KEY]);
+      const preview = previewToRestore(stored[PREVIEW_KEY]);
+      if (preview?.kind === "single") {
+        setParsedEvent(preview.event);
+        setSelectedColor(preview.event.color || DEFAULT_COLOR);
+        setSelectedReminder(preview.event.reminder ?? DEFAULT_REMINDER);
+        setShowParsedEvent(true);
+        needsConflictCheck.current = true;
+      } else if (preview?.kind === "bulk") {
+        setParsedEvents(preview.events);
+        setShowBulkEvents(true);
+        needsConflictCheck.current = true;
+      }
+      previewHydrated.current = true;
+      if (stored[PARSE_JOB_KEY]) {
+        await consumeParseJob(stored[PARSE_JOB_KEY]);
+      }
+    } catch (error) {
+      previewHydrated.current = true;
+      console.error("Failed to restore saved work:", error);
+    }
+  };
+
+  const clearParseJob = async () => {
+    try {
+      await chrome.storage.local.remove([PARSE_JOB_KEY]);
+      await chrome.action.setBadgeText({ text: "" });
+    } catch (error) {
+      console.error("Failed to clear the finished parse:", error);
+    }
+  };
+
+  const consumeParseJob = async (job) => {
+    const state = parseJobState(job);
+    if (state === "pending") {
+      setLoadingSingle(true);
+      setShowParsedEvent(false);
+      setShowBulkEvents(false);
+      return;
+    }
+    if (state === "none") return;
+    setLoadingSingle(false);
+    await clearParseJob();
+    if (state === "done") {
+      applyParseResponse(job.response);
+    } else if (state === "stalled") {
+      showMessage("Parsing was interrupted. Please try again.", "error");
+    } else {
+      showMessage(`Failed to parse event: ${job.error}`, "error");
+    }
+  };
+
+  const applyParseResponse = (response) => {
+    if (response?.is_bulk && response.parsed_events) {
+      const normalizedEvents = response.parsed_events
+        .map((event) => normalizeEventPayload(event))
+        .filter(Boolean);
+      setParsedEvents(normalizedEvents);
+      setSelectedColor(DEFAULT_COLOR);
+      setSelectedReminder(DEFAULT_REMINDER);
+      setShowParsedEvent(false);
+      setShowBulkEvents(true);
+    } else if (response?.parsed_event) {
+      const normalizedEvent = normalizeEventPayload(response.parsed_event);
+      setParsedEvent(normalizedEvent);
+      setSelectedColor(normalizedEvent?.color || DEFAULT_COLOR);
+      setSelectedReminder(normalizedEvent?.reminder ?? DEFAULT_REMINDER);
+      setShowBulkEvents(false);
+      setShowParsedEvent(true);
+    } else {
+      showMessage("Failed to parse event", "error");
+      return;
+    }
+    setConflicts([]);
+    setBulkEventConflicts({});
+    needsConflictCheck.current = true;
   };
 
   const toggleTheme = async () => {
@@ -351,55 +473,25 @@ const Popup = () => {
       setShowParsedEvent(false);
       setShowBulkEvents(false);
 
-      const response = await makeApiCall("/create_event", {
-        method: "POST",
-        body: JSON.stringify({
-          text: text,
+      // The background worker sends the request, so it keeps going if the
+      // popup closes; the result comes back through storage.
+      const reply = await chrome.runtime.sendMessage({
+        action: "parseEvent",
+        jobId: crypto.randomUUID(),
+        apiBase: API_BASE,
+        payload: {
+          text,
           user_id: userId,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           force_multiple: forceMultiple,
-        }),
+        },
       });
-
-      if (response.success) {
-        if (response.is_bulk && response.parsed_events) {
-          const normalizedEvents = response.parsed_events
-            .map((event) => normalizeEventPayload(event))
-            .filter(Boolean);
-          setParsedEvents(normalizedEvents);
-          setSelectedColor(DEFAULT_COLOR);
-          setSelectedReminder(DEFAULT_REMINDER);
-          setShowBulkEvents(true);
-
-          // Check for conflicts for all events if authenticated
-          if (isAuthenticated) {
-            await checkBulkEventConflicts(normalizedEvents);
-          }
-        } else if (response.parsed_event) {
-          const normalizedEvent = normalizeEventPayload(response.parsed_event);
-          setParsedEvent(normalizedEvent);
-          setSelectedColor(normalizedEvent?.color || DEFAULT_COLOR);
-          setSelectedReminder(normalizedEvent?.reminder ?? DEFAULT_REMINDER);
-          setShowParsedEvent(true);
-
-          // Check for conflicts if authenticated
-          if (
-            isAuthenticated &&
-            normalizedEvent.start_time &&
-            normalizedEvent.end_time
-          ) {
-            await checkEventConflicts(normalizedEvent);
-          }
-        } else {
-          showMessage("Failed to parse event", "error");
-        }
-      } else {
-        showMessage("Failed to parse event", "error");
+      if (!reply?.started) {
+        throw new Error(reply?.error || "Could not start parsing");
       }
     } catch (error) {
       console.error("Parse error:", error);
       showMessage(`Failed to parse event: ${error.message}`, "error");
-    } finally {
       setLoadingSingle(false);
     }
   };
