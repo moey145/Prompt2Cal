@@ -20,6 +20,7 @@ from .event_expander import EventExpander
 from .multiple_event_detector import MultipleEventDetector
 from .confidence import duration_minutes_from_source, source_states_end_or_duration
 from .log_safety import safe
+from .parse_errors import NoEventFound, ParserUnavailable
 
 load_dotenv()
 
@@ -155,7 +156,7 @@ class EventParser:
             # Fall back to intelligent parser
             if self.intelligent_parser:
                 logger.info("Using intelligent parser with JSON mode")
-                events = await self.intelligent_parser.parse(text, str(local_tz))
+                events = await self.intelligent_parser.parse(text, str(local_tz), raise_on_failure=True)
                 logger.info(f"Intelligent parser returned {len(events)} events")
                         
                 if events:
@@ -338,9 +339,14 @@ class EventParser:
                     
                     return parsed_events
                 
-            # Final fallback
+            if not self.intelligent_parser:
+                raise ParserUnavailable("no language model is configured")
+
+            # The model found nothing; the rules-based expander may still.
             return await self._fallback_parse_multiple(text)
-                
+
+        except ParserUnavailable:
+            raise
         except Exception as e:
             logger.error(f"Error parsing multiple events: {str(e)}")
             return await self._fallback_parse_multiple(text)
@@ -357,24 +363,10 @@ class EventParser:
             if expanded:
                 return expanded
             
-            # Create a single event as last resort
-            now = datetime.now(pytz.timezone('UTC'))
-            fallback_event = ParsedEvent(
-                title="Event",
-                start_time=now.isoformat(),
-                end_time=(now + timedelta(hours=1)).isoformat(),
-                    duration_minutes=60,
-                    location=None,
-                    notes=None,
-                    recurrence_type="none",
-                    recurrence_count=None,
-                recurrence_interval=1,
-                color=None,
-                reminder=None
-            )
-            
-            return [fallback_event]
-            
+            # Nothing found: the single-event path gets its own try, and reports
+            # "no event" rather than this path inventing one at the current time.
+            return []
+
         except Exception as e:
             logger.error(f"Error in fallback parsing: {e}")
             return []
@@ -489,7 +481,7 @@ class EventParser:
             
             # Fall back to intelligent parser
             if self.intelligent_parser:
-                events = await self.intelligent_parser.parse(text, str(local_tz))
+                events = await self.intelligent_parser.parse(text, str(local_tz), raise_on_failure=True)
                 if events and len(events) > 0:
                     event = events[0]
                     event.original_text = text
@@ -497,67 +489,16 @@ class EventParser:
                     
                     return event
             
-            # Final fallback - try to extract a better title from the input
-            now = datetime.now(local_tz)
-            
-            # Try to extract a meaningful title from the input
-            fallback_title = "Event"
-            if text and len(text.strip()) > 0:
-                # Remove common time/date words and take the first few words as title
-                import re
-                cleaned_text = re.sub(r'\b(tomorrow|today|next|this|at|on|for|in|and|the|a|an)\b', '', text.lower())
-                words = cleaned_text.split()[:3]  # Take first 3 meaningful words
-                if words:
-                    fallback_title = ' '.join(words).title()
-                    if len(fallback_title) < 2:
-                        fallback_title = "Event"
-            
-            return ParsedEvent(
-                title=fallback_title,
-                start_time=now.isoformat(),
-                end_time=(now + timedelta(hours=1)).isoformat(),
-                end_time_assumed=True,
-                duration_minutes=60,
-                location=None,
-                notes=None,
-                recurrence_type="none",
-                recurrence_count=None,
-                recurrence_interval=1,
-                color=None,
-                reminder=None
-            )
-            
+            if not self.intelligent_parser:
+                raise ParserUnavailable("no language model is configured")
+            raise NoEventFound()
+
+        except (ParserUnavailable, NoEventFound):
+            raise
         except Exception as e:
             logger.error(f"Error parsing event text: {e}")
-            now = datetime.now(pytz.timezone('UTC'))
-            
-            # Try to extract a meaningful title from the input
-            fallback_title = "Event"
-            if text and len(text.strip()) > 0:
-                # Remove common time/date words and take the first few words as title
-                import re
-                cleaned_text = re.sub(r'\b(tomorrow|today|next|this|at|on|for|in|and|the|a|an)\b', '', text.lower())
-                words = cleaned_text.split()[:3]  # Take first 3 meaningful words
-                if words:
-                    fallback_title = ' '.join(words).title()
-                    if len(fallback_title) < 2:
-                        fallback_title = "Event"
-            
-            return ParsedEvent(
-                title=fallback_title,
-                start_time=now.isoformat(),
-                end_time=(now + timedelta(hours=1)).isoformat(),
-                end_time_assumed=True,
-                duration_minutes=60,
-                location=None,
-                notes=None,
-                recurrence_type="none",
-                recurrence_count=None,
-                recurrence_interval=1,
-                color=None,
-                reminder=None
-            )
-    
+            raise
+
     async def expand_recurring_events(self, text: str, tz_name: Optional[str] = None) -> List[ParsedEvent]:
         """
         Expand recurring events from text.

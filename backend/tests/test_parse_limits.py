@@ -87,3 +87,30 @@ class TestParseEndpoint:
         assert parse(client, ip="203.0.113.10").status_code == 200
         # A fresh caller, within its own per-minute allowance, is still refused.
         assert parse(client, ip="203.0.113.11").status_code == 429
+
+
+class TestParseFailures:
+    @pytest.mark.parametrize(
+        "error, status, message",
+        [
+            ("NoEventFound", 422, main.NO_EVENT_MESSAGE),
+            ("ParserUnavailable", 503, main.PARSER_UNAVAILABLE_MESSAGE),
+        ],
+    )
+    def test_failures_are_reported_not_invented(self, client, monkeypatch, error, status, message):
+        from backend.services import parse_errors
+
+        async def failing(text, tz_name=None):
+            raise getattr(parse_errors, error)()
+
+        monkeypatch.setattr(main.event_parser, "parse_event_text", failing)
+        response = parse(client)
+        assert response.status_code == status
+        assert response.json()["detail"] == message
+
+    def test_the_parser_keeps_text_up_to_the_api_limit(self):
+        from backend.services.intelligent_parser import IntelligentEventParser
+
+        text = "Lunch on Friday at 1pm. " * 60  # about 1,400 characters
+        sanitized = IntelligentEventParser._sanitize_input(None, text)
+        assert len(sanitized) > 1000

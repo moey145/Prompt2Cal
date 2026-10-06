@@ -12,11 +12,12 @@ import asyncio
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import openai
-from ..models.event_models import ParsedEvent, RecurrenceType
+from ..models.event_models import MAX_EVENT_TEXT_CHARS, ParsedEvent, RecurrenceType
 
 logger = logging.getLogger(__name__)
 
 from .log_safety import safe
+from .parse_errors import ParserUnavailable
 
 # Cache for parsed events (v18 - fix start_time for recurring events to not include "every day" in time string)
 _cache = {}
@@ -84,6 +85,7 @@ class IntelligentEventParser:
         *,
         use_cache: bool = True,
         temperature: float = 0.0,
+        raise_on_failure: bool = False,
     ) -> List[ParsedEvent]:
         """
         Parse natural language event description into structured events with reliability features.
@@ -93,6 +95,10 @@ class IntelligentEventParser:
         - "Every Monday workshop at 9am for 3 hours for 4 weeks"
         - "Every sunday strategy meeting at 9am -11am for 8 weeks at Greenacre gym"
         - "Every other Tuesday mentoring session at 5pm for 2 months"
+
+        A failed call returns an empty list, as the evaluation harness expects;
+        with raise_on_failure it raises ParserUnavailable instead, so the app
+        can tell "the model was unreachable" apart from "no event in the text".
         """
         parse_start_time = time.time()
         
@@ -197,8 +203,7 @@ class IntelligentEventParser:
             # Validate events
             if not self._validate_events(parsed_events):
                 logger.error("Validation failed for parsed events")
-                self.failure_count += 1
-                return []
+                return self._failed(raise_on_failure, "the model's reply did not validate")
             
             # Cache successful results
             if use_cache and len(_cache) >= MAX_CACHE_SIZE:
@@ -214,20 +219,22 @@ class IntelligentEventParser:
             
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON response: {e}")
-            self.failure_count += 1
-            return []
-        except openai.RateLimitError:
+            return self._failed(raise_on_failure, "the model's reply was not JSON", e)
+        except openai.RateLimitError as e:
             logger.error("Rate limit exceeded")
-            self.failure_count += 1
-            return []
-        except openai.APITimeoutError:
+            return self._failed(raise_on_failure, "the model's rate limit was hit", e)
+        except openai.APITimeoutError as e:
             logger.error("API timeout")
-            self.failure_count += 1
-            return []
+            return self._failed(raise_on_failure, "the model timed out", e)
         except Exception as e:
             logger.error(f"Error in intelligent parsing: {str(e)}")
-            self.failure_count += 1
-            return []
+            return self._failed(raise_on_failure, str(e), e)
+
+    def _failed(self, raise_on_failure: bool, reason: str, error: Optional[Exception] = None):
+        self.failure_count += 1
+        if raise_on_failure:
+            raise ParserUnavailable(reason) from error
+        return []
     
     def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
         """Call the LLM and return the raw JSON string content.
@@ -261,10 +268,10 @@ class IntelligentEventParser:
         text = text.replace("tomorow", "tomorrow")
         text = text.replace("nex ", "next ")
         
-        # Limit length
-        if len(text) > 500:
+        # The API already rejects longer text; this only guards direct callers.
+        if len(text) > MAX_EVENT_TEXT_CHARS:
             logger.warning(f"Input too long, truncating: {len(text)} chars")
-            text = text[:500]
+            text = text[:MAX_EVENT_TEXT_CHARS]
         
         return text.strip()
 

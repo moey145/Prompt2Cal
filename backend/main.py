@@ -17,6 +17,7 @@ from backend.services import token_store
 from backend.services.rate_limit import DailyCounter, SlidingWindowRateLimiter, client_ip
 from backend.services import availability
 from backend.services.calendar_errors import CalendarNotConnected
+from backend.services.parse_errors import NoEventFound, ParserUnavailable
 from backend.services.log_safety import safe
 from backend.models.event_models import EventRequest, EventResponse, ParsedEvent
 
@@ -263,6 +264,14 @@ async def get_calendars(user_id: str = None, provider: str = None):
             "message": f"Error: {str(e)}",
         }
 
+NO_EVENT_MESSAGE = (
+    "Couldn't find an event in that text. Try saying what it is and when, "
+    'like "Lunch with Sam on Friday at 1pm".'
+)
+PARSER_UNAVAILABLE_MESSAGE = "The event reader isn't available right now. Please try again in a moment."
+PARSE_FAILED_MESSAGE = "Something went wrong reading that. Please try again."
+
+
 @app.post("/create_event", response_model=EventResponse)
 async def create_event(request: EventRequest, http_request: Request):
     """
@@ -387,10 +396,16 @@ async def create_event(request: EventRequest, http_request: Request):
             message="",
             requires_confirmation=True
         )
-        
+
+    # Nothing is invented when parsing fails: the user is told what happened.
+    except NoEventFound:
+        raise HTTPException(status_code=422, detail=NO_EVENT_MESSAGE)
+    except ParserUnavailable as e:
+        logger.error(f"Parser unavailable: {safe(str(e))}")
+        raise HTTPException(status_code=503, detail=PARSER_UNAVAILABLE_MESSAGE)
     except Exception as e:
-        logger.error(f"Error parsing event: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to parse event: {str(e)}")
+        logger.error(f"Error parsing event: {safe(str(e))}")
+        raise HTTPException(status_code=500, detail=PARSE_FAILED_MESSAGE)
 
 @app.post("/confirm_event", response_model=EventResponse)
 async def confirm_event(parsed_event: ParsedEvent, user_id: str = Query(None)):

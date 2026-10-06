@@ -261,7 +261,7 @@ const Popup = () => {
     } else if (state === "stalled") {
       showMessage("Parsing was interrupted. Please try again.", "error");
     } else {
-      showMessage(`Failed to parse event: ${job.error}`, "error");
+      showMessage(job.error || "Something went wrong reading that. Please try again.", "error");
     }
   };
 

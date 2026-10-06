@@ -145,10 +145,13 @@ class Prompt2CalBackground {
       await this.finishParseJob(jobId, { status: "done", response: data });
     } catch (error) {
       console.error("Background parse failed:", error);
-      await this.finishParseJob(jobId, {
-        status: "error",
-        error: error.message || "Failed to parse event",
-      });
+      // The backend's messages are written for the user; a fetch that never
+      // reached it throws a TypeError with nothing useful to show.
+      const message =
+        error instanceof TypeError
+          ? "Couldn't reach Prompt2Cal. Check your connection and try again."
+          : error.message || "Something went wrong reading that. Please try again.";
+      await this.finishParseJob(jobId, { status: "error", error: message });
     }
   }
 

@@ -50,7 +50,7 @@ class StubLLMParser:
     def __init__(self, *events):
         self.events = events
 
-    async def parse(self, text, tz_name):
+    async def parse(self, text, tz_name, **kwargs):
         return [event.model_copy() for event in self.events]
 
 
@@ -178,3 +178,31 @@ def test_explicit_end_range_is_not_assumed(event_parser):
     end = datetime.fromisoformat(event.end_time)
     assert end.hour == 8
     assert start.hour == 6
+
+
+class FailingLLMParser:
+    """A model that cannot be reached, as when the API credit runs out."""
+
+    async def parse(self, text, tz_name, raise_on_failure=False, **kwargs):
+        if raise_on_failure:
+            from backend.services.parse_errors import ParserUnavailable
+
+            raise ParserUnavailable("credit balance is too low")
+        return []
+
+
+@pytest.mark.parametrize("text", ["Dinner with Sam soon", "Lunch and coffee sometime"])
+def test_an_unreachable_model_is_reported_not_replaced_by_an_invented_event(event_parser, text):
+    from backend.services.parse_errors import ParserUnavailable
+
+    event_parser.intelligent_parser = FailingLLMParser()
+    with pytest.raises(ParserUnavailable):
+        asyncio.run(event_parser.parse_event_text(text, tz_name="Australia/Sydney"))
+
+
+def test_nothing_found_is_reported_not_replaced_by_an_invented_event(event_parser):
+    from backend.services.parse_errors import NoEventFound
+
+    event_parser.intelligent_parser = StubLLMParser()
+    with pytest.raises(NoEventFound):
+        asyncio.run(event_parser.parse_event_text("hmm not sure", tz_name="Australia/Sydney"))
