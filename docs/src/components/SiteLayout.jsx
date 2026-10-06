@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Icon from "./Icon";
 import { CHROME_STORE_URL, GITHUB_URL } from "../links";
 
@@ -25,6 +25,22 @@ export function AddToChrome({ className = "", children = "Add to Chrome" }) {
 function SiteNav() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // On the home page the address may not change (it is already "/"), so the
+  // logo scrolls back to the top itself, dropping any #section from the URL.
+  const goHome = (event) => {
+    if (location.pathname !== "/") return;
+    event.preventDefault();
+    setOpen(false);
+    // Clearing a #section changes the address, and the layout then scrolls to
+    // the top itself; scrolling here too would make the two fight.
+    if (location.hash) {
+      navigate("/");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   // Close the phone menu after following a link.
   useEffect(() => setOpen(false), [location.pathname, location.hash]);
@@ -32,7 +48,7 @@ function SiteNav() {
   return (
     <header className="nav">
       <div className="nav-inner">
-        <Link to="/" className="nav-brand" aria-label="Prompt2Cal home">
+        <Link to="/" className="nav-brand" aria-label="Prompt2Cal home" onClick={goHome}>
           <Wordmark />
         </Link>
         <nav className={`nav-links ${open ? "is-open" : ""}`} aria-label="Main">
