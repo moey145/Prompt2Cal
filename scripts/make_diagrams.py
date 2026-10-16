@@ -75,37 +75,45 @@ def pipeline(outdir):
     return path + ".png"
 
 
-FAIL = {"style": "filled,rounded", "shape": "box", "fillcolor": "#FFEBEE", "color": "#C62828"}
+# Figure 6 keeps the look of the report's original hand-drawn user flow:
+# pill-shaped green ends (class "terminal"), blue steps, peach decisions.
+FLOW_END = {"shape": "box", "style": "rounded,filled", "fillcolor": "#B5EFCB", "color": "#2F8F55", "class": "terminal"}
+FLOW_STEP = {"shape": "box", "style": "rounded,filled", "fillcolor": "#C7DBFA", "color": "#3A6BD4"}
+FLOW_DEC = {"shape": "diamond", "style": "filled", "fillcolor": "#F7D3B0", "color": "#A9581B"}
+FLOW_SEES = {"shape": "box", "style": "rounded,filled", "fillcolor": "#F7D3B0", "color": "#A9581B"}
+FLOW_STOP = {"shape": "box", "style": "rounded,filled", "fillcolor": "#F8D4D4", "color": "#B23B3B", "class": "terminal"}
 
 
 def userflow_graph():
     """Figure 6: what the user does and sees, from any way in to a confirmed event."""
     d = new_graph("userflow")
-    d.attr(dpi="200")
+    d.attr(dpi="200", nodesep="0.45", ranksep="0.5")
+    d.attr("node", fontname="Arial", fontsize="10", margin="0.22,0.1", penwidth="1.2")
+    d.attr("edge", color="#111111", fontname="Arial", fontsize="8", arrowsize="0.8")
 
-    d.node("s", "User has event details\nin an email, message or web page", **START)
+    d.node("s", "User has event details in an email, message, or page", **FLOW_END)
 
     # Three ways in, side by side.
     with d.subgraph() as row:
         row.attr(rank="same")
-        row.node("type", "Types or speaks the event\nin the popup", **PROC)
-        row.node("select", "Selects text on a page and\nchooses Add to calendar\nfrom the right-click menu", **PROC)
-        row.node("slot", "Picks an open time in\nFind a free time", **PROC)
+        row.node("type", "Opens the extension and types,\npastes, or speaks the event", **FLOW_STEP)
+        row.node("select", "Selects text on a page and chooses\nAdd to calendar from the right-click menu", **FLOW_STEP)
+        row.node("slot", "Picks an open time\nin Find a free time", **FLOW_STEP)
 
-    d.node("read", "Prompt2Cal reads the text\n(it keeps going if the popup is closed;\nthe toolbar badge shows when it is ready)", **PROC)
-    d.node("q0", "Event found\nin the text?", **DEC)
-    d.node("none", "Told no event was found, or that\nthe service is unavailable;\nnothing is created", **FAIL)
+    d.node("read", "Prompt2Cal reads the text, even if the popup is closed", **FLOW_STEP)
+    d.node("q0", "Event found\nin the text?", **FLOW_DEC)
+    d.node("none", "Told no event was found,\nnothing is created", **FLOW_STOP)
 
-    d.node("preview", "Reviews the event\nin the preview", **SEES)
-    d.node("cancel", "Cancels at any point,\nnothing is saved", **END)
-    d.node("q1", "Any detail not\nin the text?", **DEC)
-    d.node("flags", 'Those details are highlighted;\na default end time is\nlabelled "assumed"', **WARN)
-    d.node("q2", "Clashes with an\nexisting event?", **DEC)
-    d.node("clash", "Sees a clash warning with the\nnearest free times; one click\nmoves the event", **WARN)
-    d.node("q3", "Details\ncorrect?", **DEC)
-    d.node("edit", "Edits the event: time, place,\nguests, colour or category,\nreminder", **PROC)
-    d.node("confirm", "Clicks Create Event", **PROC)
-    d.node("done", "Event added to their\nGoogle or Outlook calendar", **END)
+    d.node("preview", "Reviews the extracted event in the preview", **FLOW_STEP)
+    d.node("cancel", "Discards event at any point,\nnothing is saved", **FLOW_END)
+    d.node("q1", "Are any fields missing\nfrom the text?", **FLOW_DEC)
+    d.node("flags", "Sees those fields highlighted as not in\nyour text, assumed values labelled", **FLOW_SEES)
+    d.node("q2", "Clashes with an\nexisting event?", **FLOW_DEC)
+    d.node("clash", "Sees a clash warning with\nthe nearest free times", **FLOW_SEES)
+    d.node("q3", "Details correct?", **FLOW_DEC)
+    d.node("edit", "Edits or fills in the event details", **FLOW_STEP)
+    d.node("confirm", "Confirms event, optionally setting\nevent colours and reminders", **FLOW_STEP)
+    d.node("done", "Event added to their calendar", **FLOW_END)
 
     # Each side outcome sits level with the step it branches from, which keeps
     # the diagram short enough for a page.
@@ -121,22 +129,22 @@ def userflow_graph():
     d.edge("type", "read")
     d.edge("select", "read")
     d.edge("read", "q0")
-    d.edge("q0", "none", xlabel="  no")
-    d.edge("q0", "preview", xlabel="  yes")
+    d.edge("q0", "none", label=" No")
+    d.edge("q0", "preview", label=" Yes")
     # A picked time opens the editor with that time already filled in.
-    d.edge("slot", "edit", xlabel="  time filled in")
-    # Cancelling is available throughout, so it hangs off the preview.
-    d.edge("preview", "cancel", style="dashed", constraint="false", xlabel="  cancel")
+    d.edge("slot", "edit", label=" Time filled in")
+    # Discarding is available throughout, so it hangs off the preview.
+    d.edge("preview", "cancel", style="dashed", constraint="false", label=" Discard")
     d.edge("preview", "q1")
-    d.edge("q1", "flags", xlabel="  yes")
-    d.edge("q1", "q2", xlabel="  no")
+    d.edge("q1", "flags", label=" Yes")
+    d.edge("q1", "q2", label=" No")
     d.edge("flags", "q2")
-    d.edge("q2", "clash", xlabel="  yes")
-    d.edge("q2", "q3", xlabel="  no")
+    d.edge("q2", "clash", label=" Yes")
+    d.edge("q2", "q3", label=" No")
     d.edge("clash", "q3")
-    d.edge("q3", "confirm", xlabel="  yes")
-    d.edge("q3", "edit", xlabel="  no")
-    d.edge("edit", "preview", style="dashed", xlabel="  recheck")
+    d.edge("q3", "confirm", label=" Yes")
+    d.edge("q3", "edit", label=" No")
+    d.edge("edit", "preview", style="dashed", label=" Recheck")
     d.edge("confirm", "done")
     return d
 
