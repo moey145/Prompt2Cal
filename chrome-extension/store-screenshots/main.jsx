@@ -415,11 +415,16 @@ SCREENS.marquee = () => (
   </div>
 );
 
-// Capstone report: Figure 7 (the core review flow) and Figure 8 (the newer
-// features), each a labelled grid of panels on white, cropped by capture.py.
-const Panel = ({ label, wide = false, hero = false, children }) => (
+// Capstone report: Figure 7 (core scenarios) and Figure 8 (extended
+// scenarios), each a grid of panels on white, cropped by capture.py. Each
+// panel is one user scenario: a title, then what the user does and gets, with
+// the user stories from Table 13 it satisfies.
+const Panel = ({ label, detail, wide = false, hero = false, children }) => (
   <div className={`report-panel ${wide ? "report-wide" : ""} ${hero ? "" : "no-hero"}`}>
-    <div className="report-label">{label}</div>
+    <div className="report-label">
+      {label}
+      {detail && <span className="report-detail">{detail}</span>}
+    </div>
     {children}
   </div>
 );
@@ -434,13 +439,22 @@ const NO_EVENT_MESSAGE =
 
 SCREENS["report-fig7"] = () => (
   <ReportFigure>
-    <Panel label="(a) An event read from plain English">
+    <Panel
+      label="(a) Scenario 1, a clear request"
+      detail="“Dinner with Sarah next Thursday at 7pm at Nando's” gives a preview ready to create (US-01, US-02)"
+    >
       {VISUALS.input()}
     </Panel>
-    <Panel label="(b) Details not in the text highlighted, end time assumed">
+    <Panel
+      label="(b) Scenario 2, missing details"
+      detail="“Coffee with Alex on Friday” gives a guessed time highlighted and the end time assumed (US-03, US-04)"
+    >
       {VISUALS.review()}
     </Panel>
-    <Panel label="(c) Editing the event before it is created">
+    <Panel
+      label="(c) Scenario 3, correcting before creating"
+      detail="The user fixes the details in the edit dialog (US-05)"
+    >
       <EditEventModal
         event={{
           title: "Coffee with Alex",
@@ -466,7 +480,10 @@ SCREENS["report-fig7"] = () => (
         categories={[]}
       />
     </Panel>
-    <Panel label="(d) Nothing is created when no event is found">
+    <Panel
+      label="(d) Scenario 4, no event in the text"
+      detail="“hmm, not sure yet” gives a message, and nothing is added (US-11)"
+    >
       <Popup>
         <Input text="hmm, not sure yet" />
         <div className="report-toast">
@@ -479,11 +496,25 @@ SCREENS["report-fig7"] = () => (
 
 SCREENS["report-fig8"] = () => (
   <ReportFigure>
-    <Panel label="(a) Adding an event from selected text with the right-click menu; the badge shows it is ready" wide>
+    <Panel
+      label="(a) Scenario 5, adding from an email"
+      detail="Select the text, right-click, and the badge shows when it is ready (US-10)"
+      wide
+    >
       {VISUALS.rightclick()}
     </Panel>
-    <Panel label="(b) A clash with the nearest free times">{VISUALS.clash()}</Panel>
-    <Panel label="(c) Finding a free time">{VISUALS.slots()}</Panel>
+    <Panel
+      label="(b) Scenario 6, a clash with an existing event"
+      detail="The warning offers the nearest free times (US-12)"
+    >
+      {VISUALS.clash()}
+    </Panel>
+    <Panel
+      label="(c) Scenario 7, finding a time first"
+      detail="Pick an open slot, and the editor opens with that time filled in"
+    >
+      {VISUALS.slots()}
+    </Panel>
   </ReportFigure>
 );
 

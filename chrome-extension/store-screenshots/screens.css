@@ -509,3 +509,13 @@ html.report-image body {
 .report-panel .find-slot-results {
   max-height: none;
 }
+
+/* The scenario's one-line description under its title. */
+.report-detail {
+  display: block;
+  margin-top: 3px;
+  color: #444444;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+}
