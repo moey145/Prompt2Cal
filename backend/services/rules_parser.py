@@ -16,6 +16,26 @@ import dateparser
 import pytz
 
 
+# A day or date in the part of the text the rules treat as the title. When one
+# is there ("Client call on Monday with Sam at 3pm - 4pm"), the rules would
+# drop it and guess today or tomorrow, so they leave the input to the LLM.
+_DAY_OR_DATE = re.compile(
+    r"\b(?:"
+    r"(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday"
+    r"|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)s?"
+    r"|january|february|march|april|may|june|july|august|september|october|november|december"
+    r"|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec"
+    r"|today|tonight|tomorrow|tmrw|next|weekend|fortnight"
+    r"|\d{1,2}(?:st|nd|rd|th)|\d{1,2}/\d{1,2}(?:/\d{2,4})?"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _names_a_day(title: str) -> bool:
+    return bool(_DAY_OR_DATE.search(title))
+
+
 @dataclass
 class RuleEvent:
     """Intermediate event object produced by the rules parser."""
@@ -67,6 +87,8 @@ class RulesParser:
             return []
 
         title = match.group("title").strip().rstrip(",")
+        if _names_a_day(title):
+            return []
         start_time = f"{match.group('day')} at {match.group('start')}"
         end_time = f"{match.group('day')} at {match.group('end')}"
         duration = self._duration_minutes(start_time, end_time)
@@ -155,6 +177,8 @@ class RulesParser:
             return []
 
         title = match.group("title").strip().rstrip(",")
+        if _names_a_day(title):
+            return []
         start_time = match.group("start")
         end_time = match.group("end")
         now = datetime.now(self.tz)
@@ -184,6 +208,8 @@ class RulesParser:
             return []
 
         title = match.group("title").strip().rstrip(",")
+        if _names_a_day(title):
+            return []
         rel = match.group("relative")
 
         # Extract time from the title if present (e.g., "Meeting 7pm tomorrow")

@@ -77,3 +77,24 @@ def test_parse_with_rules(text, timezone, expected):
             datetime.fromisoformat(event.start.replace("Z", "+00:00"))
         except:
             assert False, f"start should be valid ISO format, got: {event.start}"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Client call on Monday with Sam at 3pm -4pm",
+        "Meeting tomorrow at 3pm-4pm",
+        "Dinner on the 12th at 7pm - 9pm",
+        "Team sync next week at 10am - 11am",
+        "Catch up with Sam on Friday in 2 hours",
+    ],
+)
+def test_a_day_before_the_time_is_left_to_the_llm(text):
+    # The rules would drop the day and guess today or tomorrow, so they stay out.
+    assert parse_with_rules(text, "Australia/Sydney") == []
+
+
+@pytest.mark.parametrize("text", ["Workshop at 1pm-5pm", "Gym session at 6pm - 7pm", "Call with Sunny at 2pm-3pm"])
+def test_a_plain_time_range_still_uses_the_rules(text):
+    events = parse_with_rules(text, "Australia/Sydney")
+    assert events and events[0].end
