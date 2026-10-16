@@ -70,3 +70,17 @@ Both scripts share one palette so the figures stay consistent:
 
 Charts are written at 200 dpi, which is sharp enough for print at the sizes
 used in the report.
+
+## Interface figures (Figures 6 to 8)
+
+- `fig6_userflow.png`: the user flow, from `userflow()` in `scripts/make_diagrams.py`.
+- `fig7_interface.png` (the review flow) and `fig8_features.png` (right-click,
+  clash warning, finding a free time): built from the extension's real
+  components with sample data. From `chrome-extension/`:
+
+```bash
+python store-screenshots/capture.py
+```
+
+That command also refreshes the Chrome Web Store images and the website's
+popup images. Dates in the panels come from the day it is run.

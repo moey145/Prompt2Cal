@@ -401,3 +401,111 @@ html.site-image body {
 .site-visual .shot-popup {
   zoom: 1;
 }
+
+/* Capstone report figures: labelled panels on white, two to a row. */
+html.report-image,
+html.report-image body {
+  background: #ffffff;
+}
+
+.report-figure {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 452px);
+  align-items: start;
+  gap: 30px 32px;
+  padding: 28px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.report-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-wide {
+  grid-column: 1 / -1;
+}
+
+.report-label {
+  color: #111111;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.report-panel .shot-popup {
+  zoom: 1;
+  width: 100%;
+  border: 1px solid #cfd6df;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.report-panel.no-hero .hero {
+  display: none;
+}
+
+.report-panel.no-hero .header {
+  padding: 52px 24px 0;
+}
+
+.report-panel .shot-browser {
+  width: 100%;
+  border: 1px solid #cfd6df;
+  box-shadow: none;
+}
+
+.report-panel .shot-email {
+  min-height: 470px;
+}
+
+.report-panel .shot-menu {
+  left: 420px;
+}
+
+/* The edit dialog, shown in place rather than over a dimmed popup. */
+.report-panel .modal-overlay {
+  position: static;
+  display: block;
+  background: none;
+}
+
+/* As tall as it is in the real popup, where the fields scroll and Save stays
+   in view. */
+.report-panel .edit-dialog {
+  width: 100%;
+  max-width: none;
+  max-height: 600px;
+  border-color: #cfd6df;
+  box-shadow: none;
+}
+
+.report-toast {
+  margin: 0 16px 16px;
+}
+
+.report-toast .toast {
+  min-width: 0;
+  max-width: none;
+  animation: none;
+  box-shadow: none;
+  border: 1px solid #fecaca;
+  border-left-width: 4px;
+}
+
+.report-toast .toast-progress-bar {
+  display: none;
+}
+
+/* The dialog selects its title on opening; keep that out of the figure. */
+.report-panel input::selection {
+  background: transparent;
+  color: inherit;
+}
+
+/* Show every free time in the report, not the popup's scrolling list. */
+.report-panel .find-slot-results {
+  max-height: none;
+}

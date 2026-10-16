@@ -75,30 +75,58 @@ def pipeline(outdir):
     return path + ".png"
 
 
-def userflow(outdir):
-    """Figure 6: what the user does and sees, from input to confirmed event."""
+FAIL = {"style": "filled,rounded", "shape": "box", "fillcolor": "#FFEBEE", "color": "#C62828"}
+
+
+def userflow_graph():
+    """Figure 6: what the user does and sees, from any way in to a confirmed event."""
     d = new_graph("userflow")
+    d.attr(dpi="200")
 
-    d.node("s", "User has event details\nin an email, message, or page", **START)
-    d.node("open", "Opens the extension", **PROC)
-    d.node("input", "Types, pastes, speaks,\nor selects text on the page", **PROC)
-    d.node("preview", "Reviews the extracted event\nin the preview", **SEES)
-    d.node("cancel", "Discards at any point,\nnothing is saved", **END)
+    d.node("s", "User has event details\nin an email, message or web page", **START)
 
-    d.node("q1", "Any field missing\nfrom the text?", **DEC)
-    d.node("flags", 'Sees those fields flagged as\n"not found in your text",\nassumed values labelled', **WARN)
+    # Three ways in, side by side.
+    with d.subgraph() as row:
+        row.attr(rank="same")
+        row.node("type", "Types or speaks the event\nin the popup", **PROC)
+        row.node("select", "Selects text on a page and\nchooses Add to calendar\nfrom the right-click menu", **PROC)
+        row.node("slot", "Picks an open time in\nFind a free time", **PROC)
+
+    d.node("read", "Prompt2Cal reads the text\n(it keeps going if the popup is closed;\nthe toolbar badge shows when it is ready)", **PROC)
+    d.node("q0", "Event found\nin the text?", **DEC)
+    d.node("none", "Told no event was found, or that\nthe service is unavailable;\nnothing is created", **FAIL)
+
+    d.node("preview", "Reviews the event\nin the preview", **SEES)
+    d.node("cancel", "Cancels at any point,\nnothing is saved", **END)
+    d.node("q1", "Any detail not\nin the text?", **DEC)
+    d.node("flags", 'Those details are highlighted;\na default end time is\nlabelled "assumed"', **WARN)
     d.node("q2", "Clashes with an\nexisting event?", **DEC)
-    d.node("clash", "Sees a clash warning", **WARN)
+    d.node("clash", "Sees a clash warning with the\nnearest free times; one click\nmoves the event", **WARN)
     d.node("q3", "Details\ncorrect?", **DEC)
-    d.node("edit", "Edits or fills in\nthe flagged field", **PROC)
-    d.node("confirm", "Confirms, optionally setting\ncalendar, colour, and reminders", **PROC)
-    d.node("done", "Event added to their calendar", **END)
+    d.node("edit", "Edits the event: time, place,\nguests, colour or category,\nreminder", **PROC)
+    d.node("confirm", "Clicks Create Event", **PROC)
+    d.node("done", "Event added to their\nGoogle or Outlook calendar", **END)
 
-    d.edge("s", "open")
-    d.edge("open", "input")
-    d.edge("input", "preview")
-    # discard is available throughout, so it hangs off the preview
-    d.edge("preview", "cancel", style="dashed", constraint="false", xlabel="  discard")
+    # Each side outcome sits level with the step it branches from, which keeps
+    # the diagram short enough for a page.
+    for pair in (("q0", "none"), ("preview", "cancel"), ("q1", "flags"), ("q2", "clash")):
+        with d.subgraph() as level:
+            level.attr(rank="same")
+            for node in pair:
+                level.node(node)
+
+    d.edge("s", "type")
+    d.edge("s", "select")
+    d.edge("s", "slot")
+    d.edge("type", "read")
+    d.edge("select", "read")
+    d.edge("read", "q0")
+    d.edge("q0", "none", xlabel="  no")
+    d.edge("q0", "preview", xlabel="  yes")
+    # A picked time opens the editor with that time already filled in.
+    d.edge("slot", "edit", xlabel="  time filled in")
+    # Cancelling is available throughout, so it hangs off the preview.
+    d.edge("preview", "cancel", style="dashed", constraint="false", xlabel="  cancel")
     d.edge("preview", "q1")
     d.edge("q1", "flags", xlabel="  yes")
     d.edge("q1", "q2", xlabel="  no")
@@ -110,9 +138,12 @@ def userflow(outdir):
     d.edge("q3", "edit", xlabel="  no")
     d.edge("edit", "preview", style="dashed", xlabel="  recheck")
     d.edge("confirm", "done")
+    return d
 
+
+def userflow(outdir):
     path = os.path.join(outdir, "fig6_userflow")
-    d.render(path, cleanup=True)
+    userflow_graph().render(path, cleanup=True)
     return path + ".png"
 
 

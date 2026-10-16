@@ -19,7 +19,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 HERE = Path(__file__).resolve().parent
 EXTENSION = HERE.parent
@@ -27,6 +27,9 @@ SITE_IMAGES_DIR = EXTENSION.parent / "docs" / "public" / "images"
 # Visuals for prompt2cal.com: transparent, cropped, at 2x for sharp screens.
 SITE_IMAGES = ["input", "review", "clash", "slots", "rightclick"]
 BUILD = HERE / "build"
+# Capstone report figures: labelled panel grids on white, at 2x for print.
+REPORT_DIR = EXTENSION.parent / "report" / "figures"
+REPORT_FIGURES = [("fig7_interface", "report-fig7"), ("fig8_features", "report-fig8")]
 # (file name, page hash, size): five screenshots and the two promo tiles.
 IMAGES = [(f"prompt2cal-screenshot-{n}", str(n), (1280, 800)) for n in range(1, 6)] + [
     ("prompt2cal-promo-small", "small", (440, 280)),
@@ -126,6 +129,17 @@ def main() -> None:
             image.save(final, "WEBP", quality=88, method=6)
             raw.unlink()
             print(f"wrote {final} ({image.size[0]}x{image.size[1]}, {final.stat().st_size // 1024} KB)")
+        for name, page in REPORT_FIGURES:
+            raw = REPORT_DIR / f"raw-{name}.png"
+            url = f"http://127.0.0.1:{port}/index.html#{page}"
+            capture(chrome, url, raw, (1000, 2000), scale=2)
+            image = Image.open(raw).convert("RGB")
+            # Trim the white page down to the figure itself.
+            image = image.crop(ImageChops.difference(image, Image.new("RGB", image.size, "white")).getbbox())
+            final = REPORT_DIR / f"{name}.png"
+            image.save(final, "PNG")
+            raw.unlink()
+            print(f"wrote {final} ({image.size[0]}x{image.size[1]})")
     finally:
         server.shutdown()
 

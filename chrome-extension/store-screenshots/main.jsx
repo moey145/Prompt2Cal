@@ -18,6 +18,8 @@ import logoUrl from "../icons/Logo.svg";
 import { EventInputSection } from "../src/components/EventInputSection";
 import { SingleEventCard } from "../src/components/SingleEventCard";
 import { FindSlotPanel } from "../src/components/FindSlotPanel";
+import { EditEventModal } from "../src/components/EditEventModal";
+import { Toast } from "../src/components/Toast";
 
 // The components read a few chrome.* APIs; these stand-ins return the saved
 // slot-finder choices the screenshots show.
@@ -45,6 +47,15 @@ const at = (dayOffset, hour, minute = 0) => {
 };
 
 /** Days until the next given weekday (0 = Sunday), at least 2 days out. */
+// The first three weekdays from today, as day offsets: the free-time sample
+// leaves weekends out, as the slot finder does by default.
+const WEEKDAYS = [];
+for (let offset = 0; WEEKDAYS.length < 3; offset += 1) {
+  const day = new Date();
+  day.setDate(day.getDate() + offset);
+  if (day.getDay() !== 0 && day.getDay() !== 6) WEEKDAYS.push(offset);
+}
+
 const daysUntil = (weekday) => {
   const today = new Date().getDay();
   let days = (weekday - today + 7) % 7;
@@ -210,8 +221,8 @@ const VISUALS = {
             [2, 11],
             [2, 15],
           ].map(([day, hour, minute = 0]) => ({
-            start: at(day, hour, minute),
-            end: at(day, hour + 1, minute),
+            start: at(WEEKDAYS[day], hour, minute),
+            end: at(WEEKDAYS[day], hour + 1, minute),
             formatted_start: "",
           })),
         ]}
@@ -402,6 +413,78 @@ SCREENS.marquee = () => (
       />
     </div>
   </div>
+);
+
+// Capstone report: Figure 7 (the core review flow) and Figure 8 (the newer
+// features), each a labelled grid of panels on white, cropped by capture.py.
+const Panel = ({ label, wide = false, hero = false, children }) => (
+  <div className={`report-panel ${wide ? "report-wide" : ""} ${hero ? "" : "no-hero"}`}>
+    <div className="report-label">{label}</div>
+    {children}
+  </div>
+);
+
+const ReportFigure = ({ children }) => {
+  document.documentElement.classList.add("report-image");
+  return <div className="report-figure">{children}</div>;
+};
+
+const NO_EVENT_MESSAGE =
+  "Couldn't find an event in that text. Try saying what it is and when, like \"Lunch with Sam on Friday at 1pm\".";
+
+SCREENS["report-fig7"] = () => (
+  <ReportFigure>
+    <Panel label="(a) An event read from plain English">
+      {VISUALS.input()}
+    </Panel>
+    <Panel label="(b) Details not in the text highlighted, end time assumed">
+      {VISUALS.review()}
+    </Panel>
+    <Panel label="(c) Editing the event before it is created">
+      <EditEventModal
+        event={{
+          title: "Coffee with Alex",
+          start_time: at(friday, 10),
+          end_time: at(friday, 11),
+          location: "Cafe on George St",
+          recurrence_type: "none",
+        }}
+        attendees={["alex@example.com"]}
+        attendeeInput=""
+        setAttendeeInput={noop}
+        onAddAttendee={noop}
+        onRemoveAttendee={noop}
+        selectedColor="#039be5"
+        setSelectedColor={noop}
+        selectedReminder="15"
+        setSelectedReminder={noop}
+        onFieldChange={noop}
+        onSave={noop}
+        onCancel={noop}
+        loading={false}
+        calendarProvider="google"
+        categories={[]}
+      />
+    </Panel>
+    <Panel label="(d) Nothing is created when no event is found">
+      <Popup>
+        <Input text="hmm, not sure yet" />
+        <div className="report-toast">
+          <Toast id={1} type="error" message={NO_EVENT_MESSAGE} onClose={noop} />
+        </div>
+      </Popup>
+    </Panel>
+  </ReportFigure>
+);
+
+SCREENS["report-fig8"] = () => (
+  <ReportFigure>
+    <Panel label="(a) Adding an event from selected text with the right-click menu; the badge shows it is ready" wide>
+      {VISUALS.rightclick()}
+    </Panel>
+    <Panel label="(b) A clash with the nearest free times">{VISUALS.clash()}</Panel>
+    <Panel label="(c) Finding a free time">{VISUALS.slots()}</Panel>
+  </ReportFigure>
 );
 
 // For prompt2cal.com: each visual alone on a transparent page, cropped by
