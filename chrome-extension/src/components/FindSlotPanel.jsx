@@ -20,6 +20,12 @@ import {
 const START_HOURS = Array.from({ length: 24 }, (_, hour) => hour); // midnight to 11pm
 const END_HOURS = Array.from({ length: 24 }, (_, i) => i + 1); // 1am to midnight
 
+// Which days to search; a choice like the rows above it, not an extra.
+const DAY_OPTIONS = [
+  { value: false, label: "Weekdays" },
+  { value: true, label: "Every day" },
+];
+
 const RANGE_OPTIONS = [
   { value: 1, label: "Today" },
   { value: 3, label: "3 days" },
@@ -67,12 +73,13 @@ const NumberField = ({ model, toModel, fromModel, onCommit, ...inputProps }) => 
   );
 };
 
-// Preset chips plus "Custom", which opens a box for any other value. A saved
-// value that is not a preset opens the box on its own.
+// Preset chips plus, when renderCustom is given, "Custom", which opens a box
+// for any other value. A saved value that is not a preset opens the box on
+// its own.
 const ChipGroup = ({ label, options, value, onChange, renderCustom }) => {
   const [customOpen, setCustomOpen] = useState(false);
   const isPreset = options.some((option) => option.value === value);
-  const showCustom = customOpen || !isPreset;
+  const showCustom = Boolean(renderCustom) && (customOpen || !isPreset);
 
   return (
     <div className="find-slot-row">
@@ -96,15 +103,17 @@ const ChipGroup = ({ label, options, value, onChange, renderCustom }) => {
             </button>
           );
         })}
-        <button
-          type="button"
-          role="radio"
-          aria-checked={showCustom}
-          className={`find-slot-chip ${showCustom ? "selected" : ""}`}
-          onClick={() => setCustomOpen(true)}
-        >
-          Custom
-        </button>
+        {renderCustom && (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={showCustom}
+            className={`find-slot-chip ${showCustom ? "selected" : ""}`}
+            onClick={() => setCustomOpen(true)}
+          >
+            Custom
+          </button>
+        )}
         {showCustom && <span className="find-slot-custom">{renderCustom()}</span>}
       </div>
     </div>
@@ -299,17 +308,12 @@ export const FindSlotPanel = ({ onFindSlots, onPickSlot, onClose }) => {
               </select>
             </div>
           </div>
-          <div className="find-slot-row">
-            <span className="find-slot-row-label" />
-            <label className="find-slot-toggle">
-              <input
-                type="checkbox"
-                checked={prefs.includeWeekends}
-                onChange={(e) => updatePrefs({ includeWeekends: e.target.checked })}
-              />
-              Include weekends
-            </label>
-          </div>
+          <ChipGroup
+            label="Days"
+            options={DAY_OPTIONS}
+            value={Boolean(prefs.includeWeekends)}
+            onChange={(includeWeekends) => updatePrefs({ includeWeekends })}
+          />
         </>
       )}
 

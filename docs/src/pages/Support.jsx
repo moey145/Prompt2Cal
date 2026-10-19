@@ -51,7 +51,7 @@ const TOPICS = [
       },
       {
         q: "What does Find a free time do?",
-        a: "Click the calendar icon beside the gear. Choose a length, how far ahead to look and which hours, and Prompt2Cal lists the open times in your calendar, keeping 15 minutes clear around existing events. Weekends are left out unless you tick Include weekends. Click a time to start an event there.",
+        a: "Click the calendar icon beside the gear. Choose a length, how far ahead to look and which hours, and Prompt2Cal lists the open times in your calendar, keeping 15 minutes clear around existing events. It searches weekdays unless you choose Every day. Click a time to start an event there.",
       },
       {
         q: "Can I close the popup while it's working?",
