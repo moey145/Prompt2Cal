@@ -348,3 +348,43 @@
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+
+.edit-ends-row {
+  margin-top: 8px;
+}
+
+.edit-segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.edit-segment {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.edit-segment:hover {
+  color: var(--text-primary);
+}
+
+.edit-segment.selected {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.edit-segment:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}

@@ -30,6 +30,12 @@ import {
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+const END_MODES = [
+  { value: "never", label: "Never" },
+  { value: "count", label: "After" },
+  { value: "date", label: "On date" },
+];
+
 const Field = ({ label, htmlFor, error, hint, children }) => (
   <div className="edit-field">
     <label className="edit-label" htmlFor={htmlFor}>
@@ -221,70 +227,78 @@ export const EditEventModal = ({
               </select>
 
               {isRecurring && (
-                <>
+                <label className="edit-inline-text">
+                  every
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    className="edit-input edit-number"
+                    aria-label="Repeat interval"
+                    value={event.recurrence_interval || 1}
+                    onChange={(e) =>
+                      onFieldChange(
+                        "recurrence_interval",
+                        Math.max(1, parseInt(e.target.value, 10) || 1)
+                      )
+                    }
+                  />
+                  {intervalUnit}
+                </label>
+              )}
+            </div>
+
+            {isRecurring && (
+              <div className="edit-inline edit-ends-row">
+                <span className="edit-inline-text">Ends</span>
+                {/* Buttons rather than a dropdown: a native dropdown can open
+                    past the popup's edge, where Chrome cuts it off. */}
+                <div className="edit-segmented" role="group" aria-label="When the series ends">
+                  {END_MODES.map((mode) => (
+                    <button
+                      key={mode.value}
+                      type="button"
+                      className={`edit-segment ${endMode === mode.value ? "selected" : ""}`}
+                      aria-pressed={endMode === mode.value}
+                      onClick={() => apply(fieldsForEndMode(mode.value, event))}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+
+                {endMode === "count" && (
                   <label className="edit-inline-text">
-                    every
                     <input
                       type="number"
                       min="1"
-                      max="30"
+                      max="365"
                       className="edit-input edit-number"
-                      aria-label="Repeat interval"
-                      value={event.recurrence_interval || 1}
+                      aria-label="Number of occurrences"
+                      value={event.recurrence_count || 1}
                       onChange={(e) =>
                         onFieldChange(
-                          "recurrence_interval",
+                          "recurrence_count",
                           Math.max(1, parseInt(e.target.value, 10) || 1)
                         )
                       }
                     />
-                    {intervalUnit}
+                    times
                   </label>
+                )}
 
-                  <select
+                {endMode === "date" && (
+                  <input
+                    type="date"
                     className="edit-input edit-input-auto"
-                    aria-label="When the series ends"
-                    value={endMode}
-                    onChange={(e) => apply(fieldsForEndMode(e.target.value, event))}
-                  >
-                    <option value="never">Never ends</option>
-                    <option value="count">Ends after…</option>
-                    <option value="date">Ends on…</option>
-                  </select>
-
-                  {endMode === "count" && (
-                    <label className="edit-inline-text">
-                      <input
-                        type="number"
-                        min="1"
-                        max="365"
-                        className="edit-input edit-number"
-                        aria-label="Number of occurrences"
-                        value={event.recurrence_count || 1}
-                        onChange={(e) =>
-                          onFieldChange(
-                            "recurrence_count",
-                            Math.max(1, parseInt(e.target.value, 10) || 1)
-                          )
-                        }
-                      />
-                      times
-                    </label>
-                  )}
-
-                  {endMode === "date" && (
-                    <input
-                      type="date"
-                      className="edit-input edit-input-auto"
-                      aria-label="Last date of the series"
-                      value={(event.end_date || "").slice(0, 10)}
-                      min={toInputValue(event.start_time).slice(0, 10) || undefined}
-                      onChange={(e) => onFieldChange("end_date", e.target.value)}
-                    />
-                  )}
-                </>
-              )}
-            </div>
+                    aria-label="Last date of the series"
+                    value={(event.end_date || "").slice(0, 10)}
+                    min={toInputValue(event.start_time).slice(0, 10) || undefined}
+                    onChange={(e) => onFieldChange("end_date", e.target.value)}
+                  />
+                )}
+              </div>
+            )}
           </Field>
 
           <Field label="Location" htmlFor="edit-location">
