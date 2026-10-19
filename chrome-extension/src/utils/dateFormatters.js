@@ -46,6 +46,27 @@ export const formatTimeShort = (isoString) => {
   return date.toLocaleString("en-US", options);
 };
 
+/**
+ * The end of an event: just the time when it ends the day it starts, or the
+ * date too when it runs on ("Thu, Nov 5, 5:00 PM"), so a three-day event
+ * doesn't read as a day of 9 to 5.
+ */
+export const formatEndTime = (startIso, endIso) => {
+  if (!endIso) return "";
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  if (!startIso || start.toDateString() === end.toDateString()) {
+    return formatTimeShort(endIso);
+  }
+  return end.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
 /** Format a date or ISO datetime without shifting date-only values across timezones. */
 export const formatDateOnly = (value) => {
   if (!value) return "";

@@ -13,7 +13,12 @@ import {
   Check,
   AlertTriangle,
 } from "lucide-react";
-import { formatDateTimeShort, formatTimeShort, formatDateOnly } from "../utils/dateFormatters";
+import {
+  formatDateOnly,
+  formatDateTimeShort,
+  formatEndTime,
+  formatTimeShort,
+} from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
 import { startsInThePast } from "../utils/eventTiming";
 import { meetingLabels } from "../utils/providerOptions";
@@ -131,7 +136,7 @@ export const BulkEventsCard = ({
                       Starting from
                     </div>
                     <div
-                      className={"event-date-confirm" + fieldClass("start_time")}
+                      className={"event-date-confirm" + fieldClass("start_date")}
                     >
                       {formatDateTimeShort(event.start_time)}
                     </div>
@@ -141,7 +146,7 @@ export const BulkEventsCard = ({
                       </span>{" "}
                       -{" "}
                       <span className={fieldClass("end_time").trim()}>
-                        {formatTimeShort(event.end_time)}
+                        {formatEndTime(event.start_time, event.end_time)}
                       </span>
                       {event.end_time_assumed && (
                         <span className="assumed-label-confirm">assumed</span>
@@ -169,7 +174,7 @@ export const BulkEventsCard = ({
                   <Clock className="event-time-icon-confirm" />
                   <div className="event-time-info-confirm">
                     <div
-                      className={"event-date-confirm" + fieldClass("start_time")}
+                      className={"event-date-confirm" + fieldClass("start_date")}
                     >
                       {formatDateTimeShort(event.start_time)}
                     </div>
@@ -179,7 +184,7 @@ export const BulkEventsCard = ({
                       </span>{" "}
                       -{" "}
                       <span className={fieldClass("end_time").trim()}>
-                        {formatTimeShort(event.end_time)}
+                        {formatEndTime(event.start_time, event.end_time)}
                       </span>
                       {event.end_time_assumed && (
                         <span className="assumed-label-confirm">assumed</span>

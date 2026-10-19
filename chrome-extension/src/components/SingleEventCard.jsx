@@ -13,7 +13,12 @@ import {
   X,
   AlertTriangle,
 } from "lucide-react";
-import { formatDateTimeShort, formatTimeShort, formatDateOnly } from "../utils/dateFormatters";
+import {
+  formatDateOnly,
+  formatDateTimeShort,
+  formatEndTime,
+  formatTimeShort,
+} from "../utils/dateFormatters";
 import { getRecurrenceDescription } from "../utils/recurrenceDescription";
 import { ConflictWarning } from "./ConflictWarning";
 import { startsInThePast } from "../utils/eventTiming";
@@ -88,7 +93,7 @@ export const SingleEventCard = ({
             <Clock className="event-time-icon-confirm" />
             <div className="event-time-info-confirm">
               <div className="event-start-label-confirm">Starting from</div>
-              <div className={"event-date-confirm" + fieldClass("start_time")}>
+              <div className={"event-date-confirm" + fieldClass("start_date")}>
                 {formatDateTimeShort(parsedEvent.start_time)}
               </div>
               <div className="event-time-range-confirm">
@@ -97,7 +102,7 @@ export const SingleEventCard = ({
                 </span>{" "}
                 -{" "}
                 <span className={fieldClass("end_time").trim()}>
-                  {formatTimeShort(parsedEvent.end_time)}
+                  {formatEndTime(parsedEvent.start_time, parsedEvent.end_time)}
                 </span>
                 {parsedEvent.end_time_assumed && (
                   <span className="assumed-label-confirm">assumed</span>
@@ -123,7 +128,7 @@ export const SingleEventCard = ({
           <div className="event-time-row-confirm">
             <Clock className="event-time-icon-confirm" />
             <div className="event-time-info-confirm">
-              <div className={"event-date-confirm" + fieldClass("start_time")}>
+              <div className={"event-date-confirm" + fieldClass("start_date")}>
                 {formatDateTimeShort(parsedEvent.start_time)}
               </div>
               <div className="event-time-range-confirm">
@@ -132,7 +137,7 @@ export const SingleEventCard = ({
                 </span>{" "}
                 -{" "}
                 <span className={fieldClass("end_time").trim()}>
-                  {formatTimeShort(parsedEvent.end_time)}
+                  {formatEndTime(parsedEvent.start_time, parsedEvent.end_time)}
                 </span>
                 {parsedEvent.end_time_assumed && (
                   <span className="assumed-label-confirm">assumed</span>

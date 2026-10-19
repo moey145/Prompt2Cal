@@ -119,3 +119,36 @@ class TestRegexCorroboration:
         event = make_event(start_time=None, end_time=None, title="")
         result = attach_confidence(event, "")
         assert "field_confidence" in result or result is event
+
+
+class TestGuessedClockTime:
+    """A date alone grounds the day, not a time of day the model picked."""
+
+    def flags(self, source, **overrides):
+        return attach_confidence(make_event(**overrides), source)["field_confidence"]
+
+    def test_date_only_flags_the_time_but_not_the_date(self):
+        confidence = self.flags("Coffee with Alex on Friday", title="Coffee with Alex")
+        assert confidence["start_date"] == "grounded"
+        assert confidence["start_time"] == "ungrounded"
+        assert confidence["end_time"] == "ungrounded"
+
+    def test_a_date_range_does_not_ground_working_hours(self):
+        confidence = self.flags(
+            "Conference from 3 to 5 November",
+            title="Conference",
+            start_time="2026-11-03T09:00:00+11:00",
+            end_time="2026-11-05T17:00:00+11:00",
+        )
+        assert confidence["start_time"] == "ungrounded"
+        assert confidence["end_time"] == "ungrounded"
+
+    def test_a_stated_duration_still_grounds_the_end(self):
+        confidence = self.flags("Workshop Friday for 3 hours", title="Workshop")
+        assert confidence["start_time"] == "ungrounded"
+        assert confidence["end_time"] == "grounded"
+
+    def test_stated_times_are_kept(self):
+        assert self.flags("Team meeting Friday at 3pm")["start_time"] != "ungrounded"
+        assert self.flags("Team meeting Tuesday at 1")["start_time"] != "ungrounded"
+        assert self.flags("Team meeting Friday morning")["start_time"] != "ungrounded"

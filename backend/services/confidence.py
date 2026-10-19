@@ -28,7 +28,13 @@ from typing import Any, Dict, Optional
 import pytz
 from rapidfuzz import fuzz
 
-from ..evaluation.verifier import GROUNDED, UNGROUNDED, verify_event
+from ..evaluation.verifier import (
+    GROUNDED,
+    SPELLED_TIME_PATTERN,
+    TIME_PATTERN,
+    UNGROUNDED,
+    verify_event,
+)
 from .date_parser import DateParser
 from .rules_parser import parse_with_rules
 
@@ -144,6 +150,20 @@ def _resolved_regex_event(source: str, tz_name: str) -> Optional[Dict[str, Any]]
     }
 
 
+# A bare hour after "at" ("Tuesday at 1") states a time the verifier's
+# patterns don't catch; "at 3rd" is a date, not a time.
+BARE_HOUR_PATTERN = re.compile(r"\bat\s+\d{1,2}\b(?!\s*(?:st|nd|rd|th)\b)", re.IGNORECASE)
+
+
+def source_states_clock_time(source: str) -> bool:
+    """True when the user gave a time of day, not only a date."""
+    return bool(
+        TIME_PATTERN.search(source)
+        or SPELLED_TIME_PATTERN.search(source)
+        or BARE_HOUR_PATTERN.search(source)
+    )
+
+
 def attach_confidence(
     event_dict: Dict[str, Any],
     source_text: str,
@@ -167,6 +187,16 @@ def attach_confidence(
         # not stated by the user, whatever the verifier found.
         if event_dict.get("end_time_assumed") and confidence.get("end_time") == GROUNDED:
             confidence["end_time"] = UNGROUNDED
+
+        # The verifier grounds a start on a date alone, but the time of day is
+        # a separate claim: "Conference from 3 to 5 November" never said 9am
+        # to 5pm. The date keeps the verifier's verdict as start_date, and
+        # start_time, like end_time, now speaks for the clock time.
+        confidence["start_date"] = confidence.get("start_time")
+        if event_dict.get("start_time") and not source_states_clock_time(source_text):
+            confidence["start_time"] = UNGROUNDED
+            if not duration_minutes_from_source(source_text):
+                confidence["end_time"] = UNGROUNDED
 
         # Research verifier requires "every"/"weekly"; production also accepts
         # "Monday for the next 6 months" as evidence for a weekly series.
