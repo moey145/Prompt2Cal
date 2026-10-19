@@ -15,6 +15,7 @@ from ..models.event_models import ParsedEvent
 from .intelligent_parser import IntelligentEventParser
 from .claude_parser import ClaudeEventParser, DEFAULT_CLAUDE_MODEL
 from .rules_parser import parse_with_rules
+from .date_checks import check_event_dates
 from .weekday_split import says_recurring, split_by_weekday
 from .date_parser import DateParser
 from .event_expander import EventExpander
@@ -132,6 +133,10 @@ class EventParser:
             # Only label the end as assumed when the user did not state a
             # duration or an end range. "for 2 hours" and "to 8am" are stated.
             event.end_time_assumed = not source_states_end_or_duration(source)
+
+        # A repeat the text never asked for, a time already gone, or a series
+        # started at its "until" date: fixed against the user's own words.
+        check_event_dates(event, source, datetime.now(local_tz))
     
     async def is_multiple_events(self, text: str) -> bool:
         """Determine if the input text describes multiple events."""
