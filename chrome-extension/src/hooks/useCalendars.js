@@ -1,11 +1,37 @@
 // Calendar management hook
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { makeApiCall } from "../utils/api";
+
+// The last calendar list per provider, shown while a fresh one loads.
+const savedListKey = (provider) => `prompt2cal_calendars_${provider || "google"}`;
+const selectedKey = (provider) =>
+  provider === "microsoft" ? "selectedMicrosoftCalendarId" : "selectedCalendarId";
 
 export const useCalendars = (userId, isAuthenticated, calendarProvider = "google") => {
   const [calendars, setCalendars] = useState([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState(null);
   const [loadingCalendars, setLoadingCalendars] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    let isMounted = true;
+    const provider = calendarProvider || "google";
+    chrome.storage.local
+      .get([savedListKey(provider), selectedKey(provider)])
+      .then((saved) => {
+        const list = saved[savedListKey(provider)];
+        if (!isMounted || !Array.isArray(list) || !list.length) return;
+        // Only fill an empty list: a fresh one that arrived first is newer.
+        setCalendars((current) => (current.length ? current : list));
+        setSelectedCalendarId(
+          (current) => current || saved[selectedKey(provider)] || list[0]?.id || null
+        );
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, calendarProvider]);
 
   const fetchCalendars = async (userIdValue, providerValue) => {
     try {
@@ -21,11 +47,11 @@ export const useCalendars = (userId, isAuthenticated, calendarProvider = "google
 
       if (response.success && response.calendars) {
         setCalendars(response.calendars);
+        chrome.storage.local
+          .set({ [savedListKey(provider)]: response.calendars })
+          .catch(() => {});
 
-        const storageKey =
-          provider === "microsoft"
-            ? "selectedMicrosoftCalendarId"
-            : "selectedCalendarId";
+        const storageKey = selectedKey(provider);
         const saved = await chrome.storage.local.get([storageKey]);
         const savedId = saved[storageKey];
 
@@ -57,6 +83,8 @@ export const useCalendars = (userId, isAuthenticated, calendarProvider = "google
       }
     } catch (error) {
       console.error("Failed to fetch calendars:", error);
+      // With no reply at all, the saved list is still the best there is.
+      if (!error.status) return;
       setCalendars([]);
       setSelectedCalendarId(null);
     } finally {
@@ -66,11 +94,7 @@ export const useCalendars = (userId, isAuthenticated, calendarProvider = "google
 
   const updateSelectedCalendar = async (calendarId) => {
     setSelectedCalendarId(calendarId);
-    const storageKey =
-      calendarProvider === "microsoft"
-        ? "selectedMicrosoftCalendarId"
-        : "selectedCalendarId";
-    await chrome.storage.local.set({ [storageKey]: calendarId });
+    await chrome.storage.local.set({ [selectedKey(calendarProvider)]: calendarId });
   };
 
   return {

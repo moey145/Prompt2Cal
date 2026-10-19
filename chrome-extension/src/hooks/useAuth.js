@@ -10,12 +10,14 @@ const hasChromeStorage = () =>
   chrome.storage.local &&
   typeof chrome.storage.local.get === "function";
 
-const cacheAuthStatus = async (isAuthed, provider = "google") => {
+const cacheAuthStatus = async (isAuthed, provider = "google", providers = null) => {
   if (!hasChromeStorage()) return;
   try {
     await chrome.storage.local.set({
       prompt2cal_auth_status: isAuthed,
       calendar_provider: provider,
+      // Which calendars are connected, so settings show them on opening.
+      ...(providers ? { prompt2cal_providers: providers } : {}),
     });
   } catch (error) {
     console.error("Failed to cache auth status:", error);
@@ -28,8 +30,10 @@ const readCachedAuthStatus = async () => {
     const result = await chrome.storage.local.get([
       "prompt2cal_auth_status",
       "calendar_provider",
+      "prompt2cal_providers",
     ]);
     return {
+      providers: result.prompt2cal_providers || null,
       authenticated:
         typeof result.prompt2cal_auth_status === "boolean"
           ? result.prompt2cal_auth_status
@@ -61,6 +65,12 @@ export const useAuth = (userId) => {
 
       if (cached.provider) {
         setCalendarProvider(cached.provider);
+      }
+      if (cached.providers) {
+        // Only until the server answers; a fresh map that landed first stays.
+        setProviders((current) =>
+          current.google || current.microsoft ? current : cached.providers
+        );
       }
       if (cached.authenticated === true) {
         setIsAuthenticated(true);
@@ -145,10 +155,17 @@ export const useAuth = (userId) => {
       setProviders(nextProviders);
       setCalendarProvider(activeProvider);
       setIsAuthenticated(authenticated);
-      await cacheAuthStatus(authenticated, activeProvider);
+      await cacheAuthStatus(authenticated, activeProvider, nextProviders);
       return authenticated;
     } catch (error) {
       console.error("Auth check failed:", error);
+      // No reply at all (offline, or the server still starting) says nothing
+      // about the session, so keep showing the saved sign-in.
+      const cached = await readCachedAuthStatus();
+      if (!error.status && cached.authenticated) {
+        setIsAuthenticated(true);
+        return true;
+      }
       setIsAuthenticated(false);
       await cacheAuthStatus(false, calendarProvider);
       return false;
@@ -215,6 +232,7 @@ export const useAuth = (userId) => {
       });
 
       if (response.success) {
+        await chrome.storage.local.remove([`prompt2cal_calendars_${calendarProvider}`]);
         const nextProviders = {
           ...providers,
           [calendarProvider]: false,
@@ -234,11 +252,11 @@ export const useAuth = (userId) => {
         if (fallback) {
           setCalendarProvider(fallback);
           setIsAuthenticated(true);
-          await cacheAuthStatus(true, fallback);
+          await cacheAuthStatus(true, fallback, nextProviders);
           await chrome.storage.local.remove(["selectedCalendarId"]);
         } else {
           setIsAuthenticated(false);
-          await cacheAuthStatus(false, calendarProvider);
+          await cacheAuthStatus(false, calendarProvider, nextProviders);
         }
         return true;
       }
