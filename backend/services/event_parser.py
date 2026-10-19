@@ -15,6 +15,7 @@ from ..models.event_models import ParsedEvent
 from .intelligent_parser import IntelligentEventParser
 from .claude_parser import ClaudeEventParser, DEFAULT_CLAUDE_MODEL
 from .rules_parser import parse_with_rules
+from .weekday_split import says_recurring, split_by_weekday
 from .date_parser import DateParser
 from .event_expander import EventExpander
 from .multiple_event_detector import MultipleEventDetector
@@ -160,141 +161,18 @@ class EventParser:
                 logger.info(f"Intelligent parser returned {len(events)} events")
                         
                 if events:
-                    # If user specified multiple distinct weekdays (e.g., "Saturday and Sunday")
-                    # Check if they want recurring or just this weekend/week
-                    try:
-                        text_lower = text.lower()
-                        weekday_names = [
-                            "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
-                        ]
-                        mentioned_days = [d for d in weekday_names if f" {d}" in f" {text_lower}"]
-                        
-                        # Check for recurring indicators (be more specific to avoid false positives)
-                        import re
-                        has_recurring_indicator = (
-                            "every" in text_lower or
-                            "each" in text_lower or
-                            "weekly" in text_lower or
-                            "daily" in text_lower or
-                            "monthly" in text_lower or
-                            bool(re.search(r'\bfor\s+\d+\s+(weeks?|months?|days?)', text_lower)) or  # "for 4 weeks"
-                            bool(re.search(r'\buntil\s+', text_lower))  # "until December"
-                        )
-                        
-                        if len(mentioned_days) >= 2 and len(events) == 1:
-                            base_event = events[0]
-                            recurrence_str = str(base_event.recurrence_type).lower() if base_event.recurrence_type else "none"
-                            
-                            # Determine if we should split into separate events per weekday
-                            should_split_days = False
-                            force_non_recurring = False
-                            
-                            # If no explicit recurring indicator in text, treat as non-recurring individual events
-                            if not has_recurring_indicator:
-                                logger.info(f"Multiple weekdays mentioned without recurring indicator - treating as individual events")
-                                should_split_days = True
-                                force_non_recurring = True
-                            # If has recurring indicator AND multiple weekdays, split but keep recurrence
-                            elif has_recurring_indicator and recurrence_str in ("weekly", "recurrencetype.weekly"):
-                                logger.info(f"Multiple weekdays with recurring indicator - creating recurring events per weekday")
-                                should_split_days = True
-                                force_non_recurring = False
-                            
-                            if not should_split_days:
-                                # Don't modify the event, let it pass through
-                                pass
-                            else:
-                                # Build a time string from the base event's start time
-                                try:
-                                    base_dt = datetime.fromisoformat(base_event.start_time) if base_event.start_time and base_event.start_time.startswith('20') else None
-                                    if not base_dt:
-                                        # Try to parse natural language time
-                                        if base_event.start_time:
-                                            base_dt = self.date_parser.parse_start_time(base_event.start_time, local_tz)
-                                    
-                                    if base_dt:
-                                        base_dt = base_dt.astimezone(local_tz) if base_dt.tzinfo else local_tz.localize(base_dt)
-                                        hour_12 = base_dt.strftime("%I").lstrip("0") or "12"
-                                        minute = base_dt.strftime("%M")
-                                        ampm = base_dt.strftime("%p").lower()
-                                        time_phrase = f"{hour_12}:{minute}{ampm}" if minute != "00" else f"{hour_12}{ampm}"
-                                    else:
-                                        time_phrase = None
-                                except Exception:
-                                    time_phrase = None
-
-                                # Determine if we should use "this" or "next" based on the original text
-                                text_lower_for_modifier = text.lower()
-                                use_next = bool(re.search(r'\bnext\s+(weekend|week|saturday|sunday|monday|tuesday|wednesday|thursday|friday)\b', text_lower_for_modifier))
-                                modifier = "next" if use_next else "this"
-                                
-                                additional_events = []
-                                for day in mentioned_days:
-                                    # Build a natural phrase like "this sunday at 3pm" or "next saturday at 3pm"
-                                    try:
-                                        if time_phrase:
-                                            phrase = f"{modifier} {day} at {time_phrase}"
-                                        else:
-                                            phrase = f"{modifier} {day}"
-                                        new_start = self.date_parser.parse_start_time(phrase, local_tz)
-                                        if new_start:
-                                            # Use force_non_recurring flag to determine recurrence settings
-                                            cloned = ParsedEvent(
-                                                title=base_event.title,
-                                                start_time=new_start.isoformat(),
-                                                end_time=None,
-                                                duration_minutes=base_event.duration_minutes,
-                                                location=base_event.location,
-                                                notes=base_event.notes,
-                                                recurrence_type="none" if force_non_recurring else base_event.recurrence_type,
-                                                recurrence_count=None if force_non_recurring else base_event.recurrence_count,
-                                                recurrence_interval=1 if force_non_recurring else base_event.recurrence_interval,
-                                                end_date=None if force_non_recurring else base_event.end_date,
-                                                end_after_count=None,
-                                                color=base_event.color,
-                                                reminder=base_event.reminder,
-                                            )
-                                            additional_events.append(cloned)
-                                    except Exception:
-                                        continue
-
-                                # Replace events with the deduplicated list per mentioned days
-                                if additional_events:
-                                    # De-duplicate by weekday (keep one per mentioned day)
-                                    def weekday_key(ev_dt_iso: str) -> int:
-                                        try:
-                                            d = datetime.fromisoformat(ev_dt_iso)
-                                            d = d.astimezone(local_tz) if d.tzinfo else local_tz.localize(d)
-                                            return d.weekday()
-                                        except Exception:
-                                            return -1
-
-                                    seen = set()
-                                    unique_events = []
-                                    for ev in additional_events:
-                                        key = weekday_key(ev.start_time)
-                                        if key not in seen and key != -1:
-                                            seen.add(key)
-                                            unique_events.append(ev)
-                                    if unique_events:
-                                        events = unique_events
-                                        logger.info(f"Split into {len(events)} {'recurring' if not force_non_recurring else 'individual'} events for mentioned weekdays")
-                    except Exception as _e:
-                        logger.debug(f"Multi-weekday split skipped: {_e}")
+                    # "Gym Mon Wed Fri at 6am": the model often returns only the
+                    # first day, so give each listed day its own event.
+                    events = split_by_weekday(
+                        events,
+                        text,
+                        local_tz,
+                        lambda phrase: self.date_parser.parse_start_time(phrase, local_tz),
+                    )
 
                     # Check if multiple events should be treated as non-recurring
                     # If we have multiple events and no recurring indicators in text, they should all be single events
-                    import re
-                    text_lower = text.lower()
-                    has_recurring_indicator = (
-                        "every" in text_lower or
-                        "each" in text_lower or
-                        "weekly" in text_lower or
-                        "daily" in text_lower or
-                        "monthly" in text_lower or
-                        bool(re.search(r'\bfor\s+\d+\s+(weeks?|months?|days?)', text_lower)) or  # "for 4 weeks"
-                        bool(re.search(r'\buntil\s+', text_lower))  # "until December"
-                    )
+                    has_recurring_indicator = says_recurring(text)
                     
                     # If we have multiple events without recurring indicators, force them all to be non-recurring
                     if len(events) > 1 and not has_recurring_indicator:

@@ -28,8 +28,6 @@ def test_one_off_event_alongside_series_is_multiple(text):
     "text",
     [
         "Team standup every Monday at 9am for 3 weeks",
-        "Team meeting every Monday and Wednesday at 9am",
-        "Standup every Monday at 9am, and Wednesday at 5pm",
         "Weekly review every Friday at 4pm, remind me at 3:30pm",
         "Weekly review every Friday at 4pm, ending at 5pm",
         "Gym every Monday at 6:30am to 8am",
@@ -38,3 +36,17 @@ def test_one_off_event_alongside_series_is_multiple(text):
 )
 def test_single_recurring_series_stays_single(text):
     assert not is_multiple(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Gym Mon Wed Fri at 6am",
+        "Team meeting every Monday and Wednesday at 9am",
+        "Standup every Monday at 9am, and Wednesday at 5pm",
+        "Tennis Tuesdays and Thursdays at 7pm",
+    ],
+)
+def test_one_activity_on_several_days_is_multiple(text):
+    # Each day becomes its own event (or series); one event kept only the first day.
+    assert is_multiple(text)

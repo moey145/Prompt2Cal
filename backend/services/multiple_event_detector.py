@@ -10,6 +10,7 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 from .log_safety import safe
+from .weekday_split import mentioned_weekdays
 
 CLAUSE_SPLIT_PATTERN = re.compile(r"[,;]|\.\s+|\s(?:then|also|plus|and)\s")
 CLAUSE_TIME_PATTERN = re.compile(r"\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b")
@@ -245,6 +246,11 @@ class MultipleEventDetector:
             ):
                 logger.info("Single recurring pattern detected - treating as single recurring event, not multiple events")
                 is_multiple = False
+
+            # One activity on several days ("Gym Mon Wed Fri at 6am", "every
+            # Tuesday and Thursday") is an event per day, series or not.
+            if len(mentioned_weekdays(text)) >= 2:
+                is_multiple = True
             
             logger.info(f"Is multiple events: {is_multiple}")
             logger.info(f"Has separator: {has_separator}")
