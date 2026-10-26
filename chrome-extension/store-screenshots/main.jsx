@@ -417,8 +417,8 @@ SCREENS.marquee = () => (
 
 // Capstone report: Figure 7 (core scenarios) and Figure 8 (extended
 // scenarios), each a grid of panels on white, cropped by capture.py. Each
-// panel is one user scenario: a title with the Figure 6 steps it shows, then
-// what the user does and gets, with the user stories from Table 13 it satisfies.
+// panel is one user scenario: a title, then what the user does and gets, with
+// the user stories from Table 13 it satisfies.
 const Panel = ({ label, detail, wide = false, hero = false, children }) => (
   <div className={`report-panel ${wide ? "report-wide" : ""} ${hero ? "" : "no-hero"}`}>
     <div className="report-label">
@@ -450,19 +450,19 @@ const NO_EVENT_MESSAGE =
 SCREENS["report-fig7"] = () => (
   <ReportFigure>
     <Panel
-      label="(a) Scenario 1, a clear request, steps 1 and 5"
+      label="(a) Scenario 1, a clear request"
       detail="“Dinner with Sarah next Thursday at 7pm to 8pm at Nando's” gives a preview ready to create (US-01, US-02)"
     >
       {VISUALS.input()}
     </Panel>
     <Panel
-      label="(b) Scenario 2, missing details, steps 1, 5 and 6"
+      label="(b) Scenario 2, missing details"
       detail="“Coffee with Alex on Friday” gives a guessed time highlighted and the end time assumed (US-03, US-04)"
     >
       {VISUALS.review()}
     </Panel>
     <Panel
-      label="(c) Scenario 3, correcting before creating, step 8"
+      label="(c) Scenario 3, correcting before creating"
       detail="The user fixes the details in the edit dialog (US-05)"
     >
       <EditEventModal
@@ -491,7 +491,7 @@ SCREENS["report-fig7"] = () => (
       />
     </Panel>
     <Panel
-      label="(d) Scenario 4, no event in the text, steps 1 and 4"
+      label="(d) Scenario 4, no event in the text"
       detail="“hmm, not sure yet” gives a message, and nothing is added (US-11)"
     >
       <Popup>
@@ -507,20 +507,20 @@ SCREENS["report-fig7"] = () => (
 SCREENS["report-fig8"] = () => (
   <ReportFigure>
     <Panel
-      label="(a) Scenario 5, adding from an email, steps 2 and 4"
+      label="(a) Scenario 5, adding from an email"
       detail="Select the text, right-click, and the badge shows when it is ready (US-10)"
       wide
     >
       {VISUALS.rightclick()}
     </Panel>
     <Panel
-      label="(b) Scenario 6, a clash with an existing event, steps 5 and 7"
+      label="(b) Scenario 6, a clash with an existing event"
       detail="The warning offers the nearest free times (US-12)"
     >
       {VISUALS.clash()}
     </Panel>
     <Panel
-      label="(c) Scenario 7, finding a time first, steps 3 and 8"
+      label="(c) Scenario 7, finding a time first"
       detail="Pick an open slot, and the editor opens with that time filled in (US-13)"
     >
       {VISUALS.slots()}
@@ -537,8 +537,8 @@ Object.keys(VISUALS).forEach((key) => {
   };
 });
 
-// Figure 9: steps 9 and 10, the end of the flow: the extension's confirmation,
-// then the created events in each calendar.
+// Figure 9: the end of the flow: the extension's confirmation, then the created
+// events in each calendar.
 SCREENS["report-fig9"] = () => {
   const shots = [
     ["google", "Google Calendar", "Scenario 1's dinner"],
@@ -547,7 +547,7 @@ SCREENS["report-fig9"] = () => {
   return (
     <ReportFigure>
       <Panel
-        label="(a) Step 9, confirming the event"
+        label="(a) Confirming the event"
         detail="Create Event adds it to the user's calendar, and View Event opens it there (US-02)"
       >
         <Popup>
@@ -560,7 +560,7 @@ SCREENS["report-fig9"] = () => {
       {shots.map(([provider, name, scenario], index) => (
         <Panel
           key={provider}
-          label={`(${"bc"[index]}) Step 10, the event in ${name}`}
+          label={`(${"bc"[index]}) The event in ${name}`}
           detail={`${scenario}, as created (R7)`}
         >
           <img className="report-shot" src={calendarShot(provider)} alt="" />
