@@ -495,6 +495,16 @@ html.report-image body {
   border-left-width: 4px;
 }
 
+/* Keep each message's own colour: red for the error, green for success. */
+.report-toast .toast-error {
+  border-left-color: #ef4444;
+}
+
+.report-toast .toast-success {
+  border-color: #a7f3d0;
+  border-left-color: #10b981;
+}
+
 .report-toast .toast-progress-bar {
   display: none;
 }
@@ -518,4 +528,12 @@ html.report-image body {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
+}
+
+/* A real screenshot placed in a report panel, such as Figure 8(d). */
+.report-shot {
+  display: block;
+  width: 100%;
+  border: 1px solid #d9dde3;
+  border-radius: 10px;
 }

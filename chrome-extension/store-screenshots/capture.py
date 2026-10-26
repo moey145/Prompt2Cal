@@ -29,7 +29,11 @@ SITE_IMAGES = ["input", "review", "clash", "slots", "rightclick"]
 BUILD = HERE / "build"
 # Capstone report figures: labelled panel grids on white, at 2x for print.
 REPORT_DIR = EXTENSION.parent / "report" / "figures"
-REPORT_FIGURES = [("fig7_interface", "report-fig7"), ("fig8_features", "report-fig8")]
+REPORT_FIGURES = [
+    ("fig7_interface", "report-fig7"),
+    ("fig8_features", "report-fig8"),
+    ("fig9_confirmation", "report-fig9"),
+]
 # (file name, page hash, size): five screenshots and the two promo tiles.
 IMAGES = [(f"prompt2cal-screenshot-{n}", str(n), (1280, 800)) for n in range(1, 6)] + [
     ("prompt2cal-promo-small", "small", (440, 280)),
