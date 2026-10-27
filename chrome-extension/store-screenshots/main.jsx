@@ -507,7 +507,7 @@ SCREENS["report-fig7"] = () => (
 SCREENS["report-fig8"] = () => (
   <ReportFigure>
     <Panel
-      label="(a) Scenario 5, adding from an email, steps 2 and 4"
+      label="(a) Scenario 5, adding from an email, step 2"
       detail="Select the text, right-click, and the badge shows when it is ready (US-10)"
       wide
     >
