@@ -83,7 +83,7 @@ Create repeating events with natural language:
 - Your data is processed securely through our backend API
 - Google Calendar authentication uses OAuth2 (industry standard)
 - No data is stored permanently—only processed to create your events
-- Full privacy policy available at: [https://moey145.github.io/Prompt2Cal/privacy-policy.html](https://moey145.github.io/Prompt2Cal/privacy-policy.html)
+- Full privacy policy available at: [https://prompt2cal.com/privacy-policy](https://prompt2cal.com/privacy-policy)
 
 ## 🛠️ Technical Architecture
 
@@ -245,9 +245,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🔗 Links
 
-- **Chrome Web Store:** [Install Prompt2Cal](https://chrome.google.com/webstore)
-- **Homepage:** [https://moey145.github.io/Prompt2Cal/](https://moey145.github.io/Prompt2Cal/)
-- **Privacy Policy:** [https://moey145.github.io/Prompt2Cal/privacy-policy.html](https://moey145.github.io/Prompt2Cal/privacy-policy.html)
+- **Chrome Web Store:** [Install Prompt2Cal](https://chromewebstore.google.com/detail/prompt2cal-natural-langua/appgechmmibkflmhhblcnfonecomfikm)
+- **Homepage:** [https://prompt2cal.com](https://prompt2cal.com)
+- **Privacy Policy:** [https://prompt2cal.com/privacy-policy](https://prompt2cal.com/privacy-policy)
 
 ## 🙏 Acknowledgments
 
