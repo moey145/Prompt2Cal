@@ -115,23 +115,62 @@ The capstone benchmark, evaluation harness, verifier scoring, and reproduction c
 
 ## 📁 Project Structure
 
+The repository holds two things: the Prompt2Cal product (extension, backend and website) and the capstone research evaluation that compares it against a rule-based parser. Research reproduction steps are in [RESEARCH.md](RESEARCH.md).
+
 ```
 Prompt2Cal/
-├── chrome-extension/          # Chrome extension (React + Vite)
-│   ├── src/                   # React components
-│   ├── manifest.json          # Extension manifest
-│   └── dist/                  # Built extension
-├── backend/                   # FastAPI backend
-│   ├── main.py                # API endpoints
-│   ├── services/              # Parsing & calendar services
-│   └── models/                # Data models
-├── docs/                      # Documentation & website
-│   ├── index.html             # Homepage
-│   └── privacy-policy.html    # Privacy policy
-├── benchmark/                 # Research benchmark dataset & artefacts
-├── scripts/                   # Evaluation & analysis CLI scripts
-├── RESEARCH.md                # Benchmark reproduction guide (capstone)
-└── README.md                  # This file
+├── README.md                    # This file: product overview, setup and file guide
+├── RESEARCH.md                  # How to re-run and verify the capstone evaluation
+├── TEST_PROMPTS.md              # Manual test prompts for the parser
+├── requirements.txt             # Python dependencies (backend and research)
+├── run_backend.py               # Starts the backend locally
+├── Dockerfile, cloudbuild.yaml  # Backend container and Google Cloud Run deploy
+├── env.example                  # Environment variables the backend expects
+│
+├── backend/                     # Python FastAPI backend
+│   ├── main.py                  # API endpoints (parse, confirm, calendars, clashes, free slots, sign-in)
+│   ├── models/                  # Request and event data models
+│   ├── services/                # Parsing, calendar and safety logic
+│   │   ├── event_parser.py          # Orchestrates rules parser, LLM and post-checks
+│   │   ├── claude_parser.py         # Claude Sonnet 4.6 extractor (live model)
+│   │   ├── intelligent_parser.py    # Shared LLM prompt, schema and validation
+│   │   ├── rules_parser.py          # Regex rules parser
+│   │   ├── confidence.py            # Flags values not found in the user's text (Section 7.2)
+│   │   ├── date_checks.py, weekday_split.py   # Date and repeat checks on model output
+│   │   ├── calendar_service.py, microsoft_calendar_service.py   # Google and Outlook
+│   │   └── availability.py          # Clash checks and free-time search
+│   ├── evaluation/              # Research evaluation harness (Section 4, Appendix E)
+│   │   ├── models.py, normalize.py, alignment.py, metrics.py, runner.py, extractors.py
+│   │   └── verifier.py              # Source grounding verifier (Sections 4.9, 5.7)
+│   └── tests/                   # Unit tests for the backend, harness and verifier
+│
+├── benchmark/                   # Research dataset and stored results (Appendices A and D)
+│   ├── dataset.json             # 100 inputs with ground truth labels
+│   ├── inputs_catalog.py        # Source the dataset is built from
+│   ├── labelling_notes.md       # Labelling conventions (Appendix C)
+│   ├── outputs/                 # GPT-5 run: one JSON per input plus summary.json
+│   ├── outputs_claude/          # Claude Sonnet 4.6 run: one JSON per input plus summary.json
+│   ├── verifier_results.json, sensitivity_results.json, failure_taxonomy.json,
+│   │   measurement_artefacts.json   # Results behind Sections 5.3, 5.4, 5.7 and 5.9
+│   ├── RESULTS.md, APPENDIX_dataset.md/.tex   # Results write-up and dataset tables
+│   └── experiments/             # Later prompt experiments, not part of the reported results
+│
+├── scripts/                     # Command-line research tools
+│   ├── run_evaluation.py        # Runs the full benchmark (single command)
+│   ├── run_verifier.py, run_sensitivity.py, build_failure_taxonomy.py,
+│   │   check_reproducibility.py, analyse_measurement_artefacts.py   # Analyses in Section 5
+│   ├── build_benchmark_dataset.py, validate_benchmark_dataset.py, build_appendix_table.py
+│   └── make_figures.py, make_diagrams.py   # Report charts and diagrams
+│
+├── chrome-extension/            # Chrome extension (React + Vite, Manifest V3)
+│   ├── src/                     # Popup UI: components, hooks and utilities (with tests)
+│   ├── background.js            # Background parsing and the right-click menu
+│   ├── manifest.json            # Extension manifest
+│   ├── *.css                    # Popup styles
+│   └── store-screenshots/       # Generates Web Store images and report Figures 7 to 9
+│
+└── docs/                        # prompt2cal.com website (React + Vite, hosted on Vercel)
+    └── src/pages/               # Home, Support and Privacy Policy pages
 ```
 
 ## 🔧 Development

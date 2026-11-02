@@ -213,6 +213,8 @@ python scripts/build_benchmark_dataset.py   # rebuild dataset.json from inputs_c
 | Evaluation runner | `backend/evaluation/runner.py` |
 | Regex / LLM extractors | `backend/evaluation/extractors.py` |
 | CLI entry point | `scripts/run_evaluation.py` |
+| Source grounding verifier | `backend/evaluation/verifier.py` |
+| Production confidence layer | `backend/services/confidence.py` |
 | Unit tests | `backend/tests/test_verifier.py`, `backend/tests/test_confidence.py`, metric tests alongside harness |
 
 Run harness-related unit tests:
