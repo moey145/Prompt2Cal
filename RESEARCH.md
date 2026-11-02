@@ -190,13 +190,10 @@ python scripts/analyse_measurement_artefacts.py
 | `benchmark/sensitivity_results.json` | Threshold sensitivity table |
 | `benchmark/failure_taxonomy.json` | Failure-mode counts per extractor |
 | `benchmark/measurement_artefacts.json` | Consistency to the minute; sources of missing-field fabrications |
-| `benchmark/APPENDIX_dataset.md` | Human-readable dataset appendix |
-| `benchmark/APPENDIX_dataset.tex` | LaTeX appendix table |
 
-Regenerate appendix tables from the dataset:
+Rebuild the dataset from the inputs catalogue:
 
 ```bash
-python scripts/build_appendix_table.py
 python scripts/build_benchmark_dataset.py   # rebuild dataset.json from inputs_catalog.py
 ```
 

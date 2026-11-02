@@ -152,14 +152,13 @@ Prompt2Cal/
 │   ├── outputs_claude/          # Claude Sonnet 4.6 run: one JSON per input plus summary.json
 │   ├── verifier_results.json, sensitivity_results.json, failure_taxonomy.json,
 │   │   measurement_artefacts.json   # Results behind Sections 5.3, 5.4, 5.7 and 5.9
-│   ├── RESULTS.md, APPENDIX_dataset.md/.tex   # Results write-up and dataset tables
 │   └── experiments/             # Later prompt experiments, not part of the reported results
 │
 ├── scripts/                     # Command-line research tools
 │   ├── run_evaluation.py        # Runs the full benchmark (single command)
 │   ├── run_verifier.py, run_sensitivity.py, build_failure_taxonomy.py,
 │   │   check_reproducibility.py, analyse_measurement_artefacts.py   # Analyses in Section 5
-│   ├── build_benchmark_dataset.py, validate_benchmark_dataset.py, build_appendix_table.py
+│   ├── build_benchmark_dataset.py, validate_benchmark_dataset.py
 │   └── make_figures.py, make_diagrams.py   # Report charts and diagrams
 │
 ├── chrome-extension/            # Chrome extension (React + Vite, Manifest V3)
